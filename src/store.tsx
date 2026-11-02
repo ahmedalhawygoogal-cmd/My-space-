@@ -1,0 +1,796 @@
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react'
+import * as db from './db'
+import { STORES } from './db'
+import type {
+  AppSettings,
+  Card,
+  CardRating,
+  Deck,
+  Folder,
+  Lang,
+  Link,
+  Note,
+  Notebook,
+  Recording,
+  SearchHit,
+  Subject,
+  Task,
+  Theme,
+} from './types'
+import { DEFAULT_SETTINGS, SUBJECT_COLORS } from './types'
+import { includesText, now, startOfDay, stripHtml, uid } from './utils'
+
+interface StoreState {
+  ready: boolean
+  settings: AppSettings
+  subjects: Subject[]
+  folders: Folder[]
+  recordings: Recording[]
+  decks: Deck[]
+  cards: Card[]
+  tasks: Task[]
+  notebooks: Notebook[]
+  notes: Note[]
+  links: Link[]
+}
+
+interface StoreApi extends StoreState {
+  lang: Lang
+  theme: Theme
+  resolvedTheme: 'light' | 'dark'
+  setSettings: (p: Partial<AppSettings>) => Promise<void>
+  addSubject: (name: string, color?: string) => Promise<Subject>
+  updateSubject: (id: string, p: Partial<Subject>) => Promise<void>
+  deleteSubject: (id: string) => Promise<void>
+  addFolder: (name: string, kind: Folder['kind'], subjectId?: string) => Promise<Folder>
+  updateFolder: (id: string, p: Partial<Folder>) => Promise<void>
+  deleteFolder: (id: string) => Promise<void>
+  addRecording: (rec: Omit<Recording, 'id' | 'createdAt' | 'updatedAt' | 'noteIds' | 'tags' | 'description'> & Partial<Recording>, blob: Blob) => Promise<Recording>
+  updateRecording: (id: string, p: Partial<Recording>) => Promise<void>
+  deleteRecording: (id: string) => Promise<void>
+  getAudioBlob: (id: string) => Promise<Blob | undefined>
+  addDeck: (name: string, extra?: Partial<Deck>) => Promise<Deck>
+  updateDeck: (id: string, p: Partial<Deck>) => Promise<void>
+  deleteDeck: (id: string) => Promise<void>
+  addCard: (deckId: string, data: Partial<Card> & { front: string; back: string }) => Promise<Card>
+  updateCard: (id: string, p: Partial<Card>) => Promise<void>
+  deleteCard: (id: string) => Promise<void>
+  duplicateCard: (id: string) => Promise<Card | undefined>
+  rateCard: (id: string, rating: CardRating) => Promise<void>
+  addTask: (data: Partial<Task> & { title: string }) => Promise<Task>
+  updateTask: (id: string, p: Partial<Task>) => Promise<void>
+  toggleTask: (id: string) => Promise<void>
+  deleteTask: (id: string) => Promise<void>
+  addNotebook: (name: string, extra?: Partial<Notebook>) => Promise<Notebook>
+  updateNotebook: (id: string, p: Partial<Notebook>) => Promise<void>
+  deleteNotebook: (id: string) => Promise<void>
+  addNote: (notebookId: string, extra?: Partial<Note>) => Promise<Note>
+  updateNote: (id: string, p: Partial<Note>) => Promise<void>
+  deleteNote: (id: string) => Promise<void>
+  linkEntities: (fromType: Link['fromType'], fromId: string, toType: Link['toType'], toId: string) => Promise<void>
+  unlinkEntities: (fromType: Link['fromType'], fromId: string, toType: Link['toType'], toId: string) => Promise<void>
+  search: (q: string) => SearchHit[]
+  reload: () => Promise<void>
+  importData: (snap: db.Snapshot) => Promise<void>
+  markBackup: () => Promise<void>
+}
+
+const StoreContext = createContext<StoreApi | null>(null)
+
+function applyTheme(theme: Theme) {
+  const dark =
+    theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+  document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
+  const meta = document.querySelector('meta[name="theme-color"]')
+  if (meta) meta.setAttribute('content', dark ? '#121614' : '#0F6E6B')
+}
+
+function applyLang(lang: Lang) {
+  document.documentElement.lang = lang
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
+}
+
+async function seedIfEmpty(): Promise<void> {
+  const subjects = await db.getAll<Subject>(STORES.subjects)
+  const notebooks = await db.getAll<Notebook>(STORES.notebooks)
+  const t = now()
+  if (subjects.length === 0) {
+    const defaults: Subject[] = [
+      { id: uid(), name: 'English', color: SUBJECT_COLORS[0], icon: 'book', createdAt: t, updatedAt: t },
+      { id: uid(), name: 'عربي', color: SUBJECT_COLORS[1], icon: 'pen', createdAt: t, updatedAt: t },
+      { id: uid(), name: 'Study', color: SUBJECT_COLORS[3], icon: 'graduation', createdAt: t, updatedAt: t },
+    ]
+    await db.putMany(STORES.subjects, defaults)
+  }
+  if (notebooks.length === 0) {
+    await db.putOne<Notebook>(STORES.notebooks, {
+      id: uid(),
+      name: 'Inbox',
+      color: SUBJECT_COLORS[0],
+      createdAt: t,
+      updatedAt: t,
+    })
+  }
+}
+
+function schedule(card: Card, rating: CardRating): Card {
+  const t = now()
+  let { ease, interval, repetitions, lapses, status } = card
+  ease = ease || 2.5
+  if (rating === 'again') {
+    repetitions = 0
+    interval = 0
+    ease = Math.max(1.3, ease - 0.2)
+    lapses += 1
+    status = 'learning'
+    return { ...card, ease, interval, repetitions, lapses, status, dueAt: t + 10 * 60 * 1000, updatedAt: t }
+  }
+  if (rating === 'hard') {
+    interval = Math.max(1, Math.round(interval * 1.2) || 1)
+    ease = Math.max(1.3, ease - 0.15)
+    repetitions += 1
+    status = 'review'
+  } else if (rating === 'good') {
+    if (repetitions === 0) interval = 1
+    else if (repetitions === 1) interval = 6
+    else interval = Math.round(interval * ease)
+    repetitions += 1
+    status = repetitions >= 3 ? 'learned' : 'review'
+  } else {
+    if (repetitions === 0) interval = 4
+    else interval = Math.round(interval * ease * 1.3)
+    ease += 0.15
+    repetitions += 1
+    status = 'learned'
+  }
+  return {
+    ...card,
+    ease,
+    interval,
+    repetitions,
+    lapses,
+    status,
+    dueAt: startOfDay(t) + interval * 24 * 60 * 60 * 1000,
+    updatedAt: t,
+  }
+}
+
+export function StoreProvider({ children }: { children: ReactNode }) {
+  const [state, setState] = useState<StoreState>({
+    ready: false,
+    settings: DEFAULT_SETTINGS,
+    subjects: [],
+    folders: [],
+    recordings: [],
+    decks: [],
+    cards: [],
+    tasks: [],
+    notebooks: [],
+    notes: [],
+    links: [],
+  })
+
+  const reload = useCallback(async () => {
+    await seedIfEmpty()
+    const [settings, subjects, folders, recordings, decks, cards, tasks, notebooks, notes, links] =
+      await Promise.all([
+        db.loadSettings(),
+        db.getAll<Subject>(STORES.subjects),
+        db.getAll<Folder>(STORES.folders),
+        db.getAll<Recording>(STORES.recordings),
+        db.getAll<Deck>(STORES.decks),
+        db.getAll<Card>(STORES.cards),
+        db.getAll<Task>(STORES.tasks),
+        db.getAll<Notebook>(STORES.notebooks),
+        db.getAll<Note>(STORES.notes),
+        db.getAll<Link>(STORES.links),
+      ])
+    setState({
+      ready: true,
+      settings,
+      subjects,
+      folders,
+      recordings,
+      decks,
+      cards,
+      tasks,
+      notebooks,
+      notes,
+      links,
+    })
+    applyLang(settings.language)
+    applyTheme(settings.theme)
+  }, [])
+
+  useEffect(() => {
+    void reload()
+  }, [reload])
+
+  useEffect(() => {
+    if (!state.ready) return
+    applyLang(state.settings.language)
+    applyTheme(state.settings.theme)
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const onChange = () => {
+      if (state.settings.theme === 'system') applyTheme('system')
+    }
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [state.ready, state.settings.language, state.settings.theme])
+
+  const patchList = useCallback(<T extends { id: string }>(key: keyof StoreState, id: string, p: Partial<T>) => {
+    setState((s) => ({
+      ...s,
+      [key]: (s[key] as unknown as T[]).map((x) => (x.id === id ? { ...x, ...p } : x)),
+    }))
+  }, [])
+
+  const setSettings = useCallback(async (p: Partial<AppSettings>) => {
+    const next = { ...state.settings, ...p }
+    await db.saveSettings(next)
+    setState((s) => ({ ...s, settings: next }))
+    if (p.language) applyLang(p.language)
+    if (p.theme) applyTheme(p.theme)
+  }, [state.settings])
+
+  const addSubject = useCallback(async (name: string, color?: string) => {
+    const t = now()
+    const item: Subject = {
+      id: uid(),
+      name,
+      color: color ?? SUBJECT_COLORS[state.subjects.length % SUBJECT_COLORS.length],
+      icon: 'book',
+      createdAt: t,
+      updatedAt: t,
+    }
+    await db.putOne(STORES.subjects, item)
+    setState((s) => ({ ...s, subjects: [...s.subjects, item] }))
+    return item
+  }, [state.subjects.length])
+
+  const updateSubject = useCallback(async (id: string, p: Partial<Subject>) => {
+    const cur = state.subjects.find((x) => x.id === id)
+    if (!cur) return
+    const next = { ...cur, ...p, updatedAt: now() }
+    await db.putOne(STORES.subjects, next)
+    patchList('subjects', id, next)
+  }, [state.subjects, patchList])
+
+  const deleteSubject = useCallback(async (id: string) => {
+    await db.deleteById(STORES.subjects, id)
+    setState((s) => ({ ...s, subjects: s.subjects.filter((x) => x.id !== id) }))
+  }, [])
+
+  const addFolder = useCallback(async (name: string, kind: Folder['kind'], subjectId?: string) => {
+    const t = now()
+    const item: Folder = { id: uid(), name, kind, subjectId, createdAt: t, updatedAt: t }
+    await db.putOne(STORES.folders, item)
+    setState((s) => ({ ...s, folders: [...s.folders, item] }))
+    return item
+  }, [])
+
+  const updateFolder = useCallback(async (id: string, p: Partial<Folder>) => {
+    const cur = state.folders.find((x) => x.id === id)
+    if (!cur) return
+    const next = { ...cur, ...p, updatedAt: now() }
+    await db.putOne(STORES.folders, next)
+    patchList('folders', id, next)
+  }, [state.folders, patchList])
+
+  const deleteFolder = useCallback(async (id: string) => {
+    await db.deleteById(STORES.folders, id)
+    setState((s) => ({ ...s, folders: s.folders.filter((x) => x.id !== id) }))
+  }, [])
+
+  const addRecording = useCallback(
+    async (
+      rec: Omit<Recording, 'id' | 'createdAt' | 'updatedAt' | 'noteIds' | 'tags' | 'description'> & Partial<Recording>,
+      blob: Blob,
+    ) => {
+      const t = now()
+      const item: Recording = {
+        id: uid(),
+        name: rec.name,
+        durationMs: rec.durationMs,
+        mimeType: rec.mimeType,
+        sizeBytes: rec.sizeBytes ?? blob.size,
+        folderId: rec.folderId,
+        subjectId: rec.subjectId,
+        description: rec.description ?? '',
+        tags: rec.tags ?? [],
+        noteIds: rec.noteIds ?? [],
+        createdAt: t,
+        updatedAt: t,
+      }
+      await db.putOne(STORES.recordings, item)
+      await db.putOne(STORES.audioBlobs, { id: item.id, blob })
+      setState((s) => ({ ...s, recordings: [item, ...s.recordings] }))
+      return item
+    },
+    [],
+  )
+
+  const updateRecording = useCallback(async (id: string, p: Partial<Recording>) => {
+    const cur = state.recordings.find((x) => x.id === id)
+    if (!cur) return
+    const next = { ...cur, ...p, updatedAt: now() }
+    await db.putOne(STORES.recordings, next)
+    patchList('recordings', id, next)
+  }, [state.recordings, patchList])
+
+  const deleteRecording = useCallback(async (id: string) => {
+    await db.deleteById(STORES.recordings, id)
+    await db.deleteById(STORES.audioBlobs, id)
+    setState((s) => ({
+      ...s,
+      recordings: s.recordings.filter((x) => x.id !== id),
+      notes: s.notes.map((n) =>
+        n.recordingIds.includes(id) ? { ...n, recordingIds: n.recordingIds.filter((r) => r !== id) } : n,
+      ),
+    }))
+  }, [])
+
+  const getAudioBlob = useCallback(async (id: string) => {
+    const row = await db.getById<{ id: string; blob: Blob }>(STORES.audioBlobs, id)
+    return row?.blob
+  }, [])
+
+  const addDeck = useCallback(async (name: string, extra?: Partial<Deck>) => {
+    const t = now()
+    const item: Deck = {
+      id: uid(),
+      name,
+      description: extra?.description ?? '',
+      subjectId: extra?.subjectId,
+      tags: extra?.tags ?? [],
+      noteId: extra?.noteId,
+      createdAt: t,
+      updatedAt: t,
+    }
+    await db.putOne(STORES.decks, item)
+    setState((s) => ({ ...s, decks: [...s.decks, item] }))
+    return item
+  }, [])
+
+  const updateDeck = useCallback(async (id: string, p: Partial<Deck>) => {
+    const cur = state.decks.find((x) => x.id === id)
+    if (!cur) return
+    const next = { ...cur, ...p, updatedAt: now() }
+    await db.putOne(STORES.decks, next)
+    patchList('decks', id, next)
+  }, [state.decks, patchList])
+
+  const deleteDeck = useCallback(async (id: string) => {
+    const cardIds = state.cards.filter((c) => c.deckId === id).map((c) => c.id)
+    await db.deleteById(STORES.decks, id)
+    await Promise.all(cardIds.map((cid) => db.deleteById(STORES.cards, cid)))
+    setState((s) => ({
+      ...s,
+      decks: s.decks.filter((d) => d.id !== id),
+      cards: s.cards.filter((c) => c.deckId !== id),
+    }))
+  }, [state.cards])
+
+  const addCard = useCallback(async (deckId: string, data: Partial<Card> & { front: string; back: string }) => {
+    const t = now()
+    const item: Card = {
+      id: uid(),
+      deckId,
+      front: data.front,
+      back: data.back,
+      translation: data.translation ?? '',
+      definition: data.definition ?? '',
+      example: data.example ?? '',
+      explanation: data.explanation ?? '',
+      imageDataUrl: data.imageDataUrl,
+      status: 'new',
+      ease: 2.5,
+      interval: 0,
+      repetitions: 0,
+      dueAt: t,
+      lapses: 0,
+      createdAt: t,
+      updatedAt: t,
+    }
+    await db.putOne(STORES.cards, item)
+    setState((s) => ({ ...s, cards: [...s.cards, item] }))
+    return item
+  }, [])
+
+  const updateCard = useCallback(async (id: string, p: Partial<Card>) => {
+    const cur = state.cards.find((x) => x.id === id)
+    if (!cur) return
+    const next = { ...cur, ...p, updatedAt: now() }
+    await db.putOne(STORES.cards, next)
+    patchList('cards', id, next)
+  }, [state.cards, patchList])
+
+  const deleteCard = useCallback(async (id: string) => {
+    await db.deleteById(STORES.cards, id)
+    setState((s) => ({ ...s, cards: s.cards.filter((c) => c.id !== id) }))
+  }, [])
+
+  const duplicateCard = useCallback(async (id: string) => {
+    const cur = state.cards.find((x) => x.id === id)
+    if (!cur) return
+    return addCard(cur.deckId, {
+      front: cur.front,
+      back: cur.back,
+      translation: cur.translation,
+      definition: cur.definition,
+      example: cur.example,
+      explanation: cur.explanation,
+      imageDataUrl: cur.imageDataUrl,
+    })
+  }, [state.cards, addCard])
+
+  const rateCard = useCallback(async (id: string, rating: CardRating) => {
+    const cur = state.cards.find((x) => x.id === id)
+    if (!cur) return
+    const next = schedule(cur, rating)
+    await db.putOne(STORES.cards, next)
+    patchList('cards', id, next)
+    const key = 'myspace-streak'
+    const raw = localStorage.getItem(key)
+    const today = startOfDay()
+    let days = 1
+    let last = today
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as { days: number; last: number }
+        if (parsed.last === today) {
+          days = parsed.days
+          last = parsed.last
+        } else if (parsed.last === today - 86400000) {
+          days = parsed.days + 1
+        }
+      } catch {
+        days = 1
+      }
+    }
+    localStorage.setItem(key, JSON.stringify({ days, last }))
+  }, [state.cards, patchList])
+
+  const addTask = useCallback(async (data: Partial<Task> & { title: string }) => {
+    const t = now()
+    const item: Task = {
+      id: uid(),
+      title: data.title,
+      description: data.description ?? '',
+      completed: false,
+      priority: data.priority ?? 'medium',
+      startDate: data.startDate,
+      dueDate: data.dueDate,
+      category: data.category ?? '',
+      subjectId: data.subjectId,
+      noteId: data.noteId,
+      recordingId: data.recordingId,
+      deckId: data.deckId,
+      parentId: data.parentId,
+      recurring: data.recurring ?? 'none',
+      subtasks: data.subtasks ?? [],
+      createdAt: t,
+      updatedAt: t,
+    }
+    await db.putOne(STORES.tasks, item)
+    setState((s) => ({ ...s, tasks: [item, ...s.tasks] }))
+    return item
+  }, [])
+
+  const updateTask = useCallback(async (id: string, p: Partial<Task>) => {
+    const cur = state.tasks.find((x) => x.id === id)
+    if (!cur) return
+    const next = { ...cur, ...p, updatedAt: now() }
+    await db.putOne(STORES.tasks, next)
+    patchList('tasks', id, next)
+  }, [state.tasks, patchList])
+
+  const toggleTask = useCallback(async (id: string) => {
+    const cur = state.tasks.find((x) => x.id === id)
+    if (!cur) return
+    const completed = !cur.completed
+    const t = now()
+    const next: Task = { ...cur, completed, completedAt: completed ? t : undefined, updatedAt: t }
+    await db.putOne(STORES.tasks, next)
+    patchList('tasks', id, next)
+    if (completed && cur.recurring !== 'none') {
+      const delta = cur.recurring === 'daily' ? 86400000 : 7 * 86400000
+      await addTask({
+        title: cur.title,
+        description: cur.description,
+        priority: cur.priority,
+        startDate: cur.startDate ? cur.startDate + delta : undefined,
+        dueDate: cur.dueDate ? cur.dueDate + delta : t + delta,
+        category: cur.category,
+        subjectId: cur.subjectId,
+        noteId: cur.noteId,
+        recordingId: cur.recordingId,
+        deckId: cur.deckId,
+        recurring: cur.recurring,
+        subtasks: cur.subtasks.map((st) => ({ ...st, id: uid(), completed: false })),
+      })
+    }
+  }, [state.tasks, patchList, addTask])
+
+  const deleteTask = useCallback(async (id: string) => {
+    await db.deleteById(STORES.tasks, id)
+    setState((s) => ({ ...s, tasks: s.tasks.filter((x) => x.id !== id) }))
+  }, [])
+
+  const addNotebook = useCallback(async (name: string, extra?: Partial<Notebook>) => {
+    const t = now()
+    const item: Notebook = {
+      id: uid(),
+      name,
+      color: extra?.color ?? SUBJECT_COLORS[state.notebooks.length % SUBJECT_COLORS.length],
+      subjectId: extra?.subjectId,
+      createdAt: t,
+      updatedAt: t,
+    }
+    await db.putOne(STORES.notebooks, item)
+    setState((s) => ({ ...s, notebooks: [...s.notebooks, item] }))
+    return item
+  }, [state.notebooks.length])
+
+  const updateNotebook = useCallback(async (id: string, p: Partial<Notebook>) => {
+    const cur = state.notebooks.find((x) => x.id === id)
+    if (!cur) return
+    const next = { ...cur, ...p, updatedAt: now() }
+    await db.putOne(STORES.notebooks, next)
+    patchList('notebooks', id, next)
+  }, [state.notebooks, patchList])
+
+  const deleteNotebook = useCallback(async (id: string) => {
+    const noteIds = state.notes.filter((n) => n.notebookId === id).map((n) => n.id)
+    await db.deleteById(STORES.notebooks, id)
+    await Promise.all(noteIds.map((nid) => db.deleteById(STORES.notes, nid)))
+    setState((s) => ({
+      ...s,
+      notebooks: s.notebooks.filter((n) => n.id !== id),
+      notes: s.notes.filter((n) => n.notebookId !== id),
+    }))
+  }, [state.notes])
+
+  const addNote = useCallback(async (notebookId: string, extra?: Partial<Note>) => {
+    const t = now()
+    const item: Note = {
+      id: uid(),
+      notebookId,
+      folderId: extra?.folderId,
+      title: extra?.title ?? '',
+      content: extra?.content ?? '',
+      tags: extra?.tags ?? [],
+      pinned: extra?.pinned ?? false,
+      subjectId: extra?.subjectId,
+      recordingIds: extra?.recordingIds ?? [],
+      taskIds: extra?.taskIds ?? [],
+      attachments: extra?.attachments ?? [],
+      createdAt: t,
+      updatedAt: t,
+    }
+    await db.putOne(STORES.notes, item)
+    setState((s) => ({ ...s, notes: [item, ...s.notes] }))
+    return item
+  }, [])
+
+  const updateNote = useCallback(async (id: string, p: Partial<Note>) => {
+    const cur = state.notes.find((x) => x.id === id)
+    if (!cur) return
+    const next = { ...cur, ...p, updatedAt: now() }
+    await db.putOne(STORES.notes, next)
+    patchList('notes', id, next)
+  }, [state.notes, patchList])
+
+  const deleteNote = useCallback(async (id: string) => {
+    await db.deleteById(STORES.notes, id)
+    setState((s) => ({ ...s, notes: s.notes.filter((n) => n.id !== id) }))
+  }, [])
+
+  const linkEntities = useCallback(
+    async (fromType: Link['fromType'], fromId: string, toType: Link['toType'], toId: string) => {
+      const item: Link = { id: uid(), fromType, fromId, toType, toId, createdAt: now() }
+      await db.putOne(STORES.links, item)
+      setState((s) => ({ ...s, links: [...s.links, item] }))
+      if (fromType === 'recording' && toType === 'note') {
+        const rec = state.recordings.find((r) => r.id === fromId)
+        const note = state.notes.find((n) => n.id === toId)
+        if (rec && !rec.noteIds.includes(toId)) await updateRecording(fromId, { noteIds: [...rec.noteIds, toId] })
+        if (note && !note.recordingIds.includes(fromId))
+          await updateNote(toId, { recordingIds: [...note.recordingIds, fromId] })
+      }
+      if (fromType === 'note' && toType === 'recording') {
+        const rec = state.recordings.find((r) => r.id === toId)
+        const note = state.notes.find((n) => n.id === fromId)
+        if (rec && !rec.noteIds.includes(fromId)) await updateRecording(toId, { noteIds: [...rec.noteIds, fromId] })
+        if (note && !note.recordingIds.includes(toId))
+          await updateNote(fromId, { recordingIds: [...note.recordingIds, toId] })
+      }
+      if (fromType === 'task' && toType === 'note') {
+        await updateTask(fromId, { noteId: toId })
+        const note = state.notes.find((n) => n.id === toId)
+        if (note && !note.taskIds.includes(fromId)) await updateNote(toId, { taskIds: [...note.taskIds, fromId] })
+      }
+    },
+    [state.recordings, state.notes, updateRecording, updateNote, updateTask],
+  )
+
+  const unlinkEntities = useCallback(
+    async (fromType: Link['fromType'], fromId: string, toType: Link['toType'], toId: string) => {
+      const found = state.links.filter(
+        (l) =>
+          (l.fromType === fromType && l.fromId === fromId && l.toType === toType && l.toId === toId) ||
+          (l.fromType === toType && l.fromId === toId && l.toType === fromType && l.toId === fromId),
+      )
+      await Promise.all(found.map((l) => db.deleteById(STORES.links, l.id)))
+      setState((s) => ({ ...s, links: s.links.filter((l) => !found.some((f) => f.id === l.id)) }))
+    },
+    [state.links],
+  )
+
+  const search = useCallback(
+    (q: string): SearchHit[] => {
+      const needle = q.trim()
+      if (!needle) return []
+      const hits: SearchHit[] = []
+      for (const r of state.recordings) {
+        if (includesText(r.name, needle) || includesText(r.description, needle) || r.tags.some((tg) => includesText(tg, needle))) {
+          hits.push({ type: 'recording', id: r.id, title: r.name, snippet: r.description, extra: 'recording' })
+        }
+      }
+      for (const n of state.notes) {
+        const plain = stripHtml(n.content)
+        if (includesText(n.title, needle) || includesText(plain, needle) || n.tags.some((tg) => includesText(tg, needle))) {
+          hits.push({ type: 'note', id: n.id, title: n.title || '—', snippet: plain, extra: 'note' })
+        }
+      }
+      for (const tk of state.tasks) {
+        if (includesText(tk.title, needle) || includesText(tk.description, needle) || includesText(tk.category, needle)) {
+          hits.push({ type: 'task', id: tk.id, title: tk.title, snippet: tk.description, extra: 'task' })
+        }
+      }
+      for (const c of state.cards) {
+        if (
+          includesText(c.front, needle) ||
+          includesText(c.back, needle) ||
+          includesText(c.translation, needle) ||
+          includesText(c.definition, needle)
+        ) {
+          hits.push({ type: 'card', id: c.id, title: c.front, snippet: c.back, extra: 'card' })
+        }
+      }
+      for (const d of state.decks) {
+        if (includesText(d.name, needle) || includesText(d.description, needle)) {
+          hits.push({ type: 'deck', id: d.id, title: d.name, snippet: d.description, extra: 'deck' })
+        }
+      }
+      for (const s of state.subjects) {
+        if (includesText(s.name, needle)) {
+          hits.push({ type: 'subject', id: s.id, title: s.name, snippet: '', extra: 'subject' })
+        }
+      }
+      return hits
+    },
+    [state],
+  )
+
+  const importData = useCallback(async (snap: db.Snapshot) => {
+    await db.importSnapshot(snap)
+    await reload()
+  }, [reload])
+
+  const markBackup = useCallback(async () => {
+    await setSettings({ lastBackupAt: now() })
+  }, [setSettings])
+
+  const resolvedTheme: 'light' | 'dark' =
+    state.settings.theme === 'dark' ||
+    (state.settings.theme === 'system' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches)
+      ? 'dark'
+      : state.settings.theme === 'light'
+        ? 'light'
+        : typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light'
+
+  const api = useMemo<StoreApi>(
+    () => ({
+      ...state,
+      lang: state.settings.language,
+      theme: state.settings.theme,
+      resolvedTheme,
+      setSettings,
+      addSubject,
+      updateSubject,
+      deleteSubject,
+      addFolder,
+      updateFolder,
+      deleteFolder,
+      addRecording,
+      updateRecording,
+      deleteRecording,
+      getAudioBlob,
+      addDeck,
+      updateDeck,
+      deleteDeck,
+      addCard,
+      updateCard,
+      deleteCard,
+      duplicateCard,
+      rateCard,
+      addTask,
+      updateTask,
+      toggleTask,
+      deleteTask,
+      addNotebook,
+      updateNotebook,
+      deleteNotebook,
+      addNote,
+      updateNote,
+      deleteNote,
+      linkEntities,
+      unlinkEntities,
+      search,
+      reload,
+      importData,
+      markBackup,
+    }),
+    [
+      state,
+      resolvedTheme,
+      setSettings,
+      addSubject,
+      updateSubject,
+      deleteSubject,
+      addFolder,
+      updateFolder,
+      deleteFolder,
+      addRecording,
+      updateRecording,
+      deleteRecording,
+      getAudioBlob,
+      addDeck,
+      updateDeck,
+      deleteDeck,
+      addCard,
+      updateCard,
+      deleteCard,
+      duplicateCard,
+      rateCard,
+      addTask,
+      updateTask,
+      toggleTask,
+      deleteTask,
+      addNotebook,
+      updateNotebook,
+      deleteNotebook,
+      addNote,
+      updateNote,
+      deleteNote,
+      linkEntities,
+      unlinkEntities,
+      search,
+      reload,
+      importData,
+      markBackup,
+    ],
+  )
+
+  return <StoreContext.Provider value={api}>{children}</StoreContext.Provider>
+}
+
+export function useStore(): StoreApi {
+  const ctx = useContext(StoreContext)
+  if (!ctx) throw new Error('useStore outside provider')
+  return ctx
+}

@@ -1,11 +1,29 @@
-<div align="center">
+# MySpace
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+Personal study and productivity workspace. One app for recordings, flashcards, tasks, and notes — with Arabic-first RTL, offline storage, and real links between modules.
 
-  <h1>Built with AI Studio</h2>
+## Features
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+- Voice recorder with pause/resume, waveform, folders, and playback
+- Flashcards with spaced repetition, test mode, and decks
+- Tasks with checklists, priorities, recurrence, and views
+- Notebook with autosave, formatting, attachments, and pins
+- Cross-module links (recording ↔ note ↔ task ↔ deck)
+- Global search, subjects, dark/light theme, AR/EN
+- IndexedDB persistence, backup/restore, PWA offline support
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## Run
 
-</div>
+```bash
+npm install
+npm run dev
+```
+
+## Build
+
+```bash
+npm run build
+npm run preview
+```
+
+Data stays on the device. No account is required.
