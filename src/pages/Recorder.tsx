@@ -172,10 +172,29 @@ export function LiveRecordPage() {
   async function start() {
     setError('')
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } })
+      const stereo = {
+        channelCount: 2,
+        noiseSuppression: true,
+        echoCancellation: true,
+        autoGainControl: true,
+        sampleRate: 48000,
+      } as const
+      let stream: MediaStream
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: stereo })
+      } catch {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      }
       streamRef.current = stream
       const mime = pickMime()
-      const rec = mime ? new MediaRecorder(stream, { mimeType: mime, audioBitsPerSecond: 128000 }) : new MediaRecorder(stream)
+      const recOpts: MediaRecorderOptions = { audioBitsPerSecond: 256000 }
+      if (mime) recOpts.mimeType = mime
+      let rec: MediaRecorder
+      try {
+        rec = new MediaRecorder(stream, recOpts)
+      } catch {
+        rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream)
+      }
       chunks.current = []
       rec.ondataavailable = (e) => {
         if (e.data.size) chunks.current.push(e.data)

@@ -4,6 +4,7 @@ import { Confirm, Segment, Toast, useT } from '../ui'
 import { downloadBlob, formatDateTime } from '../utils'
 import { exportSnapshot, type Snapshot } from '../db'
 import type { Lang, Theme } from '../types'
+import { getNative } from '../native'
 
 export default function SettingsPage() {
   const tr = useT()
@@ -56,6 +57,39 @@ export default function SettingsPage() {
           { id: '3', label: '3' },
           { id: '5', label: '5' },
         ]}
+      />
+      <label className="label">{tr('cardReminders')}</label>
+      <Segment
+        value={settings.cardReminders ? 'on' : 'off'}
+        onChange={(v) => {
+          void (async () => {
+            if (v === 'on') {
+              const native = await getNative()
+              if (native) {
+                const ok = await native.requestNotify()
+                if (!ok) {
+                  setToast(tr('notifyDenied'))
+                  return
+                }
+              }
+            }
+            await setSettings({ cardReminders: v === 'on' })
+          })()
+        }}
+        options={[
+          { id: 'on', label: tr('on') },
+          { id: 'off', label: tr('off') },
+        ]}
+      />
+      <label className="label">{tr('reminderTime')}</label>
+      <input
+        className="field"
+        type="time"
+        value={`${String(settings.reminderHour ?? 9).padStart(2, '0')}:${String(settings.reminderMinute ?? 0).padStart(2, '0')}`}
+        onChange={(e) => {
+          const [h, m] = e.target.value.split(':').map(Number)
+          void setSettings({ reminderHour: h ?? 9, reminderMinute: m ?? 0 })
+        }}
       />
       <h3 style={{ marginBottom: 0 }}>{tr('subjects')}</h3>
       {subjects.map((s) => (

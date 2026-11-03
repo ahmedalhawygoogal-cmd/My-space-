@@ -262,6 +262,13 @@ const ar = {
   removeImage: 'إزالة الصورة',
   editCard: 'تعديل البطاقة',
   noSpeech: 'النطق غير متاح على هذا الجهاز',
+  cardReminders: 'تذكير البطاقات',
+  reminderTime: 'وقت التذكير',
+  reminderTitle: 'وقت المراجعة',
+  reminderBody: 'لديك {n} بطاقات للمراجعة',
+  notifyDenied: 'لم يُسمح بالإشعارات',
+  on: 'تشغيل',
+  off: 'إيقاف',
 }
 
 const en: Record<keyof typeof ar, string> = {
@@ -526,6 +533,13 @@ const en: Record<keyof typeof ar, string> = {
   removeImage: 'Remove image',
   editCard: 'Edit card',
   noSpeech: 'Speech is not available on this device',
+  cardReminders: 'Flashcard reminders',
+  reminderTime: 'Reminder time',
+  reminderTitle: 'Review time',
+  reminderBody: 'You have {n} cards to review',
+  notifyDenied: 'Notifications were not allowed',
+  on: 'On',
+  off: 'Off',
 }
 
 export type I18nKey = keyof typeof ar

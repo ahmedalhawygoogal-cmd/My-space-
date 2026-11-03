@@ -1,7 +1,5 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { App as CapApp } from '@capacitor/app'
-import { Capacitor } from '@capacitor/core'
 import { Layout, Splash } from './layout'
 import { StoreProvider, useStore } from './store'
 import HomePage from './pages/Home'
@@ -19,21 +17,56 @@ import TasksPage, { TaskDetailPage } from './pages/Tasks'
 import NotebookPage, { NoteEditorPage } from './pages/Notebook'
 import SearchPage from './pages/Search'
 import SettingsPage from './pages/Settings'
+import { getNative } from './native'
+import { t } from './i18n'
 
 function NativeBack() {
   useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return
-    const sub = CapApp.addListener('backButton', ({ canGoBack }) => {
-      if (canGoBack && window.location.pathname !== '/') {
-        window.history.back()
-        return
-      }
-      void CapApp.exitApp()
+    let alive = true
+    let remove: (() => void) | undefined
+    void getNative().then((native) => {
+      if (!native || !alive) return
+      void native
+        .onBack((canGoBack) => {
+          if (canGoBack && window.location.pathname !== '/') {
+            window.history.back()
+            return
+          }
+          void native.exitApp()
+        })
+        .then((fn) => {
+          if (!alive) {
+            fn()
+            return
+          }
+          remove = fn
+        })
     })
     return () => {
-      void sub.then((h) => h.remove())
+      alive = false
+      remove?.()
     }
   }, [])
+  return null
+}
+
+function CardReminders() {
+  const { ready, cards, settings } = useStore()
+  useEffect(() => {
+    if (!ready) return
+    const due = cards.filter((c) => c.dueAt <= Date.now()).length
+    void getNative().then((native) => {
+      if (!native) return
+      void native.syncCardReminders({
+        count: due,
+        title: t(settings.language, 'reminderTitle'),
+        body: t(settings.language, 'reminderBody', { n: due }),
+        hour: settings.reminderHour ?? 9,
+        minute: settings.reminderMinute ?? 0,
+        enabled: !!settings.cardReminders,
+      })
+    })
+  }, [ready, cards, settings.cardReminders, settings.reminderHour, settings.reminderMinute, settings.language])
   return null
 }
 
@@ -72,6 +105,7 @@ export default function App() {
     <StoreProvider>
       <BrowserRouter>
         <NativeBack />
+        <CardReminders />
         <Gate />
       </BrowserRouter>
     </StoreProvider>

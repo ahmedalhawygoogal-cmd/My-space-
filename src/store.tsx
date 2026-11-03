@@ -268,8 +268,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ...deckWrites.map((d) => db.putOne(STORES.decks, d)),
       ...cardWrites.map((c) => db.putOne(STORES.cards, c)),
     ])
-    const settingsN = { ...settings, speakRepeats: settings.speakRepeats ?? 1 }
-    if (settings.speakRepeats == null) await db.saveSettings(settingsN)
+    const settingsN = {
+      ...settings,
+      speakRepeats: settings.speakRepeats ?? 1,
+      cardReminders: settings.cardReminders ?? false,
+      reminderHour: settings.reminderHour ?? 9,
+      reminderMinute: settings.reminderMinute ?? 0,
+    }
+    if (
+      settings.speakRepeats == null ||
+      settings.cardReminders == null ||
+      settings.reminderHour == null ||
+      settings.reminderMinute == null
+    ) {
+      await db.saveSettings(settingsN)
+    }
     setState({
       ready: true,
       settings: settingsN,

@@ -155,6 +155,9 @@ export interface AppSettings {
   userName: string
   lastBackupAt?: number
   speakRepeats: 1 | 2 | 3 | 5
+  cardReminders: boolean
+  reminderHour: number
+  reminderMinute: number
 }
 
 export interface SearchHit {
@@ -170,6 +173,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'system',
   userName: '',
   speakRepeats: 1,
+  cardReminders: false,
+  reminderHour: 9,
+  reminderMinute: 0,
 }
 
 export const LEARN_LANGS: { code: string; ar: string; en: string }[] = [

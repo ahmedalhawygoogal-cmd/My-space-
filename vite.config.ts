@@ -1,13 +1,18 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, type PluginOption } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig({
-  plugins: [
-    react(),
+const native = process.env.CAPACITOR === '1'
+const root = path.dirname(fileURLToPath(import.meta.url))
+
+const plugins: PluginOption[] = [react()]
+if (!native) {
+  plugins.push(
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.svg'],
       manifest: {
         name: 'MySpace',
         short_name: 'MySpace',
@@ -41,7 +46,7 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            urlPattern: /^https:\/\/fonts\.gstatic.com\/.*/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'google-fonts-webfonts',
@@ -51,7 +56,24 @@ export default defineConfig({
         ],
       },
     }),
-  ],
+  )
+}
+
+export default defineConfig({
+  plugins,
+  resolve: native
+    ? {
+        alias: {
+          'virtual:pwa-register': path.join(root, 'src/pwa-register-stub.ts'),
+        },
+      }
+    : undefined,
+  build: {
+    minify: true,
+    sourcemap: false,
+    cssMinify: true,
+    chunkSizeWarningLimit: 700,
+  },
   server: {
     host: true,
     port: 5173,
