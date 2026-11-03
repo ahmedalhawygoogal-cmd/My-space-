@@ -46,6 +46,17 @@ export default function SettingsPage() {
           { id: 'system', label: tr('system') },
         ]}
       />
+      <label className="label">{tr('speakRepeats')}</label>
+      <Segment
+        value={String(settings.speakRepeats ?? 1)}
+        onChange={(v) => void setSettings({ speakRepeats: Number(v) as 1 | 2 | 3 | 5 })}
+        options={[
+          { id: '1', label: '1' },
+          { id: '2', label: '2' },
+          { id: '3', label: '3' },
+          { id: '5', label: '5' },
+        ]}
+      />
       <h3 style={{ marginBottom: 0 }}>{tr('subjects')}</h3>
       {subjects.map((s) => (
         <div key={s.id} className="list-item">

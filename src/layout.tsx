@@ -8,7 +8,11 @@ export function Layout() {
   const tr = useT()
   const nav = useNavigate()
   const loc = useLocation()
-  const hideNav = loc.pathname.includes('/study') || loc.pathname.includes('/test') || loc.pathname.includes('/record/live')
+  const hideNav =
+    loc.pathname.includes('/study') ||
+    loc.pathname.includes('/test') ||
+    loc.pathname.includes('/game') ||
+    loc.pathname.includes('/record/live')
 
   return (
     <div className="app-shell">

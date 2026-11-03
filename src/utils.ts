@@ -131,6 +131,77 @@ export function pickMime(): string {
   return types.find((t) => MediaRecorder.isTypeSupported(t)) ?? ''
 }
 
+const SPEAK_LOCALES: Record<string, string> = {
+  ar: 'ar-SA',
+  en: 'en-US',
+  fr: 'fr-FR',
+  es: 'es-ES',
+  de: 'de-DE',
+  tr: 'tr-TR',
+  it: 'it-IT',
+  ru: 'ru-RU',
+  zh: 'zh-CN',
+  ja: 'ja-JP',
+  ko: 'ko-KR',
+  pt: 'pt-PT',
+  hi: 'hi-IN',
+  ur: 'ur-PK',
+  fa: 'fa-IR',
+  nl: 'nl-NL',
+  pl: 'pl-PL',
+  id: 'id-ID',
+}
+
+export function speakLocale(code: string): string {
+  return SPEAK_LOCALES[code] || code || 'en-US'
+}
+
+export function speakText(text: string, langCode: string, repeats = 1): void {
+  if (!text.trim() || typeof window === 'undefined' || !window.speechSynthesis) return
+  const synth = window.speechSynthesis
+  synth.cancel()
+  const locale = speakLocale(langCode)
+  const voices = synth.getVoices()
+  const voice =
+    voices.find((v) => v.lang.toLowerCase() === locale.toLowerCase()) ||
+    voices.find((v) => v.lang.toLowerCase().startsWith(langCode.toLowerCase()))
+  const n = Math.max(1, Math.min(5, repeats))
+  let left = n
+  const play = () => {
+    if (left <= 0) return
+    left -= 1
+    const u = new SpeechSynthesisUtterance(text)
+    u.lang = locale
+    if (voice) u.voice = voice
+    u.rate = 0.92
+    u.onend = () => play()
+    u.onerror = () => {
+      left = 0
+    }
+    synth.speak(u)
+  }
+  play()
+}
+
+export function normalizeAnswer(s: string): string {
+  return s
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/[ًٌٍَُِّْـ]/g, '')
+}
+
+export function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    const t = a[i]
+    a[i] = a[j]!
+    a[j] = t!
+  }
+  return a
+}
+
 export function relativeDay(ts: number, lang: string, todayLabel: string, yesterdayLabel: string): string {
   const diff = startOfDay() - startOfDay(ts)
   if (diff === 0) return todayLabel

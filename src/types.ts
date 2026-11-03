@@ -53,6 +53,8 @@ export interface Deck {
   subjectId?: string
   tags: string[]
   noteId?: string
+  nativeLang: string
+  targetLang: string
   createdAt: number
   updatedAt: number
 }
@@ -65,6 +67,7 @@ export interface Card {
   translation: string
   definition: string
   example: string
+  exampleTranslation: string
   explanation: string
   imageDataUrl?: string
   status: CardStatus
@@ -73,6 +76,7 @@ export interface Card {
   repetitions: number
   dueAt: number
   lapses: number
+  mistakes: number
   createdAt: number
   updatedAt: number
 }
@@ -150,6 +154,7 @@ export interface AppSettings {
   theme: Theme
   userName: string
   lastBackupAt?: number
+  speakRepeats: 1 | 2 | 3 | 5
 }
 
 export interface SearchHit {
@@ -164,7 +169,29 @@ export const DEFAULT_SETTINGS: AppSettings = {
   language: 'ar',
   theme: 'system',
   userName: '',
+  speakRepeats: 1,
 }
+
+export const LEARN_LANGS: { code: string; ar: string; en: string }[] = [
+  { code: 'ar', ar: 'العربية', en: 'Arabic' },
+  { code: 'en', ar: 'الإنجليزية', en: 'English' },
+  { code: 'fr', ar: 'الفرنسية', en: 'French' },
+  { code: 'es', ar: 'الإسبانية', en: 'Spanish' },
+  { code: 'de', ar: 'الألمانية', en: 'German' },
+  { code: 'tr', ar: 'التركية', en: 'Turkish' },
+  { code: 'it', ar: 'الإيطالية', en: 'Italian' },
+  { code: 'ru', ar: 'الروسية', en: 'Russian' },
+  { code: 'zh', ar: 'الصينية', en: 'Chinese' },
+  { code: 'ja', ar: 'اليابانية', en: 'Japanese' },
+  { code: 'ko', ar: 'الكورية', en: 'Korean' },
+  { code: 'pt', ar: 'البرتغالية', en: 'Portuguese' },
+  { code: 'hi', ar: 'الهندية', en: 'Hindi' },
+  { code: 'ur', ar: 'الأردية', en: 'Urdu' },
+  { code: 'fa', ar: 'الفارسية', en: 'Persian' },
+  { code: 'nl', ar: 'الهولندية', en: 'Dutch' },
+  { code: 'pl', ar: 'البولندية', en: 'Polish' },
+  { code: 'id', ar: 'الإندونيسية', en: 'Indonesian' },
+]
 
 export const SUBJECT_COLORS = [
   '#0F6E6B',

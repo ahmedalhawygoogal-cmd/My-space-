@@ -65,6 +65,8 @@ interface StoreApi extends StoreState {
   deleteCard: (id: string) => Promise<void>
   duplicateCard: (id: string) => Promise<Card | undefined>
   rateCard: (id: string, rating: CardRating) => Promise<void>
+  recordAnswer: (id: string, correct: boolean) => Promise<void>
+  pickCards: (deckId: string, count: number) => Card[]
   addTask: (data: Partial<Task> & { title: string }) => Promise<Task>
   updateTask: (id: string, p: Partial<Task>) => Promise<void>
   toggleTask: (id: string) => Promise<void>
@@ -119,6 +121,67 @@ async function seedIfEmpty(): Promise<void> {
       createdAt: t,
       updatedAt: t,
     })
+  }
+}
+
+function normalizeDeck(raw: Deck): Deck {
+  return {
+    ...raw,
+    nativeLang: raw.nativeLang || 'ar',
+    targetLang: raw.targetLang || 'en',
+    description: raw.description ?? '',
+    tags: raw.tags ?? [],
+  }
+}
+
+function normalizeCard(raw: Card): Card {
+  const mistakes = typeof raw.mistakes === 'number' ? raw.mistakes : raw.lapses || 0
+  return {
+    ...raw,
+    front: raw.front ?? '',
+    back: raw.back ?? '',
+    translation: raw.translation ?? '',
+    definition: raw.definition ?? '',
+    example: raw.example ?? '',
+    exampleTranslation: raw.exampleTranslation ?? '',
+    explanation: raw.explanation ?? '',
+    status: raw.status ?? 'new',
+    ease: raw.ease || 2.5,
+    interval: raw.interval || 0,
+    repetitions: raw.repetitions || 0,
+    dueAt: raw.dueAt || raw.createdAt || now(),
+    lapses: raw.lapses || 0,
+    mistakes,
+  }
+}
+
+function applyAnswer(card: Card, correct: boolean): Card {
+  const t = now()
+  if (!correct) {
+    const mistakes = (card.mistakes || 0) + 1
+    return {
+      ...card,
+      mistakes,
+      lapses: (card.lapses || 0) + 1,
+      repetitions: 0,
+      interval: 0,
+      ease: Math.max(1.3, (card.ease || 2.5) - 0.2),
+      status: 'learning',
+      dueAt: t,
+      updatedAt: t,
+    }
+  }
+  const mistakes = Math.max(0, (card.mistakes || 0) - 1)
+  const repetitions = (card.repetitions || 0) + 1
+  const ease = Math.min(3.2, (card.ease || 2.5) + 0.08)
+  return {
+    ...card,
+    mistakes,
+    repetitions,
+    ease,
+    status: mistakes === 0 && repetitions >= 3 ? 'learned' : 'review',
+    dueAt: t + Math.max(1, 8 - mistakes) * 60 * 1000,
+    updatedAt: t,
   }
 }
 
@@ -194,14 +257,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         db.getAll<Note>(STORES.notes),
         db.getAll<Link>(STORES.links),
       ])
+    const decksN = decks.map(normalizeDeck)
+    const cardsN = cards.map(normalizeCard)
+    const deckWrites = decksN.filter((_, idx) => !decks[idx]?.nativeLang || !decks[idx]?.targetLang)
+    const cardWrites = cardsN.filter((_, idx) => {
+      const raw = cards[idx]
+      return !raw || typeof raw.mistakes !== 'number' || raw.exampleTranslation === undefined
+    })
+    await Promise.all([
+      ...deckWrites.map((d) => db.putOne(STORES.decks, d)),
+      ...cardWrites.map((c) => db.putOne(STORES.cards, c)),
+    ])
+    const settingsN = { ...settings, speakRepeats: settings.speakRepeats ?? 1 }
+    if (settings.speakRepeats == null) await db.saveSettings(settingsN)
     setState({
       ready: true,
-      settings,
+      settings: settingsN,
       subjects,
       folders,
       recordings,
-      decks,
-      cards,
+      decks: decksN,
+      cards: cardsN,
       tasks,
       notebooks,
       notes,
@@ -353,6 +429,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       subjectId: extra?.subjectId,
       tags: extra?.tags ?? [],
       noteId: extra?.noteId,
+      nativeLang: extra?.nativeLang || 'ar',
+      targetLang: extra?.targetLang || 'en',
       createdAt: t,
       updatedAt: t,
     }
@@ -390,6 +468,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       translation: data.translation ?? '',
       definition: data.definition ?? '',
       example: data.example ?? '',
+      exampleTranslation: data.exampleTranslation ?? '',
       explanation: data.explanation ?? '',
       imageDataUrl: data.imageDataUrl,
       status: 'new',
@@ -398,6 +477,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       repetitions: 0,
       dueAt: t,
       lapses: 0,
+      mistakes: 0,
       createdAt: t,
       updatedAt: t,
     }
@@ -428,10 +508,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       translation: cur.translation,
       definition: cur.definition,
       example: cur.example,
+      exampleTranslation: cur.exampleTranslation,
       explanation: cur.explanation,
       imageDataUrl: cur.imageDataUrl,
     })
   }, [state.cards, addCard])
+
+  const recordAnswer = useCallback(async (id: string, correct: boolean) => {
+    const cur = state.cards.find((x) => x.id === id)
+    if (!cur) return
+    const next = applyAnswer(cur, correct)
+    await db.putOne(STORES.cards, next)
+    patchList('cards', id, next)
+  }, [state.cards, patchList])
+
+  const pickCards = useCallback(
+    (deckId: string, count: number) => {
+      const pool = state.cards.filter((c) => c.deckId === deckId && c.front.trim() && c.back.trim())
+      const ranked = [...pool].sort((a, b) => {
+        const wa = (a.mistakes || 0) * 4 + (a.status === 'learned' ? -2 : 1) + Math.random()
+        const wb = (b.mistakes || 0) * 4 + (b.status === 'learned' ? -2 : 1) + Math.random()
+        return wb - wa
+      })
+      return ranked.slice(0, Math.max(0, count))
+    },
+    [state.cards],
+  )
 
   const rateCard = useCallback(async (id: string, rating: CardRating) => {
     const cur = state.cards.find((x) => x.id === id)
@@ -728,6 +830,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       deleteCard,
       duplicateCard,
       rateCard,
+      recordAnswer,
+      pickCards,
       addTask,
       updateTask,
       toggleTask,
@@ -767,6 +871,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       deleteCard,
       duplicateCard,
       rateCard,
+      recordAnswer,
+      pickCards,
       addTask,
       updateTask,
       toggleTask,
