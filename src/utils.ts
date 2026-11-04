@@ -207,6 +207,25 @@ export function downloadBlob(blob: Blob, filename: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
+export function audioExt(mimeType: string): string {
+  if (mimeType.includes('mp4') || mimeType.includes('m4a')) return 'm4a'
+  if (mimeType.includes('mpeg') || mimeType.includes('mp3')) return 'mp3'
+  if (mimeType.includes('ogg')) return 'ogg'
+  if (mimeType.includes('wav')) return 'wav'
+  return 'webm'
+}
+
+export function audioFileName(name: string, mimeType: string): string {
+  const ext = audioExt(mimeType)
+  const base = name.replace(/[<>:"/\\|?*]+/g, '').trim() || 'audio'
+  return base.toLowerCase().endsWith(`.${ext}`) ? base : `${base}.${ext}`
+}
+
+export function formatBytes(bytes: number, kb: string, mb: string): string {
+  if (bytes >= 1048576) return `${(bytes / 1048576).toFixed(1)} ${mb}`
+  return `${Math.max(1, Math.round(bytes / 1024))} ${kb}`
+}
+
 export function stripHtml(html: string): string {
   const d = document.createElement('div')
   d.innerHTML = html

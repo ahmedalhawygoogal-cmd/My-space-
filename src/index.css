@@ -610,7 +610,13 @@ img { max-width: 100%; }
   border: 1px solid var(--line);
   border-radius: 18px;
   padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
+.player-line { width: 100%; }
+.player-line .seek { flex: 1; }
+.player-actions { justify-content: flex-end; flex-wrap: wrap; }
 .seek {
   width: 100%;
   accent-color: var(--brand);

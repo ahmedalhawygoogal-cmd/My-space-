@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { FolderPlus, Mic, Pause, Play, Square, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
-import { Confirm, Empty, Segment, Sheet, SubjectSelect, TagInput, useT } from '../ui'
+import { AudioPlayer } from '../AudioPlayer'
+import { Confirm, Empty, Segment, Sheet, SubjectSelect, TagInput, Toast, useT } from '../ui'
 import { formatDateTime, formatDuration, pickMime } from '../utils'
 
 export default function RecorderPage() {
@@ -36,6 +37,11 @@ export default function RecorderPage() {
 
   return (
     <div className="stack">
+      <div className="spread">
+        <button className="chip" type="button" onClick={() => nav('/')}>
+          {tr('back')}
+        </button>
+      </div>
       <h1 className="page-title">{tr('recorder')}</h1>
       <input className="field" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('search')} />
       <div className="chip-row">
@@ -107,13 +113,15 @@ export default function RecorderPage() {
 export function LiveRecordPage() {
   const tr = useT()
   const nav = useNavigate()
-  const { addRecording, folders } = useStore()
+  const { addRecording, addFolder, folders } = useStore()
   const [status, setStatus] = useState<'idle' | 'live' | 'paused'>('idle')
   const [ms, setMs] = useState(0)
   const [name, setName] = useState('')
   const [folderId, setFolderId] = useState<string | undefined>()
   const [subjectId, setSubjectId] = useState<string | undefined>()
   const [error, setError] = useState('')
+  const [folderOpen, setFolderOpen] = useState(false)
+  const [folderName, setFolderName] = useState('')
   const recRef = useRef<MediaRecorder | null>(null)
   const chunks = useRef<Blob[]>([])
   const timer = useRef<number | null>(null)
@@ -266,6 +274,11 @@ export function LiveRecordPage() {
 
   return (
     <div className="stack">
+      <div className="spread">
+        <button className="chip" type="button" onClick={() => nav('/record')}>
+          {tr('back')}
+        </button>
+      </div>
       <h1 className="page-title">{tr('newRecording')}</h1>
       <div className="card rec-stage">
         <div className="muted">{status === 'live' ? tr('recording') : status === 'paused' ? tr('paused') : tr('record')}</div>
@@ -291,16 +304,45 @@ export function LiveRecordPage() {
       <label className="label">{tr('recName')}</label>
       <input className="field" value={name} onChange={(e) => setName(e.target.value)} placeholder={tr('recNamePlaceholder')} />
       <label className="label">{tr('folder')}</label>
-      <select className="field" value={folderId ?? ''} onChange={(e) => setFolderId(e.target.value || undefined)}>
+      <select
+        className="field"
+        value={folderId ?? ''}
+        onChange={(e) => {
+          if (e.target.value === '__new__') {
+            setFolderOpen(true)
+            return
+          }
+          setFolderId(e.target.value || undefined)
+        }}
+      >
         <option value="">{tr('none')}</option>
         {folders.map((f) => (
           <option key={f.id} value={f.id}>
             {f.name}
           </option>
         ))}
+        <option value="__new__">{tr('createNewFolder')}</option>
       </select>
       <label className="label">{tr('subject')}</label>
       <SubjectSelect value={subjectId} onChange={setSubjectId} />
+      <Sheet open={folderOpen} onClose={() => setFolderOpen(false)} title={tr('newFolder')}>
+        <label className="label">{tr('name')}</label>
+        <input className="field" value={folderName} onChange={(e) => setFolderName(e.target.value)} />
+        <button
+          className="btn block"
+          style={{ marginTop: 12 }}
+          type="button"
+          onClick={async () => {
+            if (!folderName.trim()) return
+            const folder = await addFolder(folderName.trim(), 'recording')
+            setFolderId(folder.id)
+            setFolderName('')
+            setFolderOpen(false)
+          }}
+        >
+          {tr('create')}
+        </button>
+      </Sheet>
     </div>
   )
 }
@@ -309,14 +351,12 @@ export function RecordingDetailPage() {
   const tr = useT()
   const nav = useNavigate()
   const { id } = useParams()
-  const { recordings, notes, notebooks, updateRecording, deleteRecording, getAudioBlob, addNote, linkEntities, lang } = useStore()
+  const { recordings, notes, notebooks, updateRecording, deleteRecording, getAudioBlob, addNote, addDownload, linkEntities, lang } = useStore()
   const rec = recordings.find((r) => r.id === id)
   const [url, setUrl] = useState<string>()
-  const [playing, setPlaying] = useState(false)
-  const [cur, setCur] = useState(0)
   const [confirm, setConfirm] = useState(false)
   const [noteOpen, setNoteOpen] = useState(false)
-  const audio = useRef<HTMLAudioElement>(null)
+  const [toast, setToast] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -339,48 +379,25 @@ export function RecordingDetailPage() {
 
   return (
     <div className="stack">
+      <div className="spread">
+        <button className="chip" type="button" onClick={() => nav('/record')}>
+          {tr('back')}
+        </button>
+      </div>
       <input className="note-title" value={rec.name} onChange={(e) => void updateRecording(rec.id, { name: e.target.value })} />
       <div className="muted">
         {formatDateTime(rec.createdAt, lang)} · {formatDuration(rec.durationMs)}
       </div>
-      <div className="card player">
-        <button
-          className="icon-btn"
-          type="button"
-          onClick={() => {
-            const el = audio.current
-            if (!el) return
-            if (el.paused) void el.play()
-            else el.pause()
-          }}
-        >
-          {playing ? <Pause size={18} /> : <Play size={18} />}
-        </button>
-        <input
-          className="seek"
-          type="range"
-          min={0}
-          max={Math.max(1, rec.durationMs)}
-          value={cur}
-          onChange={(e) => {
-            const v = Number(e.target.value)
-            setCur(v)
-            if (audio.current) audio.current.currentTime = v / 1000
-          }}
-        />
-        <span className="muted" style={{ fontSize: 12, minWidth: 40 }}>
-          {formatDuration(cur)}
-        </span>
-        {url ? (
-          <audio
-            ref={audio}
-            src={url}
-            onPlay={() => setPlaying(true)}
-            onPause={() => setPlaying(false)}
-            onTimeUpdate={() => setCur((audio.current?.currentTime ?? 0) * 1000)}
-          />
-        ) : null}
-      </div>
+      <AudioPlayer
+        src={url}
+        name={rec.name}
+        durationMs={rec.durationMs}
+        mimeType={rec.mimeType}
+        onArchive={async (blob) => {
+          await addDownload(rec.name, blob, rec.mimeType || blob.type)
+          setToast(tr('downloaded'))
+        }}
+      />
       <label className="label">{tr('description')}</label>
       <textarea className="field textarea" value={rec.description} onChange={(e) => void updateRecording(rec.id, { description: e.target.value })} />
       <label className="label">{tr('tags')}</label>
@@ -445,6 +462,7 @@ export function RecordingDetailPage() {
           </button>
         ))}
       </Sheet>
+      <Toast text={toast} onDone={() => setToast(null)} />
     </div>
   )
 }

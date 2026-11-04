@@ -13,16 +13,14 @@ import {
   Pause,
   Pencil,
   Pin,
-  Play,
   Plus,
   Image as ImageIcon,
-  RotateCcw,
-  RotateCw,
   Volume2,
 } from 'lucide-react'
 import { useStore } from '../store'
+import { AudioPlayer } from '../AudioPlayer'
 import { Confirm, Empty, Sheet, Toast, useT } from '../ui'
-import { contrastInk, fileToDataUrl, firstNoteImage, formatDate, formatDuration } from '../utils'
+import { contrastInk, fileToDataUrl, firstNoteImage, formatDate } from '../utils'
 import { NOTE_COLORS } from '../types'
 import type { Note } from '../types'
 
@@ -365,14 +363,10 @@ export function NoteReadPage() {
 
 function NotePlayer({ id }: { id: string }) {
   const tr = useT()
-  const { getAudioBlob, recordings } = useStore()
+  const { getAudioBlob, recordings, addDownload } = useStore()
   const rec = recordings.find((r) => r.id === id)
-  const audio = useRef<HTMLAudioElement | null>(null)
   const [src, setSrc] = useState('')
-  const [on, setOn] = useState(false)
-  const [pos, setPos] = useState(0)
-  const [dur, setDur] = useState(rec?.durationMs ?? 0)
-  const [rate, setRate] = useState(1)
+  const [toast, setToast] = useState<string | null>(null)
 
   useEffect(() => {
     let url = ''
@@ -386,79 +380,19 @@ function NotePlayer({ id }: { id: string }) {
     }
   }, [id, getAudioBlob])
 
-  useEffect(() => {
-    const el = audio.current
-    if (!el) return
-    el.playbackRate = rate
-  }, [rate])
-
-  function seek(delta: number) {
-    const el = audio.current
-    if (!el) return
-    el.currentTime = Math.max(0, Math.min(el.duration || 0, el.currentTime + delta))
-  }
-
-  const pct = dur ? Math.min(100, (pos / dur) * 100) : 0
-
   return (
-    <div className="player">
-      <audio
-        ref={audio}
+    <>
+      <AudioPlayer
         src={src}
-        onTimeUpdate={(e) => setPos(e.currentTarget.currentTime * 1000)}
-        onLoadedMetadata={(e) => setDur(e.currentTarget.duration * 1000)}
-        onEnded={() => setOn(false)}
-      />
-      <div className="spread">
-        <b className="ellipsis">{rec?.name || tr('attachAudio')}</b>
-        <span className="muted">
-          {formatDuration(pos)} / {formatDuration(dur)}
-        </span>
-      </div>
-      <input
-        className="seek"
-        type="range"
-        min={0}
-        max={100}
-        value={pct}
-        onChange={(e) => {
-          const el = audio.current
-          if (!el || !dur) return
-          el.currentTime = (Number(e.target.value) / 100) * (dur / 1000)
+        name={rec?.name || tr('attachAudio')}
+        durationMs={rec?.durationMs}
+        mimeType={rec?.mimeType}
+        onArchive={async (blob) => {
+          await addDownload(rec?.name || tr('attachAudio'), blob, rec?.mimeType || blob.type)
+          setToast(tr('downloaded'))
         }}
       />
-      <div className="row" style={{ justifyContent: 'center' }}>
-        <button className="icon-btn" type="button" aria-label={tr('rewind')} onClick={() => seek(-10)}>
-          <RotateCcw size={18} />
-        </button>
-        <button
-          className="btn"
-          type="button"
-          onClick={() => {
-            const el = audio.current
-            if (!el) return
-            if (on) {
-              el.pause()
-              setOn(false)
-            } else {
-              void el.play()
-              setOn(true)
-            }
-          }}
-        >
-          {on ? <Pause size={18} /> : <Play size={18} />}
-        </button>
-        <button className="icon-btn" type="button" aria-label={tr('forward')} onClick={() => seek(10)}>
-          <RotateCw size={18} />
-        </button>
-        <button
-          className="chip"
-          type="button"
-          onClick={() => setRate((r) => (r === 1 ? 1.5 : r === 1.5 ? 2 : 1))}
-        >
-          {rate}x
-        </button>
-      </div>
-    </div>
+      <Toast text={toast} onDone={() => setToast(null)} />
+    </>
   )
 }

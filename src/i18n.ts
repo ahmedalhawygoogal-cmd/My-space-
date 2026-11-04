@@ -306,6 +306,14 @@ const ar = {
   pickAudio: 'ربط تسجيل صوتي',
   noteSaved: 'تم الحفظ',
   colorHint: 'اكتب اسماً عربياً أو إنجليزياً أو رمز #',
+  createNewFolder: 'إنشاء مجلد جديد',
+  downloads: 'التحميلات',
+  download: 'تحميل',
+  downloaded: 'تم التحميل',
+  noDownloads: 'لا توجد تحميلات',
+  noDownloadsHint: 'حمّل تسجيلاً من المشغّل ليظهر هنا.',
+  loadMore: 'عرض المزيد',
+  deleteDownloadConfirm: 'حذف هذا الملف من التحميلات؟',
 }
 
 const en: Record<keyof typeof ar, string> = {
@@ -614,6 +622,14 @@ const en: Record<keyof typeof ar, string> = {
   pickAudio: 'Link a recording',
   noteSaved: 'Saved',
   colorHint: 'Type an Arabic or English name, or a # hex code',
+  createNewFolder: 'Create new folder',
+  downloads: 'Downloads',
+  download: 'Download',
+  downloaded: 'Downloaded',
+  noDownloads: 'No downloads yet',
+  noDownloadsHint: 'Export a recording from the player to see it here.',
+  loadMore: 'Load more',
+  deleteDownloadConfirm: 'Remove this file from downloads?',
 }
 
 export type I18nKey = keyof typeof ar

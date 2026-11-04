@@ -14,6 +14,7 @@ import type {
   Card,
   CardRating,
   Deck,
+  DownloadItem,
   Folder,
   Lang,
   Link,
@@ -41,6 +42,7 @@ interface StoreState {
   notebooks: Notebook[]
   notes: Note[]
   links: Link[]
+  downloads: DownloadItem[]
 }
 
 interface StoreApi extends StoreState {
@@ -58,6 +60,9 @@ interface StoreApi extends StoreState {
   updateRecording: (id: string, p: Partial<Recording>) => Promise<void>
   deleteRecording: (id: string) => Promise<void>
   getAudioBlob: (id: string) => Promise<Blob | undefined>
+  addDownload: (name: string, blob: Blob, mimeType?: string) => Promise<DownloadItem>
+  getDownloadBlob: (id: string) => Promise<Blob | undefined>
+  deleteDownload: (id: string) => Promise<void>
   addDeck: (name: string, extra?: Partial<Deck>) => Promise<Deck>
   updateDeck: (id: string, p: Partial<Deck>) => Promise<void>
   deleteDeck: (id: string) => Promise<void>
@@ -321,11 +326,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     notebooks: [],
     notes: [],
     links: [],
+    downloads: [],
   })
 
   const reload = useCallback(async () => {
     await seedIfEmpty()
-    const [settings, subjects, folders, recordings, decks, cards, tasks, notebooks, notes, links] =
+    const [settings, subjects, folders, recordings, decks, cards, tasks, notebooks, notes, links, downloads] =
       await Promise.all([
         db.loadSettings(),
         db.getAll<Subject>(STORES.subjects),
@@ -337,6 +343,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         db.getAll<Notebook>(STORES.notebooks),
         db.getAll<Note>(STORES.notes),
         db.getAll<Link>(STORES.links),
+        db.getAll<DownloadItem>(STORES.downloads),
       ])
     const decksN = decks.map(normalizeDeck)
     const cardsN = cards.map(normalizeCard)
@@ -398,6 +405,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       notebooks,
       notes: notesN,
       links,
+      downloads,
     })
     applyLang(settings.language)
     applyTheme(settings.theme)
@@ -558,6 +566,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const getAudioBlob = useCallback(async (id: string) => {
     const row = await db.getById<{ id: string; blob: Blob }>(STORES.audioBlobs, id)
     return row?.blob
+  }, [])
+
+  const addDownload = useCallback(async (name: string, blob: Blob, mimeType?: string) => {
+    const t = now()
+    const item: DownloadItem = {
+      id: uid(),
+      name,
+      mimeType: mimeType || blob.type || 'audio/webm',
+      sizeBytes: blob.size,
+      createdAt: t,
+    }
+    await db.putOne(STORES.downloads, item)
+    await db.putOne(STORES.downloadBlobs, { id: item.id, blob })
+    setState((s) => ({ ...s, downloads: [item, ...s.downloads] }))
+    return item
+  }, [])
+
+  const getDownloadBlob = useCallback(async (id: string) => {
+    const row = await db.getById<{ id: string; blob: Blob }>(STORES.downloadBlobs, id)
+    return row?.blob
+  }, [])
+
+  const deleteDownload = useCallback(async (id: string) => {
+    await db.deleteById(STORES.downloads, id)
+    await db.deleteById(STORES.downloadBlobs, id)
+    setState((s) => ({ ...s, downloads: s.downloads.filter((x) => x.id !== id) }))
   }, [])
 
   const addDeck = useCallback(async (name: string, extra?: Partial<Deck>) => {
@@ -1009,6 +1043,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       updateRecording,
       deleteRecording,
       getAudioBlob,
+      addDownload,
+      getDownloadBlob,
+      deleteDownload,
       addDeck,
       updateDeck,
       deleteDeck,
@@ -1050,6 +1087,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       updateRecording,
       deleteRecording,
       getAudioBlob,
+      addDownload,
+      getDownloadBlob,
+      deleteDownload,
       addDeck,
       updateDeck,
       deleteDeck,

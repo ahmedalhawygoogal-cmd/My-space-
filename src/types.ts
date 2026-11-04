@@ -46,6 +46,14 @@ export interface AudioBlobRecord {
   blob: Blob
 }
 
+export interface DownloadItem {
+  id: string
+  name: string
+  mimeType: string
+  sizeBytes: number
+  createdAt: number
+}
+
 export interface Deck {
   id: string
   name: string

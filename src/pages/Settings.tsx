@@ -1,4 +1,6 @@
 import { useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Download } from 'lucide-react'
 import { useStore } from '../store'
 import { Confirm, Segment, Toast, useT } from '../ui'
 import { downloadBlob, formatDateTime } from '../utils'
@@ -10,6 +12,7 @@ import { getNative } from '../native'
 
 export default function SettingsPage() {
   const tr = useT()
+  const nav = useNavigate()
   const { settings, setSettings, subjects, addSubject, deleteSubject, importData, markBackup, lang } = useStore()
   const [toast, setToast] = useState<string | null>(null)
   const [confirm, setConfirm] = useState(false)
@@ -29,6 +32,10 @@ export default function SettingsPage() {
   return (
     <div className="stack">
       <h1 className="page-title">{tr('settings')}</h1>
+      <button className="list-item pressable" type="button" onClick={() => nav('/downloads')}>
+        <Download size={18} />
+        <div className="grow">{tr('downloads')}</div>
+      </button>
       <label className="label">{tr('yourName')}</label>
       <input className="field" value={settings.userName} onChange={(e) => void setSettings({ userName: e.target.value })} />
       <label className="label">{tr('language')}</label>
