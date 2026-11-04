@@ -156,31 +156,93 @@ export function speakLocale(code: string): string {
   return SPEAK_LOCALES[code] || code || 'en-US'
 }
 
+let speakHold: SpeechSynthesisUtterance[] = []
+let speakTimer = 0
+let voicesWait: (() => void) | null = null
+
+function normLang(s: string): string {
+  return s.replace('_', '-').toLowerCase()
+}
+
+function pickVoice(voices: SpeechSynthesisVoice[], langCode: string, locale: string): SpeechSynthesisVoice | undefined {
+  const want = langCode.toLowerCase()
+  const loc = locale.toLowerCase()
+  const match = (v: SpeechSynthesisVoice) => {
+    const l = normLang(v.lang || '')
+    return l === loc || l === want || l.startsWith(`${want}-`)
+  }
+  return voices.find((v) => normLang(v.lang || '') === loc) || voices.find((v) => match(v) && v.localService) || voices.find(match)
+}
+
 export function speakText(text: string, langCode: string, repeats = 1): void {
   if (!text.trim() || typeof window === 'undefined' || !window.speechSynthesis) return
   const synth = window.speechSynthesis
-  synth.cancel()
   const locale = speakLocale(langCode)
-  const voices = synth.getVoices()
-  const voice =
-    voices.find((v) => v.lang.toLowerCase() === locale.toLowerCase()) ||
-    voices.find((v) => v.lang.toLowerCase().startsWith(langCode.toLowerCase()))
   const n = Math.max(1, Math.min(5, repeats))
-  let left = n
-  const play = () => {
-    if (left <= 0) return
-    left -= 1
-    const u = new SpeechSynthesisUtterance(text)
-    u.lang = locale
-    if (voice) u.voice = voice
-    u.rate = 0.92
-    u.onend = () => play()
-    u.onerror = () => {
-      left = 0
-    }
-    synth.speak(u)
+  speakHold = []
+  if (speakTimer) window.clearTimeout(speakTimer)
+  if (voicesWait) {
+    synth.removeEventListener('voiceschanged', voicesWait)
+    voicesWait = null
   }
-  play()
+
+  const start = () => {
+    const voice = pickVoice(synth.getVoices(), langCode, locale)
+    try {
+      synth.cancel()
+    } catch {
+      /* ignore */
+    }
+    if (synth.paused) {
+      try {
+        synth.resume()
+      } catch {
+        /* ignore */
+      }
+    }
+    let left = n
+    const play = () => {
+      if (left <= 0) return
+      left -= 1
+      const u = new SpeechSynthesisUtterance(text)
+      u.lang = voice?.lang || locale
+      u.rate = 0.92
+      u.pitch = 1
+      if (voice) u.voice = voice
+      u.onend = () => play()
+      u.onerror = () => {
+        left = 0
+      }
+      speakHold.push(u)
+      synth.speak(u)
+    }
+    speakTimer = window.setTimeout(play, 80)
+  }
+
+  if (synth.getVoices().length) {
+    start()
+    return
+  }
+  voicesWait = () => {
+    if (voicesWait) synth.removeEventListener('voiceschanged', voicesWait)
+    voicesWait = null
+    start()
+  }
+  synth.addEventListener('voiceschanged', voicesWait)
+  speakTimer = window.setTimeout(() => {
+    if (voicesWait) {
+      synth.removeEventListener('voiceschanged', voicesWait)
+      voicesWait = null
+    }
+    start()
+  }, 400)
+}
+
+if (typeof window !== 'undefined' && window.speechSynthesis) {
+  window.speechSynthesis.getVoices()
+  window.speechSynthesis.addEventListener('voiceschanged', () => {
+    window.speechSynthesis.getVoices()
+  })
 }
 
 export function normalizeAnswer(s: string): string {

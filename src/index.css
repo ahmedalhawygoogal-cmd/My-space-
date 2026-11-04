@@ -554,6 +554,7 @@ img { max-width: 100%; }
   padding: 12px;
 }
 .task-card .row { align-items: center; }
+.task-card.is-done { opacity: 0.55; }
 
 .choice {
   border: 1px solid var(--line);

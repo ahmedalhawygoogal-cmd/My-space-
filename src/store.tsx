@@ -623,13 +623,40 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return item
   }, [])
 
+  const syncParentCompletion = useCallback(
+    async (parentId: string, list: Task[]) => {
+      const parent = list.find((x) => x.id === parentId)
+      if (!parent) return
+      const nested = list.filter((x) => x.parentId === parentId)
+      const hasKids = nested.length > 0 || parent.subtasks.length > 0
+      if (!hasKids) return
+      const done = nested.length > 0 ? nested.every((x) => x.completed) : parent.subtasks.every((s) => s.completed)
+      if (!!parent.completed === done) return
+      const t = now()
+      const next: Task = { ...parent, completed: done, completedAt: done ? t : undefined, updatedAt: t }
+      await db.putOne(STORES.tasks, next)
+      patchList('tasks', parentId, next)
+    },
+    [patchList],
+  )
+
   const updateTask = useCallback(async (id: string, p: Partial<Task>) => {
     const cur = state.tasks.find((x) => x.id === id)
     if (!cur) return
-    const next = { ...cur, ...p, updatedAt: now() }
+    const t = now()
+    const next: Task = { ...cur, ...p, updatedAt: t }
+    if (p.subtasks && p.subtasks.length > 0 && p.completed === undefined) {
+      const done = p.subtasks.every((s) => s.completed)
+      next.completed = done
+      next.completedAt = done ? t : undefined
+    }
     await db.putOne(STORES.tasks, next)
     patchList('tasks', id, next)
-  }, [state.tasks, patchList])
+    if (cur.parentId && p.completed !== undefined) {
+      const list = state.tasks.map((x) => (x.id === id ? next : x))
+      await syncParentCompletion(cur.parentId, list)
+    }
+  }, [state.tasks, patchList, syncParentCompletion])
 
   const toggleTask = useCallback(async (id: string) => {
     const cur = state.tasks.find((x) => x.id === id)
@@ -639,6 +666,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const next: Task = { ...cur, completed, completedAt: completed ? t : undefined, updatedAt: t }
     await db.putOne(STORES.tasks, next)
     patchList('tasks', id, next)
+    if (cur.parentId) {
+      const list = state.tasks.map((x) => (x.id === id ? next : x))
+      await syncParentCompletion(cur.parentId, list)
+    }
     if (completed && cur.recurring !== 'none') {
       const delta = cur.recurring === 'daily' ? 86400000 : 7 * 86400000
       await addTask({
@@ -656,7 +687,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         subtasks: cur.subtasks.map((st) => ({ ...st, id: uid(), completed: false })),
       })
     }
-  }, [state.tasks, patchList, addTask])
+  }, [state.tasks, patchList, addTask, syncParentCompletion])
 
   const deleteTask = useCallback(async (id: string) => {
     const childIds = state.tasks.filter((x) => x.parentId === id).map((x) => x.id)

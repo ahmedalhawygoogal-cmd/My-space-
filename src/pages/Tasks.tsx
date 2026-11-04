@@ -110,25 +110,31 @@ export default function TasksPage() {
         filtered.map((tk) => {
           const kids = kidsOf(tasks, tk.id)
           const big = kids.length > 0
-          const done = kids.filter((k) => k.completed).length
+          const doneN = kids.filter((k) => k.completed).length
+          const done = tk.completed || (big && kids.length > 0 && doneN === kids.length)
           return (
-            <div key={tk.id} className="task-card">
+            <div key={tk.id} className={`task-card${done ? ' is-done' : ''}`}>
               <div className="list-item" style={{ border: 0, padding: 0, background: 'transparent' }}>
                 {big ? (
-                  <button
-                    className="icon-btn"
-                    type="button"
-                    aria-label={tr('subtasks')}
-                    onClick={() => setOpenKids((s) => ({ ...s, [tk.id]: !s[tk.id] }))}
-                  >
-                    {openKids[tk.id] ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                  </button>
+                  <>
+                    <span className={`check ${done ? 'on' : ''}`} aria-hidden>
+                      {done ? '✓' : ''}
+                    </span>
+                    <button
+                      className="icon-btn"
+                      type="button"
+                      aria-label={tr('subtasks')}
+                      onClick={() => setOpenKids((s) => ({ ...s, [tk.id]: !s[tk.id] }))}
+                    >
+                      {openKids[tk.id] ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                    </button>
+                  </>
                 ) : (
                   <Toggle id={tk.id} done={tk.completed} />
                 )}
                 <div className="grow">
                   <div className="row" style={{ gap: 6 }}>
-                    <div className={`ellipsis ${tk.completed ? 'task-done' : ''}`} style={{ fontWeight: 700 }}>
+                    <div className={`ellipsis ${done ? 'task-done' : ''}`} style={{ fontWeight: 700 }}>
                       {tk.title}
                     </div>
                     <button
@@ -144,7 +150,7 @@ export default function TasksPage() {
                     </button>
                   </div>
                   <div className="meta">
-                    {big ? `${done}/${kids.length}` : tk.category || tr('priorityMed')}
+                    {big ? `${doneN}/${kids.length}` : tk.category || tr('priorityMed')}
                     {taskDate(tk) ? ` · ${formatDate(taskDate(tk)!, 'ar')}` : ''}
                   </div>
                 </div>
