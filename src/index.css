@@ -547,6 +547,14 @@ img { max-width: 100%; }
   font-size: 0.85rem;
 }
 
+.task-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 12px;
+}
+.task-card .row { align-items: center; }
+
 .choice {
   border: 1px solid var(--line);
   background: var(--bg-elev);
@@ -554,6 +562,7 @@ img { max-width: 100%; }
   padding: 14px 12px;
   font-weight: 700;
   text-align: center;
+  width: 100%;
 }
 .choice.ok { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 16%, var(--bg-elev)); }
 .choice.bad { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 14%, var(--bg-elev)); }

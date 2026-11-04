@@ -17,7 +17,7 @@ import TasksPage, { TaskDetailPage } from './pages/Tasks'
 import NotebookPage, { NoteEditorPage } from './pages/Notebook'
 import SearchPage from './pages/Search'
 import SettingsPage from './pages/Settings'
-import { getNative } from './native'
+import { getNative, parseReminderTime } from './native'
 import { t } from './i18n'
 
 function NativeBack() {
@@ -51,22 +51,34 @@ function NativeBack() {
 }
 
 function CardReminders() {
-  const { ready, cards, settings } = useStore()
+  const { ready, cards, decks, settings } = useStore()
   useEffect(() => {
     if (!ready) return
-    const due = cards.filter((c) => c.dueAt <= Date.now()).length
     void getNative().then((native) => {
       if (!native) return
-      void native.syncCardReminders({
-        count: due,
-        title: t(settings.language, 'reminderTitle'),
-        body: t(settings.language, 'reminderBody', { n: due }),
-        hour: settings.reminderHour ?? 9,
-        minute: settings.reminderMinute ?? 0,
+      const items = decks.flatMap((d, i) => {
+        const time = parseReminderTime(d.reminderTime)
+        if (!time) return []
+        const due = cards.filter((c) => c.deckId === d.id && c.dueAt <= Date.now()).length
+        if (due <= 0) return []
+        return [
+          {
+            id: 2000 + i,
+            title: t(settings.language, 'reminderTitle'),
+            body: t(settings.language, 'reminderBody', { n: due, name: d.name }),
+            hour: time.hour,
+            minute: time.minute,
+            path: `/cards/${d.id}`,
+          },
+        ]
+      })
+      void native.syncDeckReminders({
         enabled: !!settings.cardReminders,
+        sound: settings.notifySound ?? 'default',
+        items,
       })
     })
-  }, [ready, cards, settings.cardReminders, settings.reminderHour, settings.reminderMinute, settings.language])
+  }, [ready, cards, decks, settings.cardReminders, settings.notifySound, settings.language])
   return null
 }
 

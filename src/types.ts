@@ -55,6 +55,7 @@ export interface Deck {
   noteId?: string
   nativeLang: string
   targetLang: string
+  reminderTime?: string
   createdAt: number
   updatedAt: number
 }
@@ -93,6 +94,7 @@ export interface Task {
   description: string
   completed: boolean
   priority: Priority
+  date?: number
   startDate?: number
   dueDate?: number
   category: string
@@ -101,6 +103,7 @@ export interface Task {
   recordingId?: string
   deckId?: string
   parentId?: string
+  remind: boolean
   recurring: Recurrence
   subtasks: Subtask[]
   createdAt: number
@@ -149,6 +152,8 @@ export interface Link {
   createdAt: number
 }
 
+export type NotifySound = 'default' | 'chime' | 'bell'
+
 export interface AppSettings {
   language: Lang
   theme: Theme
@@ -156,8 +161,7 @@ export interface AppSettings {
   lastBackupAt?: number
   speakRepeats: 1 | 2 | 3 | 5
   cardReminders: boolean
-  reminderHour: number
-  reminderMinute: number
+  notifySound: NotifySound
 }
 
 export interface SearchHit {
@@ -174,9 +178,14 @@ export const DEFAULT_SETTINGS: AppSettings = {
   userName: '',
   speakRepeats: 1,
   cardReminders: false,
-  reminderHour: 9,
-  reminderMinute: 0,
+  notifySound: 'default',
 }
+
+export const NOTIFY_SOUNDS: { id: NotifySound; ar: string; en: string }[] = [
+  { id: 'default', ar: 'الافتراضية', en: 'Default' },
+  { id: 'chime', ar: 'رنين خفيف', en: 'Chime' },
+  { id: 'bell', ar: 'جرس', en: 'Bell' },
+]
 
 export const LEARN_LANGS: { code: string; ar: string; en: string }[] = [
   { code: 'ar', ar: 'العربية', en: 'Arabic' },

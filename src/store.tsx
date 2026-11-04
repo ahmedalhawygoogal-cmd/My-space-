@@ -131,6 +131,25 @@ function normalizeDeck(raw: Deck): Deck {
     targetLang: raw.targetLang || 'en',
     description: raw.description ?? '',
     tags: raw.tags ?? [],
+    reminderTime: raw.reminderTime || undefined,
+  }
+}
+
+function normalizeTask(raw: Task): Task {
+  const date = raw.date ?? raw.dueDate ?? raw.startDate
+  return {
+    ...raw,
+    title: raw.title ?? '',
+    description: raw.description ?? '',
+    completed: !!raw.completed,
+    priority: raw.priority ?? 'medium',
+    date,
+    dueDate: raw.dueDate ?? date,
+    category: raw.category ?? '',
+    parentId: raw.parentId,
+    remind: !!raw.remind,
+    recurring: raw.recurring ?? 'none',
+    subtasks: raw.subtasks ?? [],
   }
 }
 
@@ -259,28 +278,28 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ])
     const decksN = decks.map(normalizeDeck)
     const cardsN = cards.map(normalizeCard)
+    const tasksN = tasks.map(normalizeTask)
     const deckWrites = decksN.filter((_, idx) => !decks[idx]?.nativeLang || !decks[idx]?.targetLang)
     const cardWrites = cardsN.filter((_, idx) => {
       const raw = cards[idx]
       return !raw || typeof raw.mistakes !== 'number' || raw.exampleTranslation === undefined
     })
+    const taskWrites = tasksN.filter((_, idx) => {
+      const raw = tasks[idx]
+      return !raw || raw.date === undefined || raw.remind === undefined
+    })
     await Promise.all([
       ...deckWrites.map((d) => db.putOne(STORES.decks, d)),
       ...cardWrites.map((c) => db.putOne(STORES.cards, c)),
+      ...taskWrites.map((tk) => db.putOne(STORES.tasks, tk)),
     ])
     const settingsN = {
       ...settings,
       speakRepeats: settings.speakRepeats ?? 1,
       cardReminders: settings.cardReminders ?? false,
-      reminderHour: settings.reminderHour ?? 9,
-      reminderMinute: settings.reminderMinute ?? 0,
+      notifySound: settings.notifySound ?? 'default',
     }
-    if (
-      settings.speakRepeats == null ||
-      settings.cardReminders == null ||
-      settings.reminderHour == null ||
-      settings.reminderMinute == null
-    ) {
+    if (settings.speakRepeats == null || settings.cardReminders == null || settings.notifySound == null) {
       await db.saveSettings(settingsN)
     }
     setState({
@@ -291,7 +310,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       recordings,
       decks: decksN,
       cards: cardsN,
-      tasks,
+      tasks: tasksN,
       notebooks,
       notes,
       links,
@@ -444,6 +463,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       noteId: extra?.noteId,
       nativeLang: extra?.nativeLang || 'ar',
       targetLang: extra?.targetLang || 'en',
+      reminderTime: extra?.reminderTime,
       createdAt: t,
       updatedAt: t,
     }
@@ -583,14 +603,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       description: data.description ?? '',
       completed: false,
       priority: data.priority ?? 'medium',
+      date: data.date ?? data.dueDate,
       startDate: data.startDate,
-      dueDate: data.dueDate,
+      dueDate: data.dueDate ?? data.date,
       category: data.category ?? '',
       subjectId: data.subjectId,
       noteId: data.noteId,
       recordingId: data.recordingId,
       deckId: data.deckId,
       parentId: data.parentId,
+      remind: data.remind ?? false,
       recurring: data.recurring ?? 'none',
       subtasks: data.subtasks ?? [],
       createdAt: t,
@@ -637,9 +659,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [state.tasks, patchList, addTask])
 
   const deleteTask = useCallback(async (id: string) => {
+    const childIds = state.tasks.filter((x) => x.parentId === id).map((x) => x.id)
     await db.deleteById(STORES.tasks, id)
-    setState((s) => ({ ...s, tasks: s.tasks.filter((x) => x.id !== id) }))
-  }, [])
+    await Promise.all(childIds.map((cid) => db.deleteById(STORES.tasks, cid)))
+    setState((s) => ({
+      ...s,
+      tasks: s.tasks.filter((x) => x.id !== id && x.parentId !== id),
+    }))
+  }, [state.tasks])
 
   const addNotebook = useCallback(async (name: string, extra?: Partial<Notebook>) => {
     const t = now()

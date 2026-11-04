@@ -3,7 +3,8 @@ import { useStore } from '../store'
 import { Confirm, Segment, Toast, useT } from '../ui'
 import { downloadBlob, formatDateTime } from '../utils'
 import { exportSnapshot, type Snapshot } from '../db'
-import type { Lang, Theme } from '../types'
+import type { Lang, NotifySound, Theme } from '../types'
+import { NOTIFY_SOUNDS } from '../types'
 import { getNative } from '../native'
 
 export default function SettingsPage() {
@@ -81,16 +82,18 @@ export default function SettingsPage() {
           { id: 'off', label: tr('off') },
         ]}
       />
-      <label className="label">{tr('reminderTime')}</label>
-      <input
+      <label className="label">{tr('notifySound')}</label>
+      <select
         className="field"
-        type="time"
-        value={`${String(settings.reminderHour ?? 9).padStart(2, '0')}:${String(settings.reminderMinute ?? 0).padStart(2, '0')}`}
-        onChange={(e) => {
-          const [h, m] = e.target.value.split(':').map(Number)
-          void setSettings({ reminderHour: h ?? 9, reminderMinute: m ?? 0 })
-        }}
-      />
+        value={settings.notifySound ?? 'default'}
+        onChange={(e) => void setSettings({ notifySound: e.target.value as NotifySound })}
+      >
+        {NOTIFY_SOUNDS.map((s) => (
+          <option key={s.id} value={s.id}>
+            {lang === 'ar' ? s.ar : s.en}
+          </option>
+        ))}
+      </select>
       <h3 style={{ marginBottom: 0 }}>{tr('subjects')}</h3>
       {subjects.map((s) => (
         <div key={s.id} className="list-item">

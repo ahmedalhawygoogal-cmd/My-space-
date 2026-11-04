@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Ear, Layers, LayoutGrid, Pencil, PenLine, Plus, Trash2, Volume2 } from 'lucide-react'
+import { Bell, Ear, Layers, LayoutGrid, Pencil, PenLine, Plus, Trash2, Volume2 } from 'lucide-react'
 import { useStore } from '../store'
 import { Confirm, Empty, Sheet, useT } from '../ui'
 import type { ReactNode } from 'react'
@@ -21,17 +21,18 @@ function ListenAuto({ text, lang, repeats, round }: { text: string; lang: string
   return null
 }
 
-function SpeakBtn({ text, lang }: { text: string; lang: string }) {
+function SpeakBtn({ card, targetLang }: { card: Card; targetLang: string }) {
   const tr = useT()
   const { settings } = useStore()
+  const targetWord = card.back
   const ok = typeof window !== 'undefined' && 'speechSynthesis' in window
   return (
     <button
       className="icon-btn"
       type="button"
-      disabled={!ok || !text.trim()}
+      disabled={!ok || !targetWord.trim()}
       aria-label={tr('speak')}
-      onClick={() => speakText(text, lang, settings.speakRepeats ?? 1)}
+      onClick={() => speakText(targetWord, targetLang, settings.speakRepeats ?? 1)}
     >
       <Volume2 size={16} />
     </button>
@@ -95,15 +96,27 @@ function CardForm({ form, setForm }: { form: CardFormState; setForm: (f: CardFor
 
 export default function FlashcardsPage() {
   const tr = useT()
-  const { decks, cards, addDeck, lang } = useStore()
+  const { decks, cards, addDeck, updateDeck, lang } = useStore()
   const [open, setOpen] = useState(false)
+  const [unify, setUnify] = useState(false)
   const [name, setName] = useState('')
   const [nativeLang, setNativeLang] = useState('ar')
   const [targetLang, setTargetLang] = useState('en')
+  const [reminderTime, setReminderTime] = useState('09:00')
+  const [unifyTime, setUnifyTime] = useState('09:00')
 
   return (
     <div className="stack">
-      <h1 className="page-title">{tr('flashcards')}</h1>
+      <div className="spread">
+        <h1 className="page-title" style={{ margin: 0 }}>
+          {tr('flashcards')}
+        </h1>
+        {decks.length > 0 ? (
+          <button className="chip" type="button" onClick={() => setUnify(true)}>
+            <Bell size={14} /> {tr('unifiedReminder')}
+          </button>
+        ) : null}
+      </div>
       {decks.length === 0 ? (
         <Empty
           icon={<Layers size={36} />}
@@ -153,18 +166,35 @@ export default function FlashcardsPage() {
         </select>
         <label className="label">{tr('deckName')}</label>
         <input className="field" value={name} onChange={(e) => setName(e.target.value)} />
+        <label className="label">{tr('deckReminder')}</label>
+        <input className="field" type="time" value={reminderTime} onChange={(e) => setReminderTime(e.target.value)} />
         <button
           className="btn block"
           style={{ marginTop: 12 }}
           type="button"
           onClick={async () => {
             if (!name.trim()) return
-            await addDeck(name.trim(), { nativeLang, targetLang })
+            await addDeck(name.trim(), { nativeLang, targetLang, reminderTime })
             setName('')
             setOpen(false)
           }}
         >
           {tr('create')}
+        </button>
+      </Sheet>
+      <Sheet open={unify} onClose={() => setUnify(false)} title={tr('unifiedReminder')}>
+        <label className="label">{tr('reminderTime')}</label>
+        <input className="field" type="time" value={unifyTime} onChange={(e) => setUnifyTime(e.target.value)} />
+        <button
+          className="btn block"
+          style={{ marginTop: 12 }}
+          type="button"
+          onClick={async () => {
+            await Promise.all(decks.map((d) => updateDeck(d.id, { reminderTime: unifyTime })))
+            setUnify(false)
+          }}
+        >
+          {tr('applyAllDecks')}
         </button>
       </Sheet>
     </div>
@@ -197,6 +227,13 @@ export function DeckPage() {
       <div className="muted">
         {langLabel(deck.nativeLang, lang)} → {langLabel(deck.targetLang, lang)}
       </div>
+      <label className="label">{tr('deckReminder')}</label>
+      <input
+        className="field"
+        type="time"
+        value={deck.reminderTime || ''}
+        onChange={(e) => void updateDeck(deck.id, { reminderTime: e.target.value || undefined })}
+      />
       <div className="grid-2">
         <GameLink to={`/cards/${deck.id}/game/choice`} icon={<LayoutGrid size={16} />} label={tr('gameChoice')} />
         <GameLink to={`/cards/${deck.id}/game/match`} icon={<Layers size={16} />} label={tr('gameMatch')} />
@@ -227,7 +264,7 @@ export function DeckPage() {
               <div className="ellipsis">{c.front}</div>
               <div className="meta ellipsis">{c.back}</div>
             </div>
-            <SpeakBtn text={c.back} lang={deck.targetLang} />
+            <SpeakBtn card={c} targetLang={deck.targetLang} />
             <button
               className="icon-btn"
               type="button"

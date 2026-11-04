@@ -15,18 +15,21 @@ export default function HomePage() {
 
   const todayStart = startOfDay()
   const todayEnd = endOfDay()
-  const todayTasks = tasks.filter((tk) => {
+  const mains = tasks.filter((tk) => !tk.parentId)
+  const taskDay = (tk: (typeof tasks)[number]) => tk.date ?? tk.dueDate
+  const todayTasks = mains.filter((tk) => {
     if (tk.completed) return tk.completedAt && tk.completedAt >= todayStart
-    if (!tk.dueDate) return true
-    return tk.dueDate <= todayEnd
+    const d = taskDay(tk)
+    if (!d) return true
+    return d <= todayEnd
   })
   const openToday = todayTasks.filter((t) => !t.completed)
-  const doneToday = tasks.filter((t) => t.completed && t.completedAt && t.completedAt >= todayStart)
+  const doneToday = mains.filter((t) => t.completed && t.completedAt && t.completedAt >= todayStart)
   const progress = todayTasks.length ? (doneToday.length / Math.max(1, doneToday.length + openToday.length)) * 100 : 0
   const dueCards = cards.filter((c) => c.dueAt <= Date.now())
   const weekStart = todayStart - 6 * 86400000
-  const weekDone = tasks.filter((t) => t.completed && t.completedAt && t.completedAt >= weekStart).length
-  const weekTotal = Math.max(1, tasks.filter((t) => (t.dueDate ?? t.createdAt) >= weekStart).length)
+  const weekDone = mains.filter((t) => t.completed && t.completedAt && t.completedAt >= weekStart).length
+  const weekTotal = Math.max(1, mains.filter((t) => (taskDay(t) ?? t.createdAt) >= weekStart).length)
 
   return (
     <div className="stack" style={{ gap: 14 }}>
