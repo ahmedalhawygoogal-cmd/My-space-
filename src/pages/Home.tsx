@@ -57,7 +57,7 @@ export default function HomePage() {
 
       <button className="card pressable spread" type="button" onClick={() => nav('/record/live')}>
         <div className="row">
-          <div className="brand-mark" style={{ background: 'var(--accent)', width: 44, height: 44, borderRadius: 14 }}>
+          <div className="brand-mark" style={{ width: 44, height: 44, borderRadius: 14 }}>
             <Mic size={20} />
           </div>
           <div>
@@ -71,10 +71,10 @@ export default function HomePage() {
       </button>
 
       <div className="grid-2">
-        <Mod to="/record" icon={<Mic size={18} />} label={tr('recorder')} color="var(--accent)" />
-        <Mod to="/cards" icon={<Layers size={18} />} label={tr('flashcards')} color="var(--brand)" />
-        <Mod to="/tasks" icon={<CheckSquare size={18} />} label={tr('tasks')} color="var(--gold)" />
-        <Mod to="/notes" icon={<BookOpen size={18} />} label={tr('notebook')} color="#4C6FE8" />
+        <Mod to="/record" icon={<Mic size={18} />} label={tr('recorder')} />
+        <Mod to="/cards" icon={<Layers size={18} />} label={tr('flashcards')} />
+        <Mod to="/tasks" icon={<CheckSquare size={18} />} label={tr('tasks')} />
+        <Mod to="/notes" icon={<BookOpen size={18} />} label={tr('notebook')} />
       </div>
 
       <div className="stat-grid">
@@ -99,11 +99,11 @@ export default function HomePage() {
   )
 }
 
-function Mod({ to, icon, label, color }: { to: string; icon: ReactNode; label: string; color: string }) {
+function Mod({ to, icon, label }: { to: string; icon: ReactNode; label: string }) {
   return (
     <Link className="card pressable" to={to} style={{ textDecoration: 'none', color: 'inherit' }}>
       <div className="row">
-        <div style={{ width: 36, height: 36, borderRadius: 12, background: color, color: '#fff', display: 'grid', placeItems: 'center' }}>
+        <div className="brand-mark" style={{ width: 36, height: 36, borderRadius: 12 }}>
           {icon}
         </div>
         <b>{label}</b>

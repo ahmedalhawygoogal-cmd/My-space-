@@ -27,7 +27,7 @@ import type {
 } from './types'
 import { APP_FONTS, DEFAULT_SETTINGS, SUBJECT_COLORS } from './types'
 import type { AppFont, AppFontSize } from './types'
-import { includesText, now, startOfDay, stripHtml, uid } from './utils'
+import { contrastInk, includesText, now, startOfDay, stripHtml, uid } from './utils'
 
 interface StoreState {
   ready: boolean
@@ -93,8 +93,6 @@ function applyTheme(theme: Theme) {
     theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
   document.documentElement.dataset.theme = dark ? 'dark' : 'light'
   document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
-  const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.setAttribute('content', dark ? '#121614' : '#0F6E6B')
 }
 
 function applyLang(lang: Lang) {
@@ -128,10 +126,17 @@ export function applyAppearance(p: { fontFamily?: AppFont; fontSize?: AppFontSiz
     root.style.fontSize = size
   }
   if (p.accentColor) {
-    root.style.setProperty('--brand', p.accentColor)
+    const ink = contrastInk(p.accentColor)
+    const soft = `color-mix(in srgb, ${p.accentColor} 22%, var(--bg-elev))`
     root.style.setProperty('--primary-color', p.accentColor)
-    const soft = `color-mix(in srgb, ${p.accentColor} 18%, var(--bg-elev))`
+    root.style.setProperty('--primary-ink', ink)
+    root.style.setProperty('--brand', p.accentColor)
+    root.style.setProperty('--brand-ink', ink)
     root.style.setProperty('--brand-soft', soft)
+    root.style.setProperty('--accent', p.accentColor)
+    root.style.setProperty('--accent-soft', soft)
+    const meta = document.querySelector('meta[name="theme-color"]')
+    if (meta) meta.setAttribute('content', p.accentColor)
   }
 }
 
@@ -396,6 +401,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })
     applyLang(settings.language)
     applyTheme(settings.theme)
+    applyAppearance({
+      fontFamily: settingsN.fontFamily,
+      fontSize: settingsN.fontSize,
+      accentColor: settingsN.accentColor,
+    })
   }, [])
 
   useEffect(() => {
@@ -413,7 +423,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
     const onChange = () => {
-      if (state.settings.theme === 'system') applyTheme('system')
+      if (state.settings.theme === 'system') {
+        applyTheme('system')
+        applyAppearance({
+          fontFamily: state.settings.fontFamily,
+          fontSize: state.settings.fontSize,
+          accentColor: state.settings.accentColor,
+        })
+      }
     }
     mq.addEventListener('change', onChange)
     return () => mq.removeEventListener('change', onChange)
@@ -432,13 +449,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, settings: next }))
     if (p.language) applyLang(p.language)
     if (p.theme) applyTheme(p.theme)
-    if (p.fontFamily || p.fontSize || p.accentColor) {
-      persistAppear({
-        fontFamily: next.fontFamily,
-        fontSize: next.fontSize,
-        accentColor: next.accentColor,
-      })
-    }
+    persistAppear({
+      fontFamily: next.fontFamily,
+      fontSize: next.fontSize,
+      accentColor: next.accentColor,
+    })
   }, [state.settings])
 
   const addSubject = useCallback(async (name: string, color?: string) => {

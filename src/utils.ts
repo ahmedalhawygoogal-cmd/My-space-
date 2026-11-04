@@ -39,50 +39,102 @@ export function isSameDay(a: number, b: number): boolean {
   return startOfDay(a) === startOfDay(b)
 }
 
-export const ARABIC_COLORS: Record<string, string> = {
-  احمر: '#ef4444',
-  أحمر: '#ef4444',
-  ازرق: '#2563eb',
-  أزرق: '#2563eb',
-  اخضر: '#16a34a',
-  أخضر: '#16a34a',
-  اصفر: '#eab308',
-  أصفر: '#eab308',
-  برتقالي: '#f97316',
-  بنفسجي: '#7c3aed',
-  وردي: '#ec4899',
-  اسود: '#111827',
-  أسود: '#111827',
-  ابيض: '#ffffff',
-  أبيض: '#ffffff',
-  رمادي: '#6b7280',
-  ذهبي: '#c9a227',
-  تركواز: '#0f6e6b',
-  فيروزي: '#14b8a6',
-  سماوي: '#06b6d4',
-  بني: '#92400e',
-  زيتي: '#4d7c0f',
-  كحلي: '#1e3a8a',
-  فضي: '#94a3b8',
-  نحاسي: '#b45309',
-  ليموني: '#84cc16',
-  كهرماني: '#d97706',
-  نيلي: '#4338ca',
-  مرجاني: '#e85d4c',
+const AR_COLOR_BASE: [string, string][] = [
+  ['تركواز', 'teal'],
+  ['فيروزي', 'turquoise'],
+  ['برتقالي', 'orange'],
+  ['بنفسجي', 'purple'],
+  ['سماوي', 'skyblue'],
+  ['كهرماني', 'goldenrod'],
+  ['مرجاني', 'coral'],
+  ['ليموني', 'lime'],
+  ['ذهبي', 'gold'],
+  ['رمادي', 'gray'],
+  ['فضي', 'silver'],
+  ['كحلي', 'navy'],
+  ['نيلي', 'indigo'],
+  ['زيتي', 'olivedrab'],
+  ['نحاسي', 'peru'],
+  ['احمر', 'red'],
+  ['أحمر', 'red'],
+  ['اخضر', 'green'],
+  ['أخضر', 'green'],
+  ['ازرق', 'blue'],
+  ['أزرق', 'blue'],
+  ['اصفر', 'yellow'],
+  ['أصفر', 'yellow'],
+  ['اسود', 'black'],
+  ['أسود', 'black'],
+  ['ابيض', 'white'],
+  ['أبيض', 'white'],
+  ['وردي', 'pink'],
+  ['بني', 'brown'],
+  ['cyan', 'cyan'],
+]
+
+function colorSupported(value: string): boolean {
+  try {
+    return typeof CSS !== 'undefined' && CSS.supports('color', value)
+  } catch {
+    return false
+  }
 }
 
 export function resolveColor(raw: string): string | null {
   const value = raw.trim()
   if (!value) return null
-  const named = ARABIC_COLORS[value] || ARABIC_COLORS[value.toLowerCase()]
-  if (named) return named
-  const lower = value.toLowerCase()
-  const probe = document.createElement('span')
-  probe.style.color = ''
-  probe.style.color = lower
-  if (probe.style.color) return lower
-  if (typeof CSS !== 'undefined' && CSS.supports?.('color', value)) return value
+  if (colorSupported(value)) return value
+  let text = value.replace(/\s+/g, ' ')
+  let shade: 'light' | 'dark' | '' = ''
+  if (/(فاتح|\blight\b)/i.test(text)) {
+    shade = 'light'
+    text = text.replace(/فاتح|\blight\b/gi, '').trim()
+  } else if (/(غامق|داكن|\bdark\b)/i.test(text)) {
+    shade = 'dark'
+    text = text.replace(/غامق|داكن|\bdark\b/gi, '').trim()
+  }
+  for (const [ar, en] of AR_COLOR_BASE) {
+    if (text === ar || text.includes(ar)) {
+      const named = shade ? `${shade}${en}` : en
+      if (colorSupported(named)) return named
+      if (colorSupported(en)) return en
+    }
+  }
+  const lower = text.toLowerCase()
+  const shaded = shade ? `${shade}${lower.replace(/\s+/g, '')}` : lower
+  if (colorSupported(shaded)) return shaded
+  if (colorSupported(lower)) return lower
   return null
+}
+
+export function contrastInk(color: string): string {
+  const ctx = document.createElement('canvas').getContext('2d')
+  if (!ctx) return '#ffffff'
+  ctx.fillStyle = '#000000'
+  ctx.fillStyle = color
+  const parsed = ctx.fillStyle
+  let r = 0
+  let g = 0
+  let b = 0
+  if (parsed.startsWith('#')) {
+    const h = parsed.slice(1)
+    const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h
+    r = parseInt(full.slice(0, 2), 16)
+    g = parseInt(full.slice(2, 4), 16)
+    b = parseInt(full.slice(4, 6), 16)
+  } else {
+    const m = parsed.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/)
+    if (!m) return '#ffffff'
+    r = Number(m[1])
+    g = Number(m[2])
+    b = Number(m[3])
+  }
+  const lin = [r, g, b].map((c) => {
+    const s = c / 255
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
+  })
+  const luminance = 0.2126 * lin[0]! + 0.7152 * lin[1]! + 0.0722 * lin[2]!
+  return luminance > 0.55 ? '#111111' : '#ffffff'
 }
 
 export function firstNoteImage(html: string): string | undefined {

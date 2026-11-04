@@ -155,7 +155,7 @@ export function LiveRecordPage() {
     ctx.clearRect(0, 0, w, h)
     ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg-muted') || '#eee'
     ctx.fillRect(0, 0, w, h)
-    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent') || '#e85d4c'
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#0f6e6b'
     ctx.lineWidth = 3
     ctx.beginPath()
     const step = Math.max(1, Math.floor(data.length / 80))

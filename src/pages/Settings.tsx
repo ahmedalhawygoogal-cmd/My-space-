@@ -80,7 +80,7 @@ export default function SettingsPage() {
         onChange={(e) => setColorDraft(e.target.value)}
       />
       <button
-        className="btn secondary block"
+        className="btn block"
         type="button"
         onClick={() => {
           const resolved = resolveColor(colorDraft)
@@ -88,7 +88,6 @@ export default function SettingsPage() {
             setToast(tr('invalidColor'))
             return
           }
-          setColorDraft(resolved)
           void setSettings({ accentColor: resolved })
         }}
       >
