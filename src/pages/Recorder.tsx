@@ -408,6 +408,7 @@ export function RecordingDetailPage() {
             title: rec.name,
             content: rec.description,
             subjectId: rec.subjectId,
+            audioId: rec.id,
             recordingIds: [rec.id],
           })
           await linkEntities('recording', rec.id, 'note', note.id)

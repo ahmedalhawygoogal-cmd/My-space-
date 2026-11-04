@@ -39,6 +39,57 @@ export function isSameDay(a: number, b: number): boolean {
   return startOfDay(a) === startOfDay(b)
 }
 
+export const ARABIC_COLORS: Record<string, string> = {
+  احمر: '#ef4444',
+  أحمر: '#ef4444',
+  ازرق: '#2563eb',
+  أزرق: '#2563eb',
+  اخضر: '#16a34a',
+  أخضر: '#16a34a',
+  اصفر: '#eab308',
+  أصفر: '#eab308',
+  برتقالي: '#f97316',
+  بنفسجي: '#7c3aed',
+  وردي: '#ec4899',
+  اسود: '#111827',
+  أسود: '#111827',
+  ابيض: '#ffffff',
+  أبيض: '#ffffff',
+  رمادي: '#6b7280',
+  ذهبي: '#c9a227',
+  تركواز: '#0f6e6b',
+  فيروزي: '#14b8a6',
+  سماوي: '#06b6d4',
+  بني: '#92400e',
+  زيتي: '#4d7c0f',
+  كحلي: '#1e3a8a',
+  فضي: '#94a3b8',
+  نحاسي: '#b45309',
+  ليموني: '#84cc16',
+  كهرماني: '#d97706',
+  نيلي: '#4338ca',
+  مرجاني: '#e85d4c',
+}
+
+export function resolveColor(raw: string): string | null {
+  const value = raw.trim()
+  if (!value) return null
+  const named = ARABIC_COLORS[value] || ARABIC_COLORS[value.toLowerCase()]
+  if (named) return named
+  const lower = value.toLowerCase()
+  const probe = document.createElement('span')
+  probe.style.color = ''
+  probe.style.color = lower
+  if (probe.style.color) return lower
+  if (typeof CSS !== 'undefined' && CSS.supports?.('color', value)) return value
+  return null
+}
+
+export function firstNoteImage(html: string): string | undefined {
+  const m = html.match(/<img[^>]+src=["']([^"']+)["']/i)
+  return m?.[1]
+}
+
 export function formatDate(ts: number, lang: string, opts?: Intl.DateTimeFormatOptions): string {
   const locale = lang === 'ar' ? 'ar-EG' : 'en-GB'
   return new Intl.DateTimeFormat(locale, opts ?? { day: 'numeric', month: 'short' }).format(new Date(ts))

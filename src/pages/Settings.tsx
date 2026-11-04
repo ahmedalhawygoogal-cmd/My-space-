@@ -3,8 +3,9 @@ import { useStore } from '../store'
 import { Confirm, Segment, Toast, useT } from '../ui'
 import { downloadBlob, formatDateTime } from '../utils'
 import { exportSnapshot, type Snapshot } from '../db'
-import type { Lang, NotifySound, Theme } from '../types'
-import { NOTIFY_SOUNDS } from '../types'
+import type { AppFont, AppFontSize, Lang, NotifySound, Theme } from '../types'
+import { APP_FONTS, NOTIFY_SOUNDS } from '../types'
+import { resolveColor } from '../utils'
 import { getNative } from '../native'
 
 export default function SettingsPage() {
@@ -14,6 +15,7 @@ export default function SettingsPage() {
   const [confirm, setConfirm] = useState(false)
   const [pending, setPending] = useState<Snapshot | null>(null)
   const [newSub, setNewSub] = useState('')
+  const [colorDraft, setColorDraft] = useState(settings.accentColor || '')
   const fileRef = useRef<HTMLInputElement>(null)
 
   async function doExport() {
@@ -48,6 +50,50 @@ export default function SettingsPage() {
           { id: 'system', label: tr('system') },
         ]}
       />
+      <label className="label">{tr('fontFamily')}</label>
+      <select
+        className="field"
+        value={settings.fontFamily || 'cairo'}
+        onChange={(e) => void setSettings({ fontFamily: e.target.value as AppFont })}
+      >
+        {APP_FONTS.map((f) => (
+          <option key={f.id} value={f.id}>
+            {f.label}
+          </option>
+        ))}
+      </select>
+      <label className="label">{tr('fontSize')}</label>
+      <Segment
+        value={settings.fontSize || 'medium'}
+        onChange={(v) => void setSettings({ fontSize: v as AppFontSize })}
+        options={[
+          { id: 'small', label: tr('fontSmall') },
+          { id: 'medium', label: tr('fontMedium') },
+          { id: 'large', label: tr('fontLarge') },
+        ]}
+      />
+      <label className="label">{tr('appColor')}</label>
+      <input
+        className="field"
+        value={colorDraft}
+        placeholder={tr('colorHint')}
+        onChange={(e) => setColorDraft(e.target.value)}
+      />
+      <button
+        className="btn secondary block"
+        type="button"
+        onClick={() => {
+          const resolved = resolveColor(colorDraft)
+          if (!resolved) {
+            setToast(tr('invalidColor'))
+            return
+          }
+          setColorDraft(resolved)
+          void setSettings({ accentColor: resolved })
+        }}
+      >
+        {tr('applyColor')}
+      </button>
       <label className="label">{tr('speakRepeats')}</label>
       <Segment
         value={String(settings.speakRepeats ?? 1)}

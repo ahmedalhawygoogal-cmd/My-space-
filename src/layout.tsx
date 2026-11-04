@@ -12,7 +12,9 @@ export function Layout() {
     loc.pathname.includes('/study') ||
     loc.pathname.includes('/test') ||
     loc.pathname.includes('/game') ||
-    loc.pathname.includes('/record/live')
+    loc.pathname.includes('/record/live') ||
+    loc.pathname === '/notes/new' ||
+    loc.pathname.endsWith('/edit')
 
   return (
     <div className="app-shell">

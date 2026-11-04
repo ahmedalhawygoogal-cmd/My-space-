@@ -1,116 +1,134 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
   Bold,
   BookOpen,
-  CheckSquare,
-  Heading,
-  Image as ImageIcon,
+  Eye,
+  Headphones,
   Italic,
-  Link as LinkIcon,
   List,
-  Mic,
+  Pause,
+  Pencil,
   Pin,
+  Play,
   Plus,
+  Image as ImageIcon,
+  RotateCcw,
+  RotateCw,
+  Volume2,
 } from 'lucide-react'
 import { useStore } from '../store'
-import { Confirm, Empty, Sheet, SubjectSelect, TagInput, Toast, useT } from '../ui'
-import { debounce, excerpt, fileToDataUrl, stripHtml, uid } from '../utils'
+import { Confirm, Empty, Sheet, Toast, useT } from '../ui'
+import { fileToDataUrl, firstNoteImage, formatDate, formatDuration } from '../utils'
+import { NOTE_COLORS } from '../types'
 import type { Note } from '../types'
+
+function audioOf(n: Note) {
+  return n.audioId || n.recordingIds[0]
+}
 
 export default function NotebookPage() {
   const tr = useT()
   const nav = useNavigate()
-  const { notebooks, notes, addNotebook, addNote } = useStore()
-  const [nb, setNb] = useState<string | 'all'>('all')
+  const { notes, recordings, updateNote, lang, getAudioBlob } = useStore()
   const [q, setQ] = useState('')
-  const [sort, setSort] = useState<'updated' | 'created'>('updated')
-  const [open, setOpen] = useState(false)
-  const [name, setName] = useState('')
+  const playing = useRef<HTMLAudioElement | null>(null)
+  const [active, setActive] = useState<string | null>(null)
 
   const list = useMemo(() => {
     let rows = notes
-    if (nb !== 'all') rows = rows.filter((n) => n.notebookId === nb)
     if (q.trim()) {
       const needle = q.toLowerCase()
       rows = rows.filter(
         (n) =>
           n.title.toLowerCase().includes(needle) ||
-          stripHtml(n.content).toLowerCase().includes(needle) ||
-          n.tags.some((t) => t.toLowerCase().includes(needle)),
+          n.type.toLowerCase().includes(needle) ||
+          n.content.toLowerCase().includes(needle),
       )
     }
-    rows = [...rows].sort((a, b) => {
+    return [...rows].sort((a, b) => {
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
-      return sort === 'updated' ? b.updatedAt - a.updatedAt : b.createdAt - a.createdAt
+      return b.updatedAt - a.updatedAt
     })
-    return rows
-  }, [notes, nb, q, sort])
+  }, [notes, q])
 
-  async function createNote() {
-    const book = notebooks.find((n) => n.id === nb) ?? notebooks[0]
-    if (!book) return
-    const note = await addNote(book.id, { title: '' })
-    nav(`/notes/${note.id}`)
+  async function playNote(n: Note) {
+    const id = audioOf(n)
+    if (!id) return
+    if (playing.current) {
+      playing.current.pause()
+      playing.current = null
+      if (active === n.id) {
+        setActive(null)
+        return
+      }
+    }
+    const blob = await getAudioBlob(id)
+    if (!blob) return
+    const el = new Audio(URL.createObjectURL(blob))
+    playing.current = el
+    setActive(n.id)
+    el.onended = () => {
+      setActive(null)
+      playing.current = null
+    }
+    void el.play()
+  }
+
+  function create() {
+    nav('/notes/new')
   }
 
   return (
     <div className="stack">
       <h1 className="page-title">{tr('notebook')}</h1>
       <input className="field" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('search')} />
-      <div className="chip-row">
-        <button className={`chip ${nb === 'all' ? 'active' : ''}`} type="button" onClick={() => setNb('all')}>
-          {tr('all')}
-        </button>
-        {notebooks.map((n) => (
-          <button key={n.id} className={`chip ${nb === n.id ? 'active' : ''}`} type="button" onClick={() => setNb(n.id)}>
-            {n.name}
-          </button>
-        ))}
-        <button className="chip" type="button" onClick={() => setOpen(true)}>
-          {tr('newNotebook')}
-        </button>
-      </div>
-      <div className="chip-row">
-        <button className={`chip ${sort === 'updated' ? 'active' : ''}`} type="button" onClick={() => setSort('updated')}>
-          {tr('sortModified')}
-        </button>
-        <button className={`chip ${sort === 'created' ? 'active' : ''}`} type="button" onClick={() => setSort('created')}>
-          {tr('sortDate')}
-        </button>
-      </div>
       {list.length === 0 ? (
         <Empty icon={<BookOpen size={36} />} title={tr('noNotes')} hint={tr('noNotesHint')} />
       ) : (
-        list.map((n) => (
-          <Link key={n.id} className="list-item pressable" to={`/notes/${n.id}`}>
-            {n.pinned ? <Pin size={14} /> : <div className="dot" style={{ background: 'var(--brand)' }} />}
-            <div className="grow">
-              <div className="ellipsis">{n.title || tr('untitled')}</div>
-              <div className="meta ellipsis">{excerpt(stripHtml(n.content))}</div>
+        list.map((n) => {
+          const rec = recordings.find((r) => r.id === audioOf(n))
+          return (
+            <div key={n.id} className="note-card" style={{ background: n.color || 'var(--bg-elev)' }}>
+              <div className="grow">
+                <div className="ellipsis" style={{ fontWeight: 800 }}>
+                  {n.title || tr('untitled')}
+                </div>
+                <div className="meta">
+                  {n.type || tr('note')} · {formatDate(n.updatedAt, lang, { day: 'numeric', month: 'short', year: 'numeric' })}
+                </div>
+              </div>
+              <div className="row" style={{ gap: 2 }}>
+                {rec ? (
+                  <button className="icon-btn" type="button" aria-label={tr('play')} onClick={() => void playNote(n)}>
+                    {active === n.id ? <Pause size={16} /> : <Headphones size={16} />}
+                  </button>
+                ) : null}
+                <button className="icon-btn" type="button" aria-label={tr('readNote')} onClick={() => nav(`/notes/${n.id}`)}>
+                  <Eye size={16} />
+                </button>
+                <button className="icon-btn" type="button" aria-label={tr('edit')} onClick={() => nav(`/notes/${n.id}/edit`)}>
+                  <Pencil size={16} />
+                </button>
+                <button
+                  className="icon-btn"
+                  type="button"
+                  aria-label={n.pinned ? tr('unpin') : tr('pin')}
+                  onClick={() => void updateNote(n.id, { pinned: !n.pinned })}
+                >
+                  <Pin size={16} fill={n.pinned ? 'currentColor' : 'none'} />
+                </button>
+              </div>
             </div>
-          </Link>
-        ))
+          )
+        })
       )}
-      <button className="fab" type="button" onClick={() => void createNote()} aria-label={tr('newNote')}>
+      <button className="fab" type="button" onClick={create} aria-label={tr('newNote')}>
         <Plus size={22} />
       </button>
-      <Sheet open={open} onClose={() => setOpen(false)} title={tr('newNotebook')}>
-        <input className="field" value={name} onChange={(e) => setName(e.target.value)} placeholder={tr('name')} />
-        <button
-          className="btn block"
-          style={{ marginTop: 12 }}
-          type="button"
-          onClick={async () => {
-            if (!name.trim()) return
-            await addNotebook(name.trim())
-            setName('')
-            setOpen(false)
-          }}
-        >
-          {tr('create')}
-        </button>
-      </Sheet>
     </div>
   )
 }
@@ -119,249 +137,320 @@ export function NoteEditorPage() {
   const tr = useT()
   const nav = useNavigate()
   const { id } = useParams()
-  const {
-    notes,
-    notebooks,
-    recordings,
-    tasks,
-    updateNote,
-    deleteNote,
-    addDeck,
-    addCard,
-    addTask,
-    linkEntities,
-  } = useStore()
-  const note = notes.find((n) => n.id === id)
+  const { notes, notebooks, recordings, addNote, updateNote, deleteNote } = useStore()
+  const existing = id && id !== 'new' ? notes.find((n) => n.id === id) : undefined
   const editor = useRef<HTMLDivElement>(null)
-  const [saved, setSaved] = useState(false)
+  const [title, setTitle] = useState(existing?.title ?? '')
+  const [type, setType] = useState(existing?.type ?? '')
+  const [color, setColor] = useState(existing?.color || NOTE_COLORS[0]!)
+  const [audioId, setAudioId] = useState(existing?.audioId || existing?.recordingIds[0] || '')
   const [confirm, setConfirm] = useState(false)
   const [audioOpen, setAudioOpen] = useState(false)
-  const [cardOpen, setCardOpen] = useState(false)
-  const [front, setFront] = useState('')
-  const [back, setBack] = useState('')
-  const saveRef = useRef(note)
+  const [toast, setToast] = useState<string | null>(null)
+  const [noteId, setNoteId] = useState(existing?.id ?? '')
+  const inited = useRef(false)
 
   useEffect(() => {
-    saveRef.current = note
-  }, [note])
-
-  useEffect(() => {
-    if (editor.current && note && editor.current.innerHTML !== note.content) {
-      editor.current.innerHTML = note.content
-    }
-  }, [id])
-
-  const persist = useMemo(
-    () =>
-      debounce((patch: Partial<Note>) => {
-        const cur = saveRef.current
-        if (!cur) return
-        void updateNote(cur.id, patch).then(() => setSaved(true))
-      }, 400),
-    [updateNote],
-  )
-
-  if (!note) return <Empty icon={<BookOpen />} title={tr('noNotes')} />
-  const book = notebooks.find((n) => n.id === note.notebookId)
-  const linkedRec = recordings.filter((r) => note.recordingIds.includes(r.id))
-  const linkedTasks = tasks.filter((t) => note.taskIds.includes(t.id) || t.noteId === note.id)
+    if (inited.current) return
+    if (editor.current && existing) editor.current.innerHTML = existing.content
+    inited.current = true
+  }, [existing])
 
   function exec(cmd: string, val?: string) {
     editor.current?.focus()
     document.execCommand(cmd, false, val)
-    persist({ content: editor.current?.innerHTML ?? '' })
+  }
+
+  async function save() {
+    const content = editor.current?.innerHTML ?? ''
+    const book = notebooks[0]
+    if (!book) return
+    const patch: Partial<Note> = {
+      title: title.trim(),
+      type: type.trim(),
+      content,
+      color,
+      audioId: audioId || undefined,
+      recordingIds: audioId ? [audioId] : [],
+    }
+    if (noteId) {
+      await updateNote(noteId, patch)
+    } else {
+      const created = await addNote(book.id, patch)
+      setNoteId(created.id)
+      nav(`/notes/${created.id}/edit`, { replace: true })
+    }
+    setToast(tr('noteSaved'))
   }
 
   return (
-    <div className="stack">
+    <div className="stack" style={{ background: color, margin: '-16px', padding: 16, minHeight: '100%' }}>
       <div className="spread">
-        <span className="muted">{book?.name}</span>
-        <div className="row">
-          {saved ? <span className="badge">{tr('autoSaved')}</span> : null}
-          <button className="icon-btn" type="button" onClick={() => void updateNote(note.id, { pinned: !note.pinned })}>
-            <Pin size={16} />
-          </button>
-        </div>
+        <button className="chip" type="button" onClick={() => nav('/notes')}>
+          {tr('back')}
+        </button>
+        <button className="btn" type="button" onClick={() => void save()}>
+          {tr('save')}
+        </button>
       </div>
-      <input
-        className="note-title"
-        value={note.title}
-        placeholder={tr('title')}
-        onChange={(e) => {
-          void updateNote(note.id, { title: e.target.value })
-        }}
-      />
+      <input className="note-title" value={title} placeholder={tr('title')} onChange={(e) => setTitle(e.target.value)} />
+      <label className="label">{tr('noteType')}</label>
+      <input className="field" value={type} placeholder={tr('noteType')} onChange={(e) => setType(e.target.value)} />
+      <label className="label">{tr('noteColor')}</label>
+      <div className="chip-row">
+        {NOTE_COLORS.map((c) => (
+          <button
+            key={c}
+            className={`swatch ${color === c ? 'on' : ''}`}
+            type="button"
+            style={{ background: c }}
+            onClick={() => setColor(c)}
+            aria-label={c}
+          />
+        ))}
+      </div>
       <div className="editor-wrap">
         <div className="toolbar">
+          <select
+            className="tool-select"
+            defaultValue="Cairo"
+            aria-label={tr('editorFont')}
+            onChange={(e) => exec('fontName', e.target.value)}
+          >
+            <option value="Cairo">Cairo</option>
+            <option value="Tajawal">Tajawal</option>
+            <option value="Almarai">Almarai</option>
+          </select>
+          <select
+            className="tool-select"
+            defaultValue="4"
+            aria-label={tr('editorSize')}
+            onChange={(e) => exec('fontSize', e.target.value)}
+          >
+            <option value="2">12</option>
+            <option value="3">14</option>
+            <option value="4">16</option>
+            <option value="5">20</option>
+            <option value="6">24</option>
+          </select>
           <button type="button" onClick={() => exec('bold')} aria-label={tr('bold')}>
             <Bold size={16} />
           </button>
           <button type="button" onClick={() => exec('italic')} aria-label={tr('italic')}>
             <Italic size={16} />
           </button>
-          <button type="button" onClick={() => exec('formatBlock', 'H2')} aria-label={tr('heading')}>
-            <Heading size={16} />
-          </button>
           <button type="button" onClick={() => exec('insertUnorderedList')} aria-label={tr('list')}>
             <List size={16} />
           </button>
-          <button
-            type="button"
-            onClick={() => exec('insertHTML', '<div>☐ </div>')}
-            aria-label={tr('checklist')}
-          >
-            <CheckSquare size={16} />
+          <button type="button" onClick={() => exec('justifyLeft')} aria-label={tr('alignLeft')}>
+            <AlignLeft size={16} />
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              const url = window.prompt('URL')
-              if (url) exec('createLink', url)
-            }}
-            aria-label={tr('link')}
-          >
-            <LinkIcon size={16} />
+          <button type="button" onClick={() => exec('justifyCenter')} aria-label={tr('alignCenter')}>
+            <AlignCenter size={16} />
           </button>
-          <button type="button" onClick={() => setAudioOpen(true)} aria-label={tr('attachAudio')}>
-            <Mic size={16} />
+          <button type="button" onClick={() => exec('justifyRight')} aria-label={tr('alignRight')}>
+            <AlignRight size={16} />
           </button>
-          <label style={{ display: 'grid', placeItems: 'center', width: 36, height: 36 }}>
+          <label className="tool-file">
             <ImageIcon size={16} />
             <input
               type="file"
-              accept="image/*,.pdf,.txt,.md"
+              accept="image/*"
               hidden
               onChange={async (e) => {
                 const f = e.target.files?.[0]
                 if (!f) return
                 const dataUrl = await fileToDataUrl(f)
-                await updateNote(note.id, {
-                  attachments: [...note.attachments, { id: uid(), name: f.name, mime: f.type, dataUrl }],
-                })
+                exec('insertImage', dataUrl)
+                e.target.value = ''
               }}
             />
           </label>
         </div>
-        <div
-          ref={editor}
-          className="editor"
-          contentEditable
-          data-placeholder={tr('writing')}
-          onInput={() => persist({ content: editor.current?.innerHTML ?? '' })}
-        />
+        <div ref={editor} className="editor" contentEditable data-placeholder={tr('writing')} />
       </div>
-      <label className="label">{tr('tags')}</label>
-      <TagInput value={note.tags} onChange={(tags) => void updateNote(note.id, { tags })} />
-      <label className="label">{tr('subject')}</label>
-      <SubjectSelect value={note.subjectId} onChange={(subjectId) => void updateNote(note.id, { subjectId })} />
-      {linkedRec.length > 0 && (
-        <>
-          <h3 style={{ margin: 0, fontSize: '1rem' }}>{tr('linkedRecordings')}</h3>
-          {linkedRec.map((r) => (
-            <Link key={r.id} className="list-item" to={`/record/${r.id}`}>
-              {r.name}
-            </Link>
-          ))}
-        </>
-      )}
-      {linkedTasks.length > 0 && (
-        <>
-          <h3 style={{ margin: 0, fontSize: '1rem' }}>{tr('linkedTasks')}</h3>
-          {linkedTasks.map((tk) => (
-            <Link key={tk.id} className="list-item" to={`/tasks/${tk.id}`}>
-              {tk.title}
-            </Link>
-          ))}
-        </>
-      )}
-      {note.attachments.map((a) => (
-        <div key={a.id} className="attach">
-          {a.mime.startsWith('image/') ? <img src={a.dataUrl} alt={a.name} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 8 }} /> : null}
-          <span className="ellipsis grow">{a.name}</span>
+      <label className="label">{tr('attachAudio')}</label>
+      {audioId ? (
+        <div className="list-item">
+          <Volume2 size={16} />
+          <div className="grow ellipsis">{recordings.find((r) => r.id === audioId)?.name || tr('attachAudio')}</div>
+          <button className="chip" type="button" onClick={() => setAudioId('')}>
+            {tr('removeAudio')}
+          </button>
         </div>
-      ))}
-      <div className="grid-2">
-        <button
-          className="btn secondary"
-          type="button"
-          onClick={() => {
-            const sel = window.getSelection()?.toString().trim() || stripHtml(note.content)
-            setFront(sel.split('\n')[0] ?? '')
-            setBack(sel)
-            setCardOpen(true)
-          }}
-        >
-          {tr('createCards')}
+      ) : (
+        <button className="btn secondary block" type="button" onClick={() => setAudioOpen(true)}>
+          {tr('pickAudio')}
         </button>
-        <button
-          className="btn secondary"
-          type="button"
-          onClick={async () => {
-            const tk = await addTask({ title: note.title || tr('untitled'), noteId: note.id, subjectId: note.subjectId })
-            await linkEntities('task', tk.id, 'note', note.id)
-            nav(`/tasks/${tk.id}`)
-          }}
-        >
-          {tr('createTask')}
+      )}
+      {noteId ? (
+        <button className="btn danger block" type="button" onClick={() => setConfirm(true)}>
+          {tr('delete')}
         </button>
-      </div>
-      <button className="btn danger block" type="button" onClick={() => setConfirm(true)}>
-        {tr('delete')}
-      </button>
+      ) : null}
       <Confirm
         open={confirm}
         title={tr('deleteNoteConfirm')}
         danger
         onClose={() => setConfirm(false)}
         onConfirm={async () => {
-          await deleteNote(note.id)
+          if (noteId) await deleteNote(noteId)
           nav('/notes')
         }}
       />
-      <Sheet open={audioOpen} onClose={() => setAudioOpen(false)} title={tr('attachAudio')}>
-        {recordings.map((r) => (
-          <button
-            key={r.id}
-            className="list-item"
-            type="button"
-            onClick={async () => {
-              await linkEntities('note', note.id, 'recording', r.id)
-              setAudioOpen(false)
-            }}
-          >
-            {r.name}
-          </button>
-        ))}
+      <Sheet open={audioOpen} onClose={() => setAudioOpen(false)} title={tr('pickAudio')}>
+        {recordings.length === 0 ? (
+          <p className="muted">{tr('noRecordings')}</p>
+        ) : (
+          recordings.map((r) => (
+            <button
+              key={r.id}
+              className="list-item"
+              type="button"
+              onClick={() => {
+                setAudioId(r.id)
+                setAudioOpen(false)
+              }}
+            >
+              {r.name}
+            </button>
+          ))
+        )}
       </Sheet>
-      <Sheet open={cardOpen} onClose={() => setCardOpen(false)} title={tr('createCards')}>
-        <label className="label">{tr('front')}</label>
-        <input className="field" value={front} onChange={(e) => setFront(e.target.value)} />
-        <label className="label">{tr('cardBack')}</label>
-        <textarea className="field textarea" value={back} onChange={(e) => setBack(e.target.value)} />
+      <Toast text={toast} onDone={() => setToast(null)} />
+    </div>
+  )
+}
+
+export function NoteReadPage() {
+  const tr = useT()
+  const nav = useNavigate()
+  const { id } = useParams()
+  const { notes, lang } = useStore()
+  const note = notes.find((n) => n.id === id)
+  if (!note) return <Empty icon={<BookOpen />} title={tr('noNotes')} />
+  const img = firstNoteImage(note.content)
+  const audioId = audioOf(note)
+
+  return (
+    <div className="stack" style={{ background: note.color || undefined, margin: '-16px', padding: 16, minHeight: '100%' }}>
+      <div className="spread">
+        <button className="chip" type="button" onClick={() => nav('/notes')}>
+          {tr('back')}
+        </button>
+        <button className="icon-btn" type="button" aria-label={tr('edit')} onClick={() => nav(`/notes/${note.id}/edit`)}>
+          <Pencil size={16} />
+        </button>
+      </div>
+      <h1 className="page-title" style={{ marginBottom: 0 }}>
+        {note.title || tr('untitled')}
+      </h1>
+      <div className="muted">
+        {note.type || tr('note')} · {formatDate(note.updatedAt, lang, { day: 'numeric', month: 'short', year: 'numeric' })}
+      </div>
+      {img ? <img className="note-hero" src={img} alt="" /> : null}
+      {audioId ? <NotePlayer id={audioId} /> : null}
+      <div className="note-body" dangerouslySetInnerHTML={{ __html: note.content }} />
+    </div>
+  )
+}
+
+function NotePlayer({ id }: { id: string }) {
+  const tr = useT()
+  const { getAudioBlob, recordings } = useStore()
+  const rec = recordings.find((r) => r.id === id)
+  const audio = useRef<HTMLAudioElement | null>(null)
+  const [src, setSrc] = useState('')
+  const [on, setOn] = useState(false)
+  const [pos, setPos] = useState(0)
+  const [dur, setDur] = useState(rec?.durationMs ?? 0)
+  const [rate, setRate] = useState(1)
+
+  useEffect(() => {
+    let url = ''
+    void getAudioBlob(id).then((blob) => {
+      if (!blob) return
+      url = URL.createObjectURL(blob)
+      setSrc(url)
+    })
+    return () => {
+      if (url) URL.revokeObjectURL(url)
+    }
+  }, [id, getAudioBlob])
+
+  useEffect(() => {
+    const el = audio.current
+    if (!el) return
+    el.playbackRate = rate
+  }, [rate])
+
+  function seek(delta: number) {
+    const el = audio.current
+    if (!el) return
+    el.currentTime = Math.max(0, Math.min(el.duration || 0, el.currentTime + delta))
+  }
+
+  const pct = dur ? Math.min(100, (pos / dur) * 100) : 0
+
+  return (
+    <div className="player">
+      <audio
+        ref={audio}
+        src={src}
+        onTimeUpdate={(e) => setPos(e.currentTarget.currentTime * 1000)}
+        onLoadedMetadata={(e) => setDur(e.currentTarget.duration * 1000)}
+        onEnded={() => setOn(false)}
+      />
+      <div className="spread">
+        <b className="ellipsis">{rec?.name || tr('attachAudio')}</b>
+        <span className="muted">
+          {formatDuration(pos)} / {formatDuration(dur)}
+        </span>
+      </div>
+      <input
+        className="seek"
+        type="range"
+        min={0}
+        max={100}
+        value={pct}
+        onChange={(e) => {
+          const el = audio.current
+          if (!el || !dur) return
+          el.currentTime = (Number(e.target.value) / 100) * (dur / 1000)
+        }}
+      />
+      <div className="row" style={{ justifyContent: 'center' }}>
+        <button className="icon-btn" type="button" aria-label={tr('rewind')} onClick={() => seek(-10)}>
+          <RotateCcw size={18} />
+        </button>
         <button
-          className="btn block"
-          style={{ marginTop: 12 }}
+          className="btn"
           type="button"
-          onClick={async () => {
-            if (!front.trim() || !back.trim()) return
-            const deck = await addDeck(note.title || tr('fromNote'), { noteId: note.id, subjectId: note.subjectId })
-            const lines = back.split('\n').map((l) => l.trim()).filter(Boolean)
-            if (lines.length > 1) {
-              for (const line of lines) {
-                const [a, b] = line.split(/[-–—:=]/).map((x) => x.trim())
-                await addCard(deck.id, { front: a || line, back: b || front })
-              }
+          onClick={() => {
+            const el = audio.current
+            if (!el) return
+            if (on) {
+              el.pause()
+              setOn(false)
             } else {
-              await addCard(deck.id, { front: front.trim(), back: back.trim() })
+              void el.play()
+              setOn(true)
             }
-            setCardOpen(false)
-            nav(`/cards/${deck.id}`)
           }}
         >
-          {tr('create')}
+          {on ? <Pause size={18} /> : <Play size={18} />}
         </button>
-      </Sheet>
-      <Toast text={saved ? tr('autoSaved') : null} onDone={() => setSaved(false)} />
+        <button className="icon-btn" type="button" aria-label={tr('forward')} onClick={() => seek(10)}>
+          <RotateCw size={18} />
+        </button>
+        <button
+          className="chip"
+          type="button"
+          onClick={() => setRate((r) => (r === 1 ? 1.5 : r === 1.5 ? 2 : 1))}
+        >
+          {rate}x
+        </button>
+      </div>
     </div>
   )
 }

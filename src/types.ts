@@ -127,12 +127,18 @@ export interface NoteAttachment {
   dataUrl: string
 }
 
+export type AppFont = 'cairo' | 'tajawal' | 'almarai'
+export type AppFontSize = 'small' | 'medium' | 'large'
+
 export interface Note {
   id: string
   notebookId: string
   folderId?: string
   title: string
+  type: string
   content: string
+  color: string
+  audioId?: string
   tags: string[]
   pinned: boolean
   subjectId?: string
@@ -162,6 +168,9 @@ export interface AppSettings {
   speakRepeats: 1 | 2 | 3 | 5
   cardReminders: boolean
   notifySound: NotifySound
+  fontFamily: AppFont
+  fontSize: AppFontSize
+  accentColor: string
 }
 
 export interface SearchHit {
@@ -179,7 +188,18 @@ export const DEFAULT_SETTINGS: AppSettings = {
   speakRepeats: 1,
   cardReminders: false,
   notifySound: 'default',
+  fontFamily: 'cairo',
+  fontSize: 'medium',
+  accentColor: '#0F6E6B',
 }
+
+export const NOTE_COLORS = ['#FFF8E7', '#E8F4F2', '#FDECE8', '#EEF1FB', '#F4F0E6']
+
+export const APP_FONTS: { id: AppFont; label: string; stack: string }[] = [
+  { id: 'cairo', label: 'Cairo', stack: "'Cairo', 'IBM Plex Sans Arabic', 'Inter', sans-serif" },
+  { id: 'tajawal', label: 'Tajawal', stack: "'Tajawal', 'IBM Plex Sans Arabic', 'Inter', sans-serif" },
+  { id: 'almarai', label: 'Almarai', stack: "'Almarai', 'IBM Plex Sans Arabic', 'Inter', sans-serif" },
+]
 
 export const NOTIFY_SOUNDS: { id: NotifySound; ar: string; en: string }[] = [
   { id: 'default', ar: 'الافتراضية', en: 'Default' },

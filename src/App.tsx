@@ -14,7 +14,7 @@ import FlashcardsPage, {
   WriteGamePage,
 } from './pages/Flashcards'
 import TasksPage, { TaskDetailPage } from './pages/Tasks'
-import NotebookPage, { NoteEditorPage } from './pages/Notebook'
+import NotebookPage, { NoteEditorPage, NoteReadPage } from './pages/Notebook'
 import SearchPage from './pages/Search'
 import SettingsPage from './pages/Settings'
 import { getNative, parseReminderTime } from './native'
@@ -103,7 +103,9 @@ function Gate() {
         <Route path="/tasks" element={<TasksPage />} />
         <Route path="/tasks/:id" element={<TaskDetailPage />} />
         <Route path="/notes" element={<NotebookPage />} />
-        <Route path="/notes/:id" element={<NoteEditorPage />} />
+        <Route path="/notes/new" element={<NoteEditorPage />} />
+        <Route path="/notes/:id" element={<NoteReadPage />} />
+        <Route path="/notes/:id/edit" element={<NoteEditorPage />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

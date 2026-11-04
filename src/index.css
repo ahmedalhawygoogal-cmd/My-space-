@@ -20,7 +20,8 @@
   --radius-sm: 12px;
   --nav-h: 72px;
   --top-h: 56px;
-  --font: 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif;
+  --font: 'Cairo', 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif;
+  --primary-color: #0f6e6b;
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-t: env(safe-area-inset-top, 0px);
 }
@@ -555,6 +556,60 @@ img { max-width: 100%; }
 }
 .task-card .row { align-items: center; }
 .task-card.is-done { opacity: 0.55; }
+
+.note-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 12px;
+}
+.swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 2px solid var(--line);
+  flex-shrink: 0;
+}
+.swatch.on { outline: 2px solid var(--brand); outline-offset: 2px; }
+.tool-select {
+  border: 0;
+  background: var(--bg-muted);
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 0.78rem;
+  max-width: 92px;
+}
+.tool-file {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: var(--ink-soft);
+}
+.note-hero {
+  width: 100%;
+  border-radius: 16px;
+  max-height: 220px;
+  object-fit: cover;
+}
+.note-body {
+  line-height: 1.75;
+  font-size: 1.05rem;
+}
+.note-body img { border-radius: 12px; }
+.player {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 12px;
+}
+.seek {
+  width: 100%;
+  accent-color: var(--brand);
+}
 
 .choice {
   border: 1px solid var(--line);

@@ -25,7 +25,8 @@ import type {
   Task,
   Theme,
 } from './types'
-import { DEFAULT_SETTINGS, SUBJECT_COLORS } from './types'
+import { APP_FONTS, DEFAULT_SETTINGS, SUBJECT_COLORS } from './types'
+import type { AppFont, AppFontSize } from './types'
 import { includesText, now, startOfDay, stripHtml, uid } from './utils'
 
 interface StoreState {
@@ -101,6 +102,46 @@ function applyLang(lang: Lang) {
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
 }
 
+const APPEAR_KEY = 'myspace-appear'
+
+function loadAppear(): { fontFamily: AppFont; fontSize: AppFontSize; accentColor: string } {
+  try {
+    const raw = localStorage.getItem(APPEAR_KEY)
+    if (!raw) return { fontFamily: DEFAULT_SETTINGS.fontFamily, fontSize: DEFAULT_SETTINGS.fontSize, accentColor: DEFAULT_SETTINGS.accentColor }
+    const parsed = JSON.parse(raw) as Partial<{ fontFamily: AppFont; fontSize: AppFontSize; accentColor: string }>
+    return {
+      fontFamily: parsed.fontFamily === 'tajawal' || parsed.fontFamily === 'almarai' ? parsed.fontFamily : 'cairo',
+      fontSize: parsed.fontSize === 'small' || parsed.fontSize === 'large' ? parsed.fontSize : 'medium',
+      accentColor: parsed.accentColor || DEFAULT_SETTINGS.accentColor,
+    }
+  } catch {
+    return { fontFamily: DEFAULT_SETTINGS.fontFamily, fontSize: DEFAULT_SETTINGS.fontSize, accentColor: DEFAULT_SETTINGS.accentColor }
+  }
+}
+
+export function applyAppearance(p: { fontFamily?: AppFont; fontSize?: AppFontSize; accentColor?: string }) {
+  const root = document.documentElement
+  const font = APP_FONTS.find((f) => f.id === p.fontFamily) ?? APP_FONTS[0]
+  if (p.fontFamily) root.style.setProperty('--font', font.stack)
+  if (p.fontSize) {
+    const size = p.fontSize === 'small' ? '14px' : p.fontSize === 'large' ? '18px' : '16px'
+    root.style.fontSize = size
+  }
+  if (p.accentColor) {
+    root.style.setProperty('--brand', p.accentColor)
+    root.style.setProperty('--primary-color', p.accentColor)
+    const soft = `color-mix(in srgb, ${p.accentColor} 18%, var(--bg-elev))`
+    root.style.setProperty('--brand-soft', soft)
+  }
+}
+
+function persistAppear(p: { fontFamily: AppFont; fontSize: AppFontSize; accentColor: string }) {
+  localStorage.setItem(APPEAR_KEY, JSON.stringify(p))
+  applyAppearance(p)
+}
+
+if (typeof window !== 'undefined') applyAppearance(loadAppear())
+
 async function seedIfEmpty(): Promise<void> {
   const subjects = await db.getAll<Subject>(STORES.subjects)
   const notebooks = await db.getAll<Notebook>(STORES.notebooks)
@@ -150,6 +191,22 @@ function normalizeTask(raw: Task): Task {
     remind: !!raw.remind,
     recurring: raw.recurring ?? 'none',
     subtasks: raw.subtasks ?? [],
+  }
+}
+
+function normalizeNote(raw: Note): Note {
+  return {
+    ...raw,
+    title: raw.title ?? '',
+    type: raw.type ?? '',
+    content: raw.content ?? '',
+    color: raw.color || '#FFF8E7',
+    audioId: raw.audioId || raw.recordingIds?.[0],
+    tags: raw.tags ?? [],
+    pinned: !!raw.pinned,
+    recordingIds: raw.recordingIds ?? [],
+    taskIds: raw.taskIds ?? [],
+    attachments: raw.attachments ?? [],
   }
 }
 
@@ -279,6 +336,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const decksN = decks.map(normalizeDeck)
     const cardsN = cards.map(normalizeCard)
     const tasksN = tasks.map(normalizeTask)
+    const notesN = notes.map(normalizeNote)
     const deckWrites = decksN.filter((_, idx) => !decks[idx]?.nativeLang || !decks[idx]?.targetLang)
     const cardWrites = cardsN.filter((_, idx) => {
       const raw = cards[idx]
@@ -288,18 +346,39 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const raw = tasks[idx]
       return !raw || raw.date === undefined || raw.remind === undefined
     })
+    const noteWrites = notesN.filter((_, idx) => {
+      const raw = notes[idx]
+      return !raw || raw.type === undefined || raw.color === undefined || raw.audioId === undefined
+    })
     await Promise.all([
       ...deckWrites.map((d) => db.putOne(STORES.decks, d)),
       ...cardWrites.map((c) => db.putOne(STORES.cards, c)),
       ...taskWrites.map((tk) => db.putOne(STORES.tasks, tk)),
+      ...noteWrites.map((n) => db.putOne(STORES.notes, n)),
     ])
+    const appear = loadAppear()
     const settingsN = {
       ...settings,
       speakRepeats: settings.speakRepeats ?? 1,
       cardReminders: settings.cardReminders ?? false,
       notifySound: settings.notifySound ?? 'default',
+      fontFamily: settings.fontFamily || appear.fontFamily,
+      fontSize: settings.fontSize || appear.fontSize,
+      accentColor: settings.accentColor || appear.accentColor,
     }
-    if (settings.speakRepeats == null || settings.cardReminders == null || settings.notifySound == null) {
+    persistAppear({
+      fontFamily: settingsN.fontFamily,
+      fontSize: settingsN.fontSize,
+      accentColor: settingsN.accentColor,
+    })
+    if (
+      settings.speakRepeats == null ||
+      settings.cardReminders == null ||
+      settings.notifySound == null ||
+      settings.fontFamily == null ||
+      settings.fontSize == null ||
+      settings.accentColor == null
+    ) {
       await db.saveSettings(settingsN)
     }
     setState({
@@ -312,7 +391,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       cards: cardsN,
       tasks: tasksN,
       notebooks,
-      notes,
+      notes: notesN,
       links,
     })
     applyLang(settings.language)
@@ -327,13 +406,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!state.ready) return
     applyLang(state.settings.language)
     applyTheme(state.settings.theme)
+    applyAppearance({
+      fontFamily: state.settings.fontFamily,
+      fontSize: state.settings.fontSize,
+      accentColor: state.settings.accentColor,
+    })
     const mq = window.matchMedia('(prefers-color-scheme: dark)')
     const onChange = () => {
       if (state.settings.theme === 'system') applyTheme('system')
     }
     mq.addEventListener('change', onChange)
     return () => mq.removeEventListener('change', onChange)
-  }, [state.ready, state.settings.language, state.settings.theme])
+  }, [state.ready, state.settings.language, state.settings.theme, state.settings.fontFamily, state.settings.fontSize, state.settings.accentColor])
 
   const patchList = useCallback(<T extends { id: string }>(key: keyof StoreState, id: string, p: Partial<T>) => {
     setState((s) => ({
@@ -348,6 +432,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, settings: next }))
     if (p.language) applyLang(p.language)
     if (p.theme) applyTheme(p.theme)
+    if (p.fontFamily || p.fontSize || p.accentColor) {
+      persistAppear({
+        fontFamily: next.fontFamily,
+        fontSize: next.fontSize,
+        accentColor: next.accentColor,
+      })
+    }
   }, [state.settings])
 
   const addSubject = useCallback(async (name: string, color?: string) => {
@@ -442,7 +533,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ...s,
       recordings: s.recordings.filter((x) => x.id !== id),
       notes: s.notes.map((n) =>
-        n.recordingIds.includes(id) ? { ...n, recordingIds: n.recordingIds.filter((r) => r !== id) } : n,
+        n.recordingIds.includes(id) || n.audioId === id
+          ? { ...n, recordingIds: n.recordingIds.filter((r) => r !== id), audioId: n.audioId === id ? undefined : n.audioId }
+          : n,
       ),
     }))
   }, [])
@@ -740,11 +833,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       notebookId,
       folderId: extra?.folderId,
       title: extra?.title ?? '',
+      type: extra?.type ?? '',
       content: extra?.content ?? '',
+      color: extra?.color ?? '#FFF8E7',
+      audioId: extra?.audioId,
       tags: extra?.tags ?? [],
       pinned: extra?.pinned ?? false,
       subjectId: extra?.subjectId,
-      recordingIds: extra?.recordingIds ?? [],
+      recordingIds: extra?.recordingIds ?? (extra?.audioId ? [extra.audioId] : []),
       taskIds: extra?.taskIds ?? [],
       attachments: extra?.attachments ?? [],
       createdAt: t,
@@ -821,7 +917,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
       for (const n of state.notes) {
         const plain = stripHtml(n.content)
-        if (includesText(n.title, needle) || includesText(plain, needle) || n.tags.some((tg) => includesText(tg, needle))) {
+        if (
+          includesText(n.title, needle) ||
+          includesText(n.type, needle) ||
+          includesText(plain, needle) ||
+          n.tags.some((tg) => includesText(tg, needle))
+        ) {
           hits.push({ type: 'note', id: n.id, title: n.title || '—', snippet: plain, extra: 'note' })
         }
       }
