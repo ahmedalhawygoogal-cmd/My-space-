@@ -22,12 +22,17 @@ import {
 } from 'lucide-react'
 import { useStore } from '../store'
 import { Confirm, Empty, Sheet, Toast, useT } from '../ui'
-import { fileToDataUrl, firstNoteImage, formatDate, formatDuration } from '../utils'
+import { contrastInk, fileToDataUrl, firstNoteImage, formatDate, formatDuration } from '../utils'
 import { NOTE_COLORS } from '../types'
 import type { Note } from '../types'
 
 function audioOf(n: Note) {
   return n.audioId || n.recordingIds[0]
+}
+
+function noteInk(bg?: string) {
+  if (!bg) return 'var(--ink)'
+  return contrastInk(bg)
 }
 
 export default function NotebookPage() {
@@ -91,30 +96,31 @@ export default function NotebookPage() {
       ) : (
         list.map((n) => {
           const rec = recordings.find((r) => r.id === audioOf(n))
+          const ink = noteInk(n.color)
           return (
-            <div key={n.id} className="note-card" style={{ background: n.color || 'var(--bg-elev)' }}>
+            <div key={n.id} className="note-card" style={{ background: n.color || 'var(--bg-elev)', color: ink }}>
               <div className="grow">
-                <div className="ellipsis" style={{ fontWeight: 800 }}>
+                <div className="ellipsis" style={{ fontWeight: 800, color: ink }}>
                   {n.title || tr('untitled')}
                 </div>
-                <div className="meta">
+                <div className="meta" style={{ color: ink, opacity: 0.72 }}>
                   {n.type || tr('note')} · {formatDate(n.updatedAt, lang, { day: 'numeric', month: 'short', year: 'numeric' })}
                 </div>
               </div>
               <div className="row" style={{ gap: 2 }}>
                 {rec ? (
-                  <button className="icon-btn" type="button" aria-label={tr('play')} onClick={() => void playNote(n)}>
+                  <button className="icon-btn note-action" type="button" aria-label={tr('play')} onClick={() => void playNote(n)}>
                     {active === n.id ? <Pause size={16} /> : <Headphones size={16} />}
                   </button>
                 ) : null}
-                <button className="icon-btn" type="button" aria-label={tr('readNote')} onClick={() => nav(`/notes/${n.id}`)}>
+                <button className="icon-btn note-action" type="button" aria-label={tr('readNote')} onClick={() => nav(`/notes/${n.id}`)}>
                   <Eye size={16} />
                 </button>
-                <button className="icon-btn" type="button" aria-label={tr('edit')} onClick={() => nav(`/notes/${n.id}/edit`)}>
+                <button className="icon-btn note-action" type="button" aria-label={tr('edit')} onClick={() => nav(`/notes/${n.id}/edit`)}>
                   <Pencil size={16} />
                 </button>
                 <button
-                  className="icon-btn"
+                  className="icon-btn note-action"
                   type="button"
                   aria-label={n.pinned ? tr('unpin') : tr('pin')}
                   onClick={() => void updateNote(n.id, { pinned: !n.pinned })}
@@ -149,6 +155,7 @@ export function NoteEditorPage() {
   const [toast, setToast] = useState<string | null>(null)
   const [noteId, setNoteId] = useState(existing?.id ?? '')
   const inited = useRef(false)
+  const ink = noteInk(color)
 
   useEffect(() => {
     if (inited.current) return
@@ -184,7 +191,7 @@ export function NoteEditorPage() {
   }
 
   return (
-    <div className="stack" style={{ background: color, margin: '-16px', padding: 16, minHeight: '100%' }}>
+    <div className="stack note-surface" style={{ background: color, color: ink, margin: '-16px', padding: 16, minHeight: '100%' }}>
       <div className="spread">
         <button className="chip" type="button" onClick={() => nav('/notes')}>
           {tr('back')}
@@ -193,7 +200,7 @@ export function NoteEditorPage() {
           {tr('save')}
         </button>
       </div>
-      <input className="note-title" value={title} placeholder={tr('title')} onChange={(e) => setTitle(e.target.value)} />
+      <input className="note-title" value={title} placeholder={tr('title')} onChange={(e) => setTitle(e.target.value)} style={{ color: ink }} />
       <label className="label">{tr('noteType')}</label>
       <input className="field" value={type} placeholder={tr('noteType')} onChange={(e) => setType(e.target.value)} />
       <label className="label">{tr('noteColor')}</label>
@@ -267,7 +274,7 @@ export function NoteEditorPage() {
             />
           </label>
         </div>
-        <div ref={editor} className="editor" contentEditable data-placeholder={tr('writing')} />
+        <div ref={editor} className="editor" contentEditable data-placeholder={tr('writing')} style={{ color: ink }} />
       </div>
       <label className="label">{tr('attachAudio')}</label>
       {audioId ? (
@@ -331,26 +338,27 @@ export function NoteReadPage() {
   if (!note) return <Empty icon={<BookOpen />} title={tr('noNotes')} />
   const img = firstNoteImage(note.content)
   const audioId = audioOf(note)
+  const ink = noteInk(note.color)
 
   return (
-    <div className="stack" style={{ background: note.color || undefined, margin: '-16px', padding: 16, minHeight: '100%' }}>
+    <div className="stack note-surface" style={{ background: note.color || undefined, color: ink, margin: '-16px', padding: 16, minHeight: '100%' }}>
       <div className="spread">
         <button className="chip" type="button" onClick={() => nav('/notes')}>
           {tr('back')}
         </button>
-        <button className="icon-btn" type="button" aria-label={tr('edit')} onClick={() => nav(`/notes/${note.id}/edit`)}>
+        <button className="icon-btn note-action" type="button" aria-label={tr('edit')} onClick={() => nav(`/notes/${note.id}/edit`)}>
           <Pencil size={16} />
         </button>
       </div>
-      <h1 className="page-title" style={{ marginBottom: 0 }}>
+      <h1 className="page-title" style={{ marginBottom: 0, color: ink }}>
         {note.title || tr('untitled')}
       </h1>
-      <div className="muted">
+      <div className="muted" style={{ color: ink, opacity: 0.72 }}>
         {note.type || tr('note')} · {formatDate(note.updatedAt, lang, { day: 'numeric', month: 'short', year: 'numeric' })}
       </div>
       {img ? <img className="note-hero" src={img} alt="" /> : null}
       {audioId ? <NotePlayer id={audioId} /> : null}
-      <div className="note-body" dangerouslySetInnerHTML={{ __html: note.content }} />
+      <div className="note-body" style={{ color: ink }} dangerouslySetInnerHTML={{ __html: note.content }} />
     </div>
   )
 }

@@ -134,7 +134,7 @@ export function contrastInk(color: string): string {
     return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
   })
   const luminance = 0.2126 * lin[0]! + 0.7152 * lin[1]! + 0.0722 * lin[2]!
-  return luminance > 0.55 ? '#111111' : '#ffffff'
+  return luminance > 0.55 ? '#111827' : '#ffffff'
 }
 
 export function firstNoteImage(html: string): string | undefined {

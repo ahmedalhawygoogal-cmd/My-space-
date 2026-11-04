@@ -561,6 +561,15 @@ img { max-width: 100%; }
   border-radius: 18px;
   padding: 12px;
 }
+.note-card .meta {
+  font-size: 0.78rem;
+}
+.note-card .note-action,
+.note-surface .note-action {
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  color: inherit;
+  box-shadow: none;
+}
 .swatch {
   width: 32px;
   height: 32px;
