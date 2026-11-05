@@ -26,7 +26,7 @@ import type {
   Task,
   Theme,
 } from './types'
-import { APP_FONTS, DEFAULT_SETTINGS, SUBJECT_COLORS } from './types'
+import { APP_FONTS, DEFAULT_SETTINGS, RTL_LANGS, SUBJECT_COLORS, isUiLang } from './types'
 import type { AppFont, AppFontSize } from './types'
 import { contrastInk, includesText, now, startOfDay, stripHtml, uid } from './utils'
 
@@ -102,7 +102,7 @@ function applyTheme(theme: Theme) {
 
 function applyLang(lang: Lang) {
   document.documentElement.lang = lang
-  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
+  document.documentElement.dir = RTL_LANGS.has(lang) ? 'rtl' : 'ltr'
 }
 
 const APPEAR_KEY = 'myspace-appear'
@@ -401,7 +401,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       fontFamily: settings.fontFamily || appear.fontFamily,
       fontSize: settings.fontSize || appear.fontSize,
       accentColor: settings.accentColor || appear.accentColor,
-      language: settings.language || 'en',
+      language: isUiLang(settings.language) ? settings.language : 'en',
       onboarded: !!settings.onboarded,
       nativeLang: settings.nativeLang && settings.nativeLang !== 'other' ? settings.nativeLang : '',
       nativeLangOther: settings.nativeLangOther ?? '',

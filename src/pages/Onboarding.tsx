@@ -40,10 +40,10 @@ export function LanguageSheet({
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase()
     if (!needle) return LEARN_LANGS
-    return LEARN_LANGS.filter((l) => {
-      const blob = `${l.code} ${l.ar} ${l.en} ${l.fr || ''} ${l.de || ''} ${l.es || ''}`.toLowerCase()
-      return blob.includes(needle)
-    })
+        return LEARN_LANGS.filter((l) => {
+          const blob = Object.values(l).join(' ').toLowerCase()
+          return blob.includes(needle)
+        })
   }, [q])
 
   if (!open) return null
