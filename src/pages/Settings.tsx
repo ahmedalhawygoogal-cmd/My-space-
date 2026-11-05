@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Download, Languages } from 'lucide-react'
+import { Download, Languages } from 'lucide-react'
 import { useStore } from '../store'
 import { Confirm, Segment, Toast, useT } from '../ui'
 import { downloadBlob, formatDateTime } from '../utils'
@@ -9,7 +9,7 @@ import type { AppFont, AppFontSize, NotifySound, Theme } from '../types'
 import { APP_FONTS, NOTIFY_SOUNDS, labeled } from '../types'
 import { resolveColor } from '../utils'
 import { getNative } from '../native'
-import { PrefsForm } from './Onboarding'
+import { LanguagePrefs } from './Onboarding'
 
 export default function SettingsPage() {
   const tr = useT()
@@ -42,7 +42,7 @@ export default function SettingsPage() {
       <input className="field" value={settings.userName} onChange={(e) => void setSettings({ userName: e.target.value })} />
       <button className="list-item pressable" type="button" onClick={() => setPrefs(true)}>
         <Languages size={18} />
-        <div className="grow">{tr('managePrefs')}</div>
+        <div className="grow">{tr('changeLang')}</div>
       </button>
       <label className="label">{tr('theme')}</label>
       <Segment
@@ -209,14 +209,12 @@ export default function SettingsPage() {
       </div>
       {prefs ? (
         <div className="sheet-backdrop" onClick={() => setPrefs(false)}>
-          <div className="sheet prefs-sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="prefs-head">
-              <h3 className="page-title">{tr('managePrefs')}</h3>
-              <button className="icon-btn prefs-head-back" type="button" aria-label={tr('back')} onClick={() => setPrefs(false)}>
-                <ArrowRight size={20} />
-              </button>
-            </div>
-            <PrefsForm hideOther onSaved={() => setPrefs(false)} />
+          <div className="sheet bg-card border-border text-foreground" onClick={(e) => e.stopPropagation()}>
+            <div className="sheet-handle" />
+            <h3 className="page-title" style={{ margin: '0 0 12px' }}>
+              {tr('changeLang')}
+            </h3>
+            <LanguagePrefs />
           </div>
         </div>
       ) : null}

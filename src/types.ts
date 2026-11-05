@@ -189,8 +189,10 @@ export interface Link {
 
 export type NotifySound = 'default' | 'chime' | 'bell'
 export type DeckType = 'vocab' | 'phrases' | 'synonyms' | 'definitions' | 'antonyms'
-export type DailyGoal = '5' | '15' | '30' | '60'
-export type GoalKind = 'study' | 'languages' | 'work' | 'self' | 'other'
+export type DailyGoal = '10' | '30' | '60'
+export type GoalKind = 'study' | 'productivity' | 'record' | 'all'
+export type InputPref = 'type' | 'voice' | 'both'
+export type UserLevel = 'beginner' | 'intermediate' | 'advanced'
 
 export interface AppSettings {
   language: Lang
@@ -213,6 +215,8 @@ export interface AppSettings {
   fields: string[]
   fieldOther: string
   dailyGoal: DailyGoal
+  inputPref: InputPref
+  userLevel: UserLevel
 }
 
 export interface SearchHit {
@@ -234,15 +238,17 @@ export const DEFAULT_SETTINGS: AppSettings = {
   fontSize: 'medium',
   accentColor: '#0F6E6B',
   onboarded: false,
-  nativeLang: 'en',
+  nativeLang: '',
   nativeLangOther: '',
-  targetLangs: ['en'],
+  targetLangs: [],
   targetLangOther: '',
   goal: 'study',
   goalOther: '',
   fields: [],
   fieldOther: '',
-  dailyGoal: '15',
+  dailyGoal: '30',
+  inputPref: 'both',
+  userLevel: 'beginner',
 }
 
 export const DECK_TYPES: DeckType[] = ['vocab', 'phrases', 'synonyms', 'definitions', 'antonyms']
@@ -253,7 +259,6 @@ export const NATIVE_LANG_OPTS = [
   { code: 'fr', ar: 'Français', en: 'French', fr: 'Français', de: 'Französisch', es: 'Francés' },
   { code: 'de', ar: 'Deutsch', en: 'German', fr: 'Allemand', de: 'Deutsch', es: 'Alemán' },
   { code: 'es', ar: 'Español', en: 'Spanish', fr: 'Espagnol', de: 'Spanisch', es: 'Español' },
-  { code: 'other', ar: 'أخرى', en: 'Other', fr: 'Autre', de: 'Andere', es: 'Otro' },
 ]
 
 export const TARGET_LANG_OPTS = [
@@ -261,15 +266,13 @@ export const TARGET_LANG_OPTS = [
   { code: 'fr', ar: 'Français', en: 'French', fr: 'Français', de: 'Französisch', es: 'Francés' },
   { code: 'es', ar: 'Español', en: 'Spanish', fr: 'Espagnol', de: 'Spanisch', es: 'Español' },
   { code: 'de', ar: 'Deutsch', en: 'German', fr: 'Allemand', de: 'Deutsch', es: 'Alemán' },
-  { code: 'other', ar: 'أخرى', en: 'Other', fr: 'Autre', de: 'Andere', es: 'Otro' },
 ]
 
 export const GOAL_OPTS: ({ id: GoalKind } & Labeled)[] = [
   { id: 'study', ar: 'مذاكرة', en: 'Study', fr: 'Études', de: 'Lernen', es: 'Estudio' },
-  { id: 'languages', ar: 'تعلم لغات', en: 'Learn languages', fr: 'Apprendre des langues', de: 'Sprachen lernen', es: 'Aprender idiomas' },
-  { id: 'work', ar: 'تنظيم شغل', en: 'Work organization', fr: 'Organisation du travail', de: 'Arbeitsorganisation', es: 'Organización del trabajo' },
-  { id: 'self', ar: 'تطوير ذات', en: 'Self development', fr: 'Développement personnel', de: 'Persönliche Entwicklung', es: 'Desarrollo personal' },
-  { id: 'other', ar: 'أخرى', en: 'Other', fr: 'Autre', de: 'Andere', es: 'Otro' },
+  { id: 'productivity', ar: 'إنتاجية', en: 'Productivity', fr: 'Productivité', de: 'Produktivität', es: 'Productividad' },
+  { id: 'record', ar: 'تسجيل', en: 'Recording', fr: 'Enregistrement', de: 'Aufnahme', es: 'Grabación' },
+  { id: 'all', ar: 'الكل', en: 'All', fr: 'Tout', de: 'Alles', es: 'Todo' },
 ]
 
 export const FIELD_OPTS: ({ id: string } & Labeled)[] = [
@@ -283,10 +286,21 @@ export const FIELD_OPTS: ({ id: string } & Labeled)[] = [
 ]
 
 export const DAILY_OPTS: ({ id: DailyGoal } & Labeled)[] = [
-  { id: '5', ar: '5 دقائق', en: '5 mins', fr: '5 min', de: '5 Min.', es: '5 min' },
-  { id: '15', ar: '15 دقيقة', en: '15 mins', fr: '15 min', de: '15 Min.', es: '15 min' },
-  { id: '30', ar: '30 دقيقة', en: '30 mins', fr: '30 min', de: '30 Min.', es: '30 min' },
-  { id: '60', ar: '60+ دقيقة', en: '60+ mins', fr: '60+ min', de: '60+ Min.', es: '60+ min' },
+  { id: '10', ar: '5–10 دقائق', en: '5–10 min', fr: '5–10 min', de: '5–10 Min.', es: '5–10 min' },
+  { id: '30', ar: '15–30 دقيقة', en: '15–30 min', fr: '15–30 min', de: '15–30 Min.', es: '15–30 min' },
+  { id: '60', ar: 'أكثر من 60 دقيقة', en: '60+ min', fr: '60+ min', de: '60+ Min.', es: 'Más de 60 min' },
+]
+
+export const INPUT_PREF_OPTS: ({ id: InputPref } & Labeled)[] = [
+  { id: 'type', ar: 'كتابة', en: 'Typing', fr: 'Écriture', de: 'Tippen', es: 'Escritura' },
+  { id: 'voice', ar: 'صوت', en: 'Voice', fr: 'Voix', de: 'Stimme', es: 'Voz' },
+  { id: 'both', ar: 'الاثنين', en: 'Both', fr: 'Les deux', de: 'Beides', es: 'Ambos' },
+]
+
+export const LEVEL_OPTS: ({ id: UserLevel } & Labeled)[] = [
+  { id: 'beginner', ar: 'مبتدئ', en: 'Beginner', fr: 'Débutant', de: 'Anfänger', es: 'Principiante' },
+  { id: 'intermediate', ar: 'متوسط', en: 'Intermediate', fr: 'Intermédiaire', de: 'Mittelstufe', es: 'Intermedio' },
+  { id: 'advanced', ar: 'متقدم', en: 'Advanced', fr: 'Avancé', de: 'Fortgeschritten', es: 'Avanzado' },
 ]
 
 export function isRichDeck(type?: DeckType) {
@@ -311,25 +325,25 @@ export function uiLangFromNative(code: string): Lang {
   return isUiLang(code) ? code : 'en'
 }
 
-export const LEARN_LANGS: { code: string; ar: string; en: string }[] = [
-  { code: 'ar', ar: 'العربية', en: 'Arabic' },
-  { code: 'en', ar: 'الإنجليزية', en: 'English' },
-  { code: 'fr', ar: 'الفرنسية', en: 'French' },
-  { code: 'es', ar: 'الإسبانية', en: 'Spanish' },
-  { code: 'de', ar: 'الألمانية', en: 'German' },
-  { code: 'tr', ar: 'التركية', en: 'Turkish' },
-  { code: 'it', ar: 'الإيطالية', en: 'Italian' },
-  { code: 'ru', ar: 'الروسية', en: 'Russian' },
-  { code: 'zh', ar: 'الصينية', en: 'Chinese' },
-  { code: 'ja', ar: 'اليابانية', en: 'Japanese' },
-  { code: 'ko', ar: 'الكورية', en: 'Korean' },
-  { code: 'pt', ar: 'البرتغالية', en: 'Portuguese' },
-  { code: 'hi', ar: 'الهندية', en: 'Hindi' },
-  { code: 'ur', ar: 'الأردية', en: 'Urdu' },
-  { code: 'fa', ar: 'الفارسية', en: 'Persian' },
-  { code: 'nl', ar: 'الهولندية', en: 'Dutch' },
-  { code: 'pl', ar: 'البولندية', en: 'Polish' },
-  { code: 'id', ar: 'الإندونيسية', en: 'Indonesian' },
+export const LEARN_LANGS: ({ code: string } & Labeled)[] = [
+  { code: 'ar', ar: 'العربية', en: 'Arabic', fr: 'Arabe', de: 'Arabisch', es: 'Árabe' },
+  { code: 'en', ar: 'الإنجليزية', en: 'English', fr: 'Anglais', de: 'Englisch', es: 'Inglés' },
+  { code: 'fr', ar: 'الفرنسية', en: 'French', fr: 'Français', de: 'Französisch', es: 'Francés' },
+  { code: 'es', ar: 'الإسبانية', en: 'Spanish', fr: 'Espagnol', de: 'Spanisch', es: 'Español' },
+  { code: 'de', ar: 'الألمانية', en: 'German', fr: 'Allemand', de: 'Deutsch', es: 'Alemán' },
+  { code: 'tr', ar: 'التركية', en: 'Turkish', fr: 'Turc', de: 'Türkisch', es: 'Turco' },
+  { code: 'it', ar: 'الإيطالية', en: 'Italian', fr: 'Italien', de: 'Italienisch', es: 'Italiano' },
+  { code: 'ru', ar: 'الروسية', en: 'Russian', fr: 'Russe', de: 'Russisch', es: 'Ruso' },
+  { code: 'zh', ar: 'الصينية', en: 'Chinese', fr: 'Chinois', de: 'Chinesisch', es: 'Chino' },
+  { code: 'ja', ar: 'اليابانية', en: 'Japanese', fr: 'Japonais', de: 'Japanisch', es: 'Japonés' },
+  { code: 'ko', ar: 'الكورية', en: 'Korean', fr: 'Coréen', de: 'Koreanisch', es: 'Coreano' },
+  { code: 'pt', ar: 'البرتغالية', en: 'Portuguese', fr: 'Portugais', de: 'Portugiesisch', es: 'Portugués' },
+  { code: 'hi', ar: 'الهندية', en: 'Hindi', fr: 'Hindi', de: 'Hindi', es: 'Hindi' },
+  { code: 'ur', ar: 'الأردية', en: 'Urdu', fr: 'Ourdou', de: 'Urdu', es: 'Urdu' },
+  { code: 'fa', ar: 'الفارسية', en: 'Persian', fr: 'Persan', de: 'Persisch', es: 'Persa' },
+  { code: 'nl', ar: 'الهولندية', en: 'Dutch', fr: 'Néerlandais', de: 'Niederländisch', es: 'Neerlandés' },
+  { code: 'pl', ar: 'البولندية', en: 'Polish', fr: 'Polonais', de: 'Polnisch', es: 'Polaco' },
+  { code: 'id', ar: 'الإندونيسية', en: 'Indonesian', fr: 'Indonésien', de: 'Indonesisch', es: 'Indonesio' },
 ]
 
 export const SUBJECT_COLORS = [

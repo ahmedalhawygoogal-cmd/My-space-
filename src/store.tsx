@@ -401,17 +401,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       fontFamily: settings.fontFamily || appear.fontFamily,
       fontSize: settings.fontSize || appear.fontSize,
       accentColor: settings.accentColor || appear.accentColor,
-      language: settings.onboarded ? settings.language || 'en' : 'en',
+      language: settings.language || 'en',
       onboarded: !!settings.onboarded,
-      nativeLang: settings.onboarded ? settings.nativeLang || 'en' : 'en',
+      nativeLang: settings.nativeLang && settings.nativeLang !== 'other' ? settings.nativeLang : '',
       nativeLangOther: settings.nativeLangOther ?? '',
-      targetLangs: settings.targetLangs?.length ? settings.targetLangs : ['en'],
+      targetLangs: (settings.targetLangs || []).filter((c) => c && c !== 'other'),
       targetLangOther: settings.targetLangOther ?? '',
-      goal: settings.goal || 'study',
+      goal:
+        settings.goal === 'productivity' || settings.goal === 'record' || settings.goal === 'all'
+          ? settings.goal
+          : 'study',
       goalOther: settings.goalOther ?? '',
       fields: settings.fields ?? [],
       fieldOther: settings.fieldOther ?? '',
-      dailyGoal: settings.dailyGoal || '15',
+      dailyGoal: settings.dailyGoal === '10' || settings.dailyGoal === '60' ? settings.dailyGoal : '30',
+      inputPref: settings.inputPref === 'type' || settings.inputPref === 'voice' ? settings.inputPref : 'both',
+      userLevel:
+        settings.userLevel === 'intermediate' || settings.userLevel === 'advanced' ? settings.userLevel : 'beginner',
     }
     persistAppear({
       fontFamily: settingsN.fontFamily,
