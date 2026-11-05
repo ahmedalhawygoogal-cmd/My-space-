@@ -63,6 +63,7 @@ export interface Deck {
   noteId?: string
   nativeLang: string
   targetLang: string
+  type: DeckType
   reminderTime?: string
   createdAt: number
   updatedAt: number
@@ -78,12 +79,15 @@ export interface Card {
   example: string
   exampleTranslation: string
   explanation: string
+  note: string
   imageDataUrl?: string
   status: CardStatus
   ease: number
   interval: number
   repetitions: number
+  reviews: number
   dueAt: number
+  nextReviewDate: number
   lapses: number
   mistakes: number
   createdAt: number
@@ -167,6 +171,9 @@ export interface Link {
 }
 
 export type NotifySound = 'default' | 'chime' | 'bell'
+export type DeckType = 'vocabulary' | 'phrases' | 'synonyms' | 'definitions' | 'antonyms'
+export type DailyGoal = '5' | '15' | '30' | '60'
+export type GoalKind = 'study' | 'languages' | 'work' | 'self' | 'other'
 
 export interface AppSettings {
   language: Lang
@@ -179,6 +186,16 @@ export interface AppSettings {
   fontFamily: AppFont
   fontSize: AppFontSize
   accentColor: string
+  onboarded: boolean
+  nativeLang: string
+  nativeLangOther: string
+  targetLangs: string[]
+  targetLangOther: string
+  goal: GoalKind
+  goalOther: string
+  fields: string[]
+  fieldOther: string
+  dailyGoal: DailyGoal
 }
 
 export interface SearchHit {
@@ -199,6 +216,62 @@ export const DEFAULT_SETTINGS: AppSettings = {
   fontFamily: 'cairo',
   fontSize: 'medium',
   accentColor: '#0F6E6B',
+  onboarded: false,
+  nativeLang: 'ar',
+  nativeLangOther: '',
+  targetLangs: ['en'],
+  targetLangOther: '',
+  goal: 'study',
+  goalOther: '',
+  fields: [],
+  fieldOther: '',
+  dailyGoal: '15',
+}
+
+export const DECK_TYPES: DeckType[] = ['vocabulary', 'phrases', 'synonyms', 'definitions', 'antonyms']
+
+export const NATIVE_LANG_OPTS = [
+  { code: 'ar', ar: 'العربية', en: 'Arabic' },
+  { code: 'en', ar: 'English', en: 'English' },
+  { code: 'fr', ar: 'Français', en: 'Français' },
+  { code: 'other', ar: 'أخرى', en: 'Other' },
+]
+
+export const TARGET_LANG_OPTS = [
+  { code: 'en', ar: 'English', en: 'English' },
+  { code: 'fr', ar: 'Français', en: 'Français' },
+  { code: 'es', ar: 'Español', en: 'Español' },
+  { code: 'de', ar: 'Deutsch', en: 'Deutsch' },
+  { code: 'other', ar: 'أخرى', en: 'Other' },
+]
+
+export const GOAL_OPTS: { id: GoalKind; ar: string; en: string }[] = [
+  { id: 'study', ar: 'مذاكرة', en: 'Study' },
+  { id: 'languages', ar: 'تعلم لغات', en: 'Learn languages' },
+  { id: 'work', ar: 'تنظيم شغل', en: 'Work organization' },
+  { id: 'self', ar: 'تطوير ذات', en: 'Self development' },
+  { id: 'other', ar: 'أخرى', en: 'Other' },
+]
+
+export const FIELD_OPTS = [
+  { id: 'languages', ar: 'لغات', en: 'Languages' },
+  { id: 'science', ar: 'علوم', en: 'Science' },
+  { id: 'coding', ar: 'برمجة', en: 'Coding' },
+  { id: 'business', ar: 'أعمال', en: 'Business' },
+  { id: 'medicine', ar: 'طب', en: 'Medicine' },
+  { id: 'arts', ar: 'فنون', en: 'Arts' },
+  { id: 'other', ar: 'أخرى', en: 'Other' },
+]
+
+export const DAILY_OPTS: { id: DailyGoal; ar: string; en: string }[] = [
+  { id: '5', ar: '5 دقائق', en: '5 mins' },
+  { id: '15', ar: '15 دقيقة', en: '15 mins' },
+  { id: '30', ar: '30 دقيقة', en: '30 mins' },
+  { id: '60', ar: '60+ دقيقة', en: '60+ mins' },
+]
+
+export function isRichDeck(type?: DeckType) {
+  return type === 'vocabulary' || type === 'phrases' || !type
 }
 
 export const NOTE_COLORS = ['#FFF8E7', '#E8F4F2', '#FDECE8', '#EEF1FB', '#F4F0E6']

@@ -1,14 +1,15 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Download } from 'lucide-react'
+import { Download, Languages } from 'lucide-react'
 import { useStore } from '../store'
-import { Confirm, Segment, Toast, useT } from '../ui'
+import { Confirm, Segment, Sheet, Toast, useT } from '../ui'
 import { downloadBlob, formatDateTime } from '../utils'
 import { exportSnapshot, type Snapshot } from '../db'
-import type { AppFont, AppFontSize, Lang, NotifySound, Theme } from '../types'
+import type { AppFont, AppFontSize, NotifySound, Theme } from '../types'
 import { APP_FONTS, NOTIFY_SOUNDS } from '../types'
 import { resolveColor } from '../utils'
 import { getNative } from '../native'
+import { PrefsForm } from './Onboarding'
 
 export default function SettingsPage() {
   const tr = useT()
@@ -19,6 +20,7 @@ export default function SettingsPage() {
   const [pending, setPending] = useState<Snapshot | null>(null)
   const [newSub, setNewSub] = useState('')
   const [colorDraft, setColorDraft] = useState(settings.accentColor || '')
+  const [prefs, setPrefs] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   async function doExport() {
@@ -38,15 +40,10 @@ export default function SettingsPage() {
       </button>
       <label className="label">{tr('yourName')}</label>
       <input className="field" value={settings.userName} onChange={(e) => void setSettings({ userName: e.target.value })} />
-      <label className="label">{tr('language')}</label>
-      <Segment
-        value={settings.language}
-        onChange={(v) => void setSettings({ language: v as Lang })}
-        options={[
-          { id: 'ar', label: tr('arabic') },
-          { id: 'en', label: tr('english') },
-        ]}
-      />
+      <button className="list-item pressable" type="button" onClick={() => setPrefs(true)}>
+        <Languages size={18} />
+        <div className="grow">{tr('managePrefs')}</div>
+      </button>
       <label className="label">{tr('theme')}</label>
       <Segment
         value={settings.theme}
@@ -210,6 +207,9 @@ export default function SettingsPage() {
           {tr('version')} 1.0.0 · {tr('offline')}
         </div>
       </div>
+      <Sheet open={prefs} onClose={() => setPrefs(false)} title={tr('managePrefs')}>
+        <PrefsForm onSaved={() => setPrefs(false)} />
+      </Sheet>
       <Confirm
         open={confirm}
         title={tr('restoreConfirm')}

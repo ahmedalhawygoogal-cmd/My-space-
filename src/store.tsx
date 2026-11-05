@@ -102,7 +102,7 @@ function applyTheme(theme: Theme) {
 
 function applyLang(lang: Lang) {
   document.documentElement.lang = lang
-  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
+  document.documentElement.dir = 'rtl'
 }
 
 const APPEAR_KEY = 'myspace-appear'
@@ -180,6 +180,7 @@ function normalizeDeck(raw: Deck): Deck {
     ...raw,
     nativeLang: raw.nativeLang || 'ar',
     targetLang: raw.targetLang || 'en',
+    type: raw.type || 'vocabulary',
     description: raw.description ?? '',
     tags: raw.tags ?? [],
     reminderTime: raw.reminderTime || undefined,
@@ -222,6 +223,7 @@ function normalizeNote(raw: Note): Note {
 
 function normalizeCard(raw: Card): Card {
   const mistakes = typeof raw.mistakes === 'number' ? raw.mistakes : raw.lapses || 0
+  const due = raw.nextReviewDate || raw.dueAt || raw.createdAt || now()
   return {
     ...raw,
     front: raw.front ?? '',
@@ -231,11 +233,14 @@ function normalizeCard(raw: Card): Card {
     example: raw.example ?? '',
     exampleTranslation: raw.exampleTranslation ?? '',
     explanation: raw.explanation ?? '',
+    note: raw.note ?? '',
     status: raw.status ?? 'new',
     ease: raw.ease || 2.5,
     interval: raw.interval || 0,
     repetitions: raw.repetitions || 0,
-    dueAt: raw.dueAt || raw.createdAt || now(),
+    reviews: raw.reviews ?? raw.repetitions ?? 0,
+    dueAt: due,
+    nextReviewDate: due,
     lapses: raw.lapses || 0,
     mistakes,
   }
@@ -254,19 +259,23 @@ function applyAnswer(card: Card, correct: boolean): Card {
       ease: Math.max(1.3, (card.ease || 2.5) - 0.2),
       status: 'learning',
       dueAt: t,
+      nextReviewDate: t,
       updatedAt: t,
     }
   }
   const mistakes = Math.max(0, (card.mistakes || 0) - 1)
   const repetitions = (card.repetitions || 0) + 1
   const ease = Math.min(3.2, (card.ease || 2.5) + 0.08)
+  const due = t + Math.max(1, 8 - mistakes) * 60 * 1000
   return {
     ...card,
     mistakes,
     repetitions,
+    reviews: (card.reviews || 0) + 1,
     ease,
     status: mistakes === 0 && repetitions >= 3 ? 'learned' : 'review',
-    dueAt: t + Math.max(1, 8 - mistakes) * 60 * 1000,
+    dueAt: due,
+    nextReviewDate: due,
     updatedAt: t,
   }
 }
@@ -281,34 +290,35 @@ function schedule(card: Card, rating: CardRating): Card {
     ease = Math.max(1.3, ease - 0.2)
     lapses += 1
     status = 'learning'
-    return { ...card, ease, interval, repetitions, lapses, status, dueAt: t + 10 * 60 * 1000, updatedAt: t }
+    const due = t + 1 * 24 * 60 * 60 * 1000
+    return { ...card, ease, interval: 1, repetitions, reviews: (card.reviews || 0) + 1, lapses, status, dueAt: due, nextReviewDate: due, updatedAt: t }
   }
   if (rating === 'hard') {
-    interval = Math.max(1, Math.round(interval * 1.2) || 1)
+    interval = 1
     ease = Math.max(1.3, ease - 0.15)
     repetitions += 1
     status = 'review'
   } else if (rating === 'good') {
-    if (repetitions === 0) interval = 1
-    else if (repetitions === 1) interval = 6
-    else interval = Math.round(interval * ease)
+    interval = 3
     repetitions += 1
     status = repetitions >= 3 ? 'learned' : 'review'
   } else {
-    if (repetitions === 0) interval = 4
-    else interval = Math.round(interval * ease * 1.3)
+    interval = 7
     ease += 0.15
     repetitions += 1
     status = 'learned'
   }
+  const due = startOfDay(t) + interval * 24 * 60 * 60 * 1000
   return {
     ...card,
     ease,
     interval,
     repetitions,
+    reviews: (card.reviews || 0) + 1,
     lapses,
     status,
-    dueAt: startOfDay(t) + interval * 24 * 60 * 60 * 1000,
+    dueAt: due,
+    nextReviewDate: due,
     updatedAt: t,
   }
 }
@@ -349,10 +359,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const cardsN = cards.map(normalizeCard)
     const tasksN = tasks.map(normalizeTask)
     const notesN = notes.map(normalizeNote)
-    const deckWrites = decksN.filter((_, idx) => !decks[idx]?.nativeLang || !decks[idx]?.targetLang)
+    const deckWrites = decksN.filter((_, idx) => !decks[idx]?.nativeLang || !decks[idx]?.targetLang || !decks[idx]?.type)
     const cardWrites = cardsN.filter((_, idx) => {
       const raw = cards[idx]
-      return !raw || typeof raw.mistakes !== 'number' || raw.exampleTranslation === undefined
+      return !raw || typeof raw.mistakes !== 'number' || raw.exampleTranslation === undefined || raw.note === undefined || raw.nextReviewDate === undefined
     })
     const taskWrites = tasksN.filter((_, idx) => {
       const raw = tasks[idx]
@@ -369,7 +379,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ...noteWrites.map((n) => db.putOne(STORES.notes, n)),
     ])
     const appear = loadAppear()
-    const settingsN = {
+    const settingsN: AppSettings = {
       ...settings,
       speakRepeats: settings.speakRepeats ?? 1,
       cardReminders: settings.cardReminders ?? false,
@@ -377,6 +387,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       fontFamily: settings.fontFamily || appear.fontFamily,
       fontSize: settings.fontSize || appear.fontSize,
       accentColor: settings.accentColor || appear.accentColor,
+      onboarded: !!settings.onboarded,
+      nativeLang: settings.nativeLang || 'ar',
+      nativeLangOther: settings.nativeLangOther ?? '',
+      targetLangs: settings.targetLangs?.length ? settings.targetLangs : ['en'],
+      targetLangOther: settings.targetLangOther ?? '',
+      goal: settings.goal || 'study',
+      goalOther: settings.goalOther ?? '',
+      fields: settings.fields ?? [],
+      fieldOther: settings.fieldOther ?? '',
+      dailyGoal: settings.dailyGoal || '15',
     }
     persistAppear({
       fontFamily: settingsN.fontFamily,
@@ -605,6 +625,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       noteId: extra?.noteId,
       nativeLang: extra?.nativeLang || 'ar',
       targetLang: extra?.targetLang || 'en',
+      type: extra?.type || 'vocabulary',
       reminderTime: extra?.reminderTime,
       createdAt: t,
       updatedAt: t,
@@ -645,12 +666,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       example: data.example ?? '',
       exampleTranslation: data.exampleTranslation ?? '',
       explanation: data.explanation ?? '',
+      note: data.note ?? '',
       imageDataUrl: data.imageDataUrl,
       status: 'new',
       ease: 2.5,
       interval: 0,
       repetitions: 0,
+      reviews: 0,
       dueAt: t,
+      nextReviewDate: t,
       lapses: 0,
       mistakes: 0,
       createdAt: t,
@@ -685,6 +709,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       example: cur.example,
       exampleTranslation: cur.exampleTranslation,
       explanation: cur.explanation,
+      note: cur.note,
       imageDataUrl: cur.imageDataUrl,
     })
   }, [state.cards, addCard])

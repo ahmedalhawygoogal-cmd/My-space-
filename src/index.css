@@ -44,7 +44,7 @@
 
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
-html { background: var(--bg); }
+html { background: var(--bg); direction: rtl; }
 body {
   margin: 0;
   font-family: var(--font);
@@ -161,6 +161,7 @@ img { max-width: 100%; }
 .spread { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .stack { display: flex; flex-direction: column; gap: 10px; }
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 
 .card {
   background: var(--bg-elev);
@@ -192,6 +193,7 @@ img { max-width: 100%; }
 }
 .chip.active { background: var(--brand); color: var(--brand-ink); }
 .chip-row { display: flex; gap: 8px; overflow: auto; padding-bottom: 4px; scrollbar-width: none; }
+.chip-row.wrap { flex-wrap: wrap; overflow: visible; }
 .chip-row::-webkit-scrollbar { display: none; }
 
 .btn {
@@ -649,6 +651,105 @@ img { max-width: 100%; }
 }
 .match-item.sel { border-color: var(--brand); background: var(--brand-soft); }
 .match-item.done { opacity: 0.45; }
+
+.onboard {
+  min-height: 100%;
+  padding: 24px 16px 32px;
+  overflow: auto;
+}
+.onboard-card {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.app-shell.fc-theme {
+  --bg: #0B0F19;
+  --bg-elev: #111827;
+  --bg-muted: #1a2233;
+  --ink: #f4efe4;
+  --ink-soft: #c9c0ae;
+  --line: rgba(199, 169, 107, 0.18);
+  --brand: #C7A96B;
+  --brand-ink: #0B0F19;
+  --brand-soft: rgba(199, 169, 107, 0.16);
+  --primary-color: #C7A96B;
+  --primary-ink: #0B0F19;
+  --accent: #D7BA7E;
+  --accent-soft: rgba(215, 186, 126, 0.16);
+  --gold: #D7BA7E;
+  background: #0B0F19;
+}
+.app-shell.fc-theme .topbar,
+.app-shell.fc-theme .main {
+  background: transparent;
+}
+.app-shell.fc-theme .bottom-nav {
+  background: color-mix(in srgb, #111827 88%, transparent);
+  border-color: rgba(199, 169, 107, 0.22);
+}
+.app-shell.fc-theme .nav-item.active { color: #D7BA7E; }
+.app-shell.fc-theme .btn { background: #C7A96B; color: #0B0F19; }
+.app-shell.fc-theme .fab { background: #C7A96B; color: #0B0F19; }
+
+.fc-deck {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  background: #111827;
+  border: 1px solid rgba(199, 169, 107, 0.18);
+  border-radius: 18px;
+}
+.fc-deck-body {
+  flex: 1;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+}
+.fc-play {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  background: transparent;
+  color: #D7BA7E;
+  flex-shrink: 0;
+}
+.fc-play svg { display: block; }
+.fc-play-icon {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.fc-thumb {
+  border-radius: 12px;
+  max-height: 140px;
+  object-fit: cover;
+}
+.fc-mini {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+.fc-hint {
+  max-height: 120px;
+  margin: 0 auto 8px;
+  border-radius: 12px;
+  object-fit: cover;
+  display: block;
+}
+.fc-opt {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin-inline-end: 8px;
+  vertical-align: middle;
+}
+.fc-review { min-height: 220px; display: grid; place-items: center; text-align: center; }
 
 @media (min-width: 860px) {
   .app-shell { max-width: 480px; margin: 0 auto; border-inline: 1px solid var(--line); }

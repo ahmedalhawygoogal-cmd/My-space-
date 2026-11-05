@@ -1,17 +1,40 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Bell, Ear, Layers, LayoutGrid, Pencil, PenLine, Plus, Trash2, Volume2 } from 'lucide-react'
+import { Bell, Ear, Layers, LayoutGrid, Pencil, PenLine, Play, Plus, Trash2, Volume2 } from 'lucide-react'
 import { useStore } from '../store'
-import { Confirm, Empty, Sheet, useT } from '../ui'
+import { Confirm, Empty, Sheet, Toast, useT } from '../ui'
 import type { ReactNode } from 'react'
-import type { Card, Lang } from '../types'
-import { LEARN_LANGS } from '../types'
+import type { AppSettings, Card, Deck, DeckType, Lang } from '../types'
+import { DECK_TYPES, LEARN_LANGS, NATIVE_LANG_OPTS, TARGET_LANG_OPTS, isRichDeck } from '../types'
 import { fileToDataUrl, normalizeAnswer, shuffle, speakText } from '../utils'
 
-function langLabel(code: string, ui: Lang) {
+function langLabel(code: string, ui: Lang, custom?: string) {
+  if (code === 'other') return custom?.trim() || (ui === 'ar' ? 'أخرى' : 'Other')
+  const native = NATIVE_LANG_OPTS.find((l) => l.code === code)
+  if (native) return ui === 'ar' ? native.ar : native.en
+  const target = TARGET_LANG_OPTS.find((l) => l.code === code)
+  if (target) return ui === 'ar' ? target.ar : target.en
   const row = LEARN_LANGS.find((l) => l.code === code)
-  if (!row) return code
+  if (!row) return custom?.trim() || code
   return ui === 'ar' ? row.ar : row.en
+}
+
+function nativeName(settings: AppSettings, ui: Lang) {
+  return langLabel(settings.nativeLang || 'ar', ui, settings.nativeLangOther)
+}
+
+function targetName(settings: AppSettings, ui: Lang, deck?: Deck) {
+  const code = deck?.targetLang || settings.targetLangs?.[0] || 'en'
+  const custom = code === 'other' ? settings.targetLangOther : undefined
+  return langLabel(code, ui, custom)
+}
+
+function typeLabel(type: DeckType, tr: (k: 'typeVocabulary' | 'typePhrases' | 'typeSynonyms' | 'typeDefinitions' | 'typeAntonyms') => string) {
+  if (type === 'phrases') return tr('typePhrases')
+  if (type === 'synonyms') return tr('typeSynonyms')
+  if (type === 'definitions') return tr('typeDefinitions')
+  if (type === 'antonyms') return tr('typeAntonyms')
+  return tr('typeVocabulary')
 }
 
 function ListenAuto({ text, lang, repeats, round }: { text: string; lang: string; repeats: number; round: number }) {
@@ -43,65 +66,110 @@ type CardFormState = {
   front: string
   back: string
   example: string
-  exampleTranslation: string
+  note: string
   imageDataUrl: string
 }
 
-const emptyForm: CardFormState = { front: '', back: '', example: '', exampleTranslation: '', imageDataUrl: '' }
+const emptyForm: CardFormState = { front: '', back: '', example: '', note: '', imageDataUrl: '' }
 
-function CardForm({ form, setForm }: { form: CardFormState; setForm: (f: CardFormState) => void }) {
+function CardForm({
+  form,
+  setForm,
+  rich,
+  frontLabel,
+  backLabel,
+}: {
+  form: CardFormState
+  setForm: (f: CardFormState) => void
+  rich: boolean
+  frontLabel: string
+  backLabel: string
+}) {
   const tr = useT()
   return (
     <div className="stack">
-      <label className="label">{tr('nativeWord')}</label>
+      <label className="label">{frontLabel}</label>
       <input className="field" value={form.front} onChange={(e) => setForm({ ...form, front: e.target.value })} />
-      <label className="label">{tr('targetWord')}</label>
+      <label className="label">{backLabel}</label>
       <input className="field" value={form.back} onChange={(e) => setForm({ ...form, back: e.target.value })} />
-      <label className="label">
-        {tr('exampleSentence')} · {tr('optional')}
-      </label>
-      <input className="field" value={form.example} onChange={(e) => setForm({ ...form, example: e.target.value })} />
-      <label className="label">
-        {tr('exampleTranslation')} · {tr('optional')}
-      </label>
-      <input
-        className="field"
-        value={form.exampleTranslation}
-        onChange={(e) => setForm({ ...form, exampleTranslation: e.target.value })}
-      />
-      <label className="label">
-        {tr('image')} · {tr('optional')}
-      </label>
-      <input
-        className="field"
-        type="file"
-        accept="image/*"
-        onChange={async (e) => {
-          const f = e.target.files?.[0]
-          if (!f) return
-          setForm({ ...form, imageDataUrl: await fileToDataUrl(f) })
-        }}
-      />
-      {form.imageDataUrl ? (
+      {rich ? (
         <>
-          <img src={form.imageDataUrl} alt="" style={{ borderRadius: 12, maxHeight: 140, objectFit: 'cover' }} />
-          <button className="btn ghost" type="button" onClick={() => setForm({ ...form, imageDataUrl: '' })}>
-            {tr('removeImage')}
-          </button>
+          <label className="label">
+            {tr('exampleSentence')} · {tr('optional')}
+          </label>
+          <input className="field" value={form.example} onChange={(e) => setForm({ ...form, example: e.target.value })} />
+        </>
+      ) : null}
+      <label className="label">
+        {tr('cardNote')} · {tr('optional')}
+      </label>
+      <input className="field" value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
+      {rich ? (
+        <>
+          <label className="label">
+            {tr('image')} · {tr('optional')}
+          </label>
+          <input
+            className="field"
+            type="file"
+            accept="image/*"
+            onChange={async (e) => {
+              const f = e.target.files?.[0]
+              if (!f) return
+              setForm({ ...form, imageDataUrl: await fileToDataUrl(f) })
+            }}
+          />
+          {form.imageDataUrl ? (
+            <>
+              <img src={form.imageDataUrl} alt="" className="fc-thumb" />
+              <button className="btn ghost" type="button" onClick={() => setForm({ ...form, imageDataUrl: '' })}>
+                {tr('removeImage')}
+              </button>
+            </>
+          ) : null}
         </>
       ) : null}
     </div>
   )
 }
 
+function PlayRing({ due, total, onClick, label }: { due: number; total: number; onClick: () => void; label: string }) {
+  const r = 18
+  const c = 2 * Math.PI * r
+  const v = total ? Math.max(0, Math.min(100, ((total - due) / total) * 100)) : 0
+  return (
+    <button className="fc-play" type="button" onClick={onClick} aria-label={label}>
+      <svg width="52" height="52" viewBox="0 0 52 52">
+        <circle cx="26" cy="26" r={r} fill="none" stroke="rgba(199,169,107,0.22)" strokeWidth="4" />
+        <circle
+          cx="26"
+          cy="26"
+          r={r}
+          fill="none"
+          stroke="#C7A96B"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeDasharray={`${(v / 100) * c} ${c}`}
+          transform="rotate(-90 26 26)"
+        />
+      </svg>
+      <span className="fc-play-icon">
+        <Play size={16} fill="currentColor" />
+      </span>
+    </button>
+  )
+}
+
 export default function FlashcardsPage() {
   const tr = useT()
-  const { decks, cards, addDeck, updateDeck, lang } = useStore()
+  const { decks, cards, addDeck, updateDeck, lang, settings } = useStore()
   const [open, setOpen] = useState(false)
   const [unify, setUnify] = useState(false)
+  const [games, setGames] = useState<Deck | null>(null)
   const [name, setName] = useState('')
-  const [nativeLang, setNativeLang] = useState('ar')
-  const [targetLang, setTargetLang] = useState('en')
+  const [type, setType] = useState<DeckType>('vocabulary')
+  const [nativeLang, setNativeLang] = useState(settings.nativeLang || 'ar')
+  const [targetLang, setTargetLang] = useState(settings.targetLangs?.[0] || 'en')
   const [reminderTime, setReminderTime] = useState('09:00')
   const [unifyTime, setUnifyTime] = useState('09:00')
 
@@ -131,16 +199,24 @@ export default function FlashcardsPage() {
       ) : (
         decks.map((d) => {
           const dc = cards.filter((c) => c.deckId === d.id)
+          const due = dc.filter((c) => (c.nextReviewDate || c.dueAt) <= Date.now()).length
           return (
-            <Link key={d.id} className="list-item pressable" to={`/cards/${d.id}`}>
-              <div className="dot" style={{ background: 'var(--brand)' }} />
-              <div className="grow">
-                <div className="ellipsis">{d.name}</div>
-                <div className="meta">
-                  {langLabel(d.nativeLang, lang)} → {langLabel(d.targetLang, lang)} · {dc.length} {tr('cards')}
+            <div key={d.id} className="fc-deck">
+              <Link className="fc-deck-body" to={`/cards/${d.id}`}>
+                <div>
+                  <div className="ellipsis">{d.name}</div>
+                  <div className="meta">
+                    {typeLabel(d.type || 'vocabulary', tr)} · {langLabel(d.nativeLang, lang, settings.nativeLangOther)} →{' '}
+                    {langLabel(d.targetLang, lang, settings.targetLangOther)}
+                  </div>
+                  <div className="meta">
+                    {dc.length} {tr('cards')}
+                    {due ? ` · ${due} ${tr('dueNow')}` : ''}
+                  </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+              <PlayRing due={due} total={dc.length} label={tr('playDeck')} onClick={() => setGames(d)} />
+            </div>
           )
         })
       )}
@@ -148,6 +224,14 @@ export default function FlashcardsPage() {
         <Plus size={22} />
       </button>
       <Sheet open={open} onClose={() => setOpen(false)} title={tr('newDeck')}>
+        <label className="label">{tr('deckType')}</label>
+        <select className="field" value={type} onChange={(e) => setType(e.target.value as DeckType)}>
+          {DECK_TYPES.map((id) => (
+            <option key={id} value={id}>
+              {typeLabel(id, tr)}
+            </option>
+          ))}
+        </select>
         <label className="label">{tr('nativeLang')}</label>
         <select className="field" value={nativeLang} onChange={(e) => setNativeLang(e.target.value)}>
           {LEARN_LANGS.map((l) => (
@@ -174,7 +258,7 @@ export default function FlashcardsPage() {
           type="button"
           onClick={async () => {
             if (!name.trim()) return
-            await addDeck(name.trim(), { nativeLang, targetLang, reminderTime })
+            await addDeck(name.trim(), { nativeLang, targetLang, reminderTime, type })
             setName('')
             setOpen(false)
           }}
@@ -197,6 +281,32 @@ export default function FlashcardsPage() {
           {tr('applyAllDecks')}
         </button>
       </Sheet>
+      <Sheet open={!!games} onClose={() => setGames(null)} title={tr('games')}>
+        {games ? (
+          <div className="stack">
+            <Link className="list-item pressable" to={`/cards/${games.id}/study`} onClick={() => setGames(null)}>
+              <Layers size={16} />
+              <div className="grow">{tr('review')}</div>
+            </Link>
+            <Link className="list-item pressable" to={`/cards/${games.id}/game/choice`} onClick={() => setGames(null)}>
+              <LayoutGrid size={16} />
+              <div className="grow">{tr('gameChoice')}</div>
+            </Link>
+            <Link className="list-item pressable" to={`/cards/${games.id}/game/match`} onClick={() => setGames(null)}>
+              <Layers size={16} />
+              <div className="grow">{tr('gameMatch')}</div>
+            </Link>
+            <Link className="list-item pressable" to={`/cards/${games.id}/game/write`} onClick={() => setGames(null)}>
+              <PenLine size={16} />
+              <div className="grow">{tr('gameWrite')}</div>
+            </Link>
+            <Link className="list-item pressable" to={`/cards/${games.id}/game/listen`} onClick={() => setGames(null)}>
+              <Ear size={16} />
+              <div className="grow">{tr('gameListen')}</div>
+            </Link>
+          </div>
+        ) : null}
+      </Sheet>
     </div>
   )
 }
@@ -205,18 +315,22 @@ export function DeckPage() {
   const tr = useT()
   const nav = useNavigate()
   const { deckId } = useParams()
-  const { decks, cards, updateDeck, deleteDeck, addCard, updateCard, deleteCard, lang } = useStore()
+  const { decks, cards, updateDeck, deleteDeck, addCard, updateCard, deleteCard, lang, settings } = useStore()
   const deck = decks.find((d) => d.id === deckId)
   const dc = cards.filter((c) => c.deckId === deckId)
   const [q, setQ] = useState('')
   const [open, setOpen] = useState(false)
   const [edit, setEdit] = useState<Card | null>(null)
   const [confirm, setConfirm] = useState(false)
+  const [games, setGames] = useState(false)
   const [form, setForm] = useState<CardFormState>(emptyForm)
+  const rich = isRichDeck(deck?.type)
+  const frontLabel = nativeName(settings, lang)
+  const backLabel = targetName(settings, lang, deck)
   const shown = dc.filter((c) => {
     if (!q.trim()) return true
     const n = q.toLowerCase()
-    return [c.front, c.back, c.example, c.exampleTranslation].some((x) => x.toLowerCase().includes(n))
+    return [c.front, c.back, c.example, c.note].some((x) => x.toLowerCase().includes(n))
   })
 
   if (!deck) return <Empty icon={<Layers />} title={tr('noDecks')} />
@@ -225,8 +339,17 @@ export function DeckPage() {
     <div className="stack">
       <input className="note-title" value={deck.name} onChange={(e) => void updateDeck(deck.id, { name: e.target.value })} />
       <div className="muted">
-        {langLabel(deck.nativeLang, lang)} → {langLabel(deck.targetLang, lang)}
+        {typeLabel(deck.type || 'vocabulary', tr)} · {langLabel(deck.nativeLang, lang, settings.nativeLangOther)} →{' '}
+        {langLabel(deck.targetLang, lang, settings.targetLangOther)}
       </div>
+      <label className="label">{tr('deckType')}</label>
+      <select className="field" value={deck.type || 'vocabulary'} onChange={(e) => void updateDeck(deck.id, { type: e.target.value as DeckType })}>
+        {DECK_TYPES.map((id) => (
+          <option key={id} value={id}>
+            {typeLabel(id, tr)}
+          </option>
+        ))}
+      </select>
       <label className="label">{tr('deckReminder')}</label>
       <input
         className="field"
@@ -234,12 +357,9 @@ export function DeckPage() {
         value={deck.reminderTime || ''}
         onChange={(e) => void updateDeck(deck.id, { reminderTime: e.target.value || undefined })}
       />
-      <div className="grid-2">
-        <GameLink to={`/cards/${deck.id}/game/choice`} icon={<LayoutGrid size={16} />} label={tr('gameChoice')} />
-        <GameLink to={`/cards/${deck.id}/game/match`} icon={<Layers size={16} />} label={tr('gameMatch')} />
-        <GameLink to={`/cards/${deck.id}/game/write`} icon={<PenLine size={16} />} label={tr('gameWrite')} />
-        <GameLink to={`/cards/${deck.id}/game/listen`} icon={<Ear size={16} />} label={tr('gameListen')} />
-      </div>
+      <button className="btn block" type="button" onClick={() => setGames(true)}>
+        <Play size={16} /> {tr('playDeck')}
+      </button>
       <input className="field" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('search')} />
       {dc.length === 0 ? (
         <Empty
@@ -247,7 +367,14 @@ export function DeckPage() {
           title={tr('emptyDeck')}
           hint={tr('emptyDeckHint')}
           action={
-            <button className="btn" type="button" onClick={() => { setForm(emptyForm); setOpen(true) }}>
+            <button
+              className="btn"
+              type="button"
+              onClick={() => {
+                setForm(emptyForm)
+                setOpen(true)
+              }}
+            >
               {tr('addFlashcard')}
             </button>
           }
@@ -256,7 +383,7 @@ export function DeckPage() {
         shown.map((c) => (
           <div key={c.id} className="list-item">
             {c.imageDataUrl ? (
-              <img src={c.imageDataUrl} alt="" style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover' }} />
+              <img src={c.imageDataUrl} alt="" className="fc-mini" />
             ) : (
               <div className="dot" style={{ background: 'var(--brand)' }} />
             )}
@@ -274,7 +401,7 @@ export function DeckPage() {
                   front: c.front,
                   back: c.back,
                   example: c.example,
-                  exampleTranslation: c.exampleTranslation,
+                  note: c.note,
                   imageDataUrl: c.imageDataUrl ?? '',
                 })
               }}
@@ -291,7 +418,15 @@ export function DeckPage() {
       <button className="btn danger block" type="button" onClick={() => setConfirm(true)}>
         {tr('delete')}
       </button>
-      <button className="fab" type="button" onClick={() => { setForm(emptyForm); setOpen(true) }} aria-label={tr('newCard')}>
+      <button
+        className="fab"
+        type="button"
+        onClick={() => {
+          setForm(emptyForm)
+          setOpen(true)
+        }}
+        aria-label={tr('newCard')}
+      >
         <Plus size={22} />
       </button>
       <Confirm
@@ -305,14 +440,14 @@ export function DeckPage() {
         }}
       />
       <Sheet open={open} onClose={() => setOpen(false)} title={tr('newCard')}>
-        <CardForm form={form} setForm={setForm} />
+        <CardForm form={form} setForm={setForm} rich={rich} frontLabel={frontLabel} backLabel={backLabel} />
         <button
           className="btn block"
           style={{ marginTop: 12 }}
           type="button"
           onClick={async () => {
             if (!form.front.trim() || !form.back.trim()) return
-            await addCard(deck.id, form)
+            await addCard(deck.id, rich ? form : { ...form, example: '', imageDataUrl: undefined })
             setForm(emptyForm)
             setOpen(false)
           }}
@@ -321,32 +456,45 @@ export function DeckPage() {
         </button>
       </Sheet>
       <Sheet open={!!edit} onClose={() => setEdit(null)} title={tr('editCard')}>
-        <CardForm form={form} setForm={setForm} />
+        <CardForm form={form} setForm={setForm} rich={rich} frontLabel={frontLabel} backLabel={backLabel} />
         <button
           className="btn block"
           style={{ marginTop: 12 }}
           type="button"
           onClick={async () => {
             if (!edit || !form.front.trim() || !form.back.trim()) return
-            await updateCard(edit.id, form)
+            await updateCard(edit.id, rich ? form : { ...form, example: '', imageDataUrl: undefined })
             setEdit(null)
           }}
         >
           {tr('save')}
         </button>
       </Sheet>
+      <Sheet open={games} onClose={() => setGames(false)} title={tr('games')}>
+        <div className="stack">
+          <Link className="list-item pressable" to={`/cards/${deck.id}/study`} onClick={() => setGames(false)}>
+            <Layers size={16} />
+            <div className="grow">{tr('review')}</div>
+          </Link>
+          <Link className="list-item pressable" to={`/cards/${deck.id}/game/choice`} onClick={() => setGames(false)}>
+            <LayoutGrid size={16} />
+            <div className="grow">{tr('gameChoice')}</div>
+          </Link>
+          <Link className="list-item pressable" to={`/cards/${deck.id}/game/match`} onClick={() => setGames(false)}>
+            <Layers size={16} />
+            <div className="grow">{tr('gameMatch')}</div>
+          </Link>
+          <Link className="list-item pressable" to={`/cards/${deck.id}/game/write`} onClick={() => setGames(false)}>
+            <PenLine size={16} />
+            <div className="grow">{tr('gameWrite')}</div>
+          </Link>
+          <Link className="list-item pressable" to={`/cards/${deck.id}/game/listen`} onClick={() => setGames(false)}>
+            <Ear size={16} />
+            <div className="grow">{tr('gameListen')}</div>
+          </Link>
+        </div>
+      </Sheet>
     </div>
-  )
-}
-
-function GameLink({ to, icon, label }: { to: string; icon: ReactNode; label: string }) {
-  return (
-    <Link className="card pressable" to={to} style={{ textDecoration: 'none', color: 'inherit' }}>
-      <div className="row">
-        {icon}
-        <b>{label}</b>
-      </div>
-    </Link>
   )
 }
 
@@ -388,6 +536,11 @@ function GameShell({ title, hint, children }: { title: string; hint: string; chi
   )
 }
 
+function HintImage({ src }: { src?: string }) {
+  if (!src) return null
+  return <img src={src} alt="" className="fc-hint" />
+}
+
 function useDeckCards() {
   const { deckId } = useParams()
   const { decks, cards } = useStore()
@@ -420,7 +573,7 @@ export function ChoiceGamePage() {
   return (
     <GameShell title={tr('gameChoice')} hint={tr('gameChoiceHint')}>
       <div className="flash-card">
-        {pack.target.imageDataUrl ? <img src={pack.target.imageDataUrl} alt="" style={{ maxHeight: 100, margin: '0 auto', borderRadius: 12 }} /> : null}
+        <HintImage src={pack.target.imageDataUrl} />
         <h2>{pack.target.front}</h2>
       </div>
       <div className="stack">
@@ -438,6 +591,7 @@ export function ChoiceGamePage() {
                 await recordAnswer(pack.target.id, ok)
               }}
             >
+              {o.imageDataUrl ? <img src={o.imageDataUrl} alt="" className="fc-opt" /> : null}
               {o.back}
             </button>
           )
@@ -507,6 +661,7 @@ export function MatchGamePage() {
                 void tryMatch(c.id, selR)
               }}
             >
+              {c.imageDataUrl ? <img src={c.imageDataUrl} alt="" className="fc-opt" /> : null}
               {c.front}
             </button>
           ))}
@@ -565,7 +720,7 @@ export function WriteGamePage() {
   return (
     <GameShell title={tr('gameWrite')} hint={tr('gameWriteHint')}>
       <div className="flash-card">
-        {card.imageDataUrl ? <img src={card.imageDataUrl} alt="" style={{ maxHeight: 100, margin: '0 auto', borderRadius: 12 }} /> : null}
+        <HintImage src={card.imageDataUrl} />
         <h2>{card.front}</h2>
       </div>
       <input
@@ -642,11 +797,8 @@ export function ListenGamePage() {
     <GameShell title={tr('gameListen')} hint={tr('gameListenHint')}>
       <ListenAuto text={pack.target.back} lang={deck.targetLang} repeats={settings.speakRepeats ?? 1} round={round} />
       <div className="flash-card">
-        <button
-          className="btn"
-          type="button"
-          onClick={() => speakText(pack.target.back, deck.targetLang, settings.speakRepeats ?? 1)}
-        >
+        <HintImage src={pack.target.imageDataUrl} />
+        <button className="btn" type="button" onClick={() => speakText(pack.target.back, deck.targetLang, settings.speakRepeats ?? 1)}>
           <Volume2 size={18} /> {tr('speak')}
         </button>
         {typeof window === 'undefined' || !('speechSynthesis' in window) ? <div className="muted">{tr('noSpeech')}</div> : null}
@@ -666,6 +818,7 @@ export function ListenGamePage() {
                 await recordAnswer(pack.target.id, ok)
               }}
             >
+              {o.imageDataUrl ? <img src={o.imageDataUrl} alt="" className="fc-opt" /> : null}
               {o.front}
             </button>
           )
@@ -688,12 +841,96 @@ export function ListenGamePage() {
 }
 
 export function StudyPage() {
-  const { deckId } = useParams()
+  const tr = useT()
   const nav = useNavigate()
-  useEffect(() => {
-    if (deckId) nav(`/cards/${deckId}/game/choice`, { replace: true })
-  }, [deckId, nav])
-  return null
+  const { deck, dc, deckId } = useDeckCards()
+  const { rateCard } = useStore()
+  const due = useMemo(
+    () => dc.filter((c) => (c.nextReviewDate || c.dueAt) <= Date.now()).sort((a, b) => (a.nextReviewDate || a.dueAt) - (b.nextReviewDate || b.dueAt)),
+    [dc],
+  )
+  const [flipped, setFlipped] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+  const card = due[0]
+
+  if (!deck) return <Empty icon={<Layers />} title={tr('noDecks')} />
+  if (!card) {
+    return (
+      <Empty
+        icon={<Layers size={36} />}
+        title={tr('noDueCards')}
+        action={
+          <button className="btn" type="button" onClick={() => nav(`/cards/${deckId}`)}>
+            {tr('back')}
+          </button>
+        }
+      />
+    )
+  }
+
+  return (
+    <div className="stack">
+      <div className="spread">
+        <h1 className="page-title" style={{ margin: 0 }}>
+          {tr('review')}
+        </h1>
+        <button className="chip" type="button" onClick={() => nav(-1)}>
+          {tr('back')}
+        </button>
+      </div>
+      <div className="muted">
+        {due.length} {tr('remaining')}
+      </div>
+      <div className="flash-card fc-review">
+        {card.imageDataUrl ? <img src={card.imageDataUrl} alt="" className="fc-hint" /> : null}
+        <h2>{flipped ? card.back : card.front}</h2>
+        {flipped && card.example ? <p className="muted">{card.example}</p> : null}
+        {flipped && card.note ? <p className="muted">{card.note}</p> : null}
+      </div>
+      {!flipped ? (
+        <button className="btn block" type="button" onClick={() => setFlipped(true)}>
+          {tr('flip')}
+        </button>
+      ) : (
+        <div className="grid-3">
+          <button
+            className="btn ghost"
+            type="button"
+            onClick={async () => {
+              await rateCard(card.id, 'hard')
+              setToast(tr('reviewed'))
+              setFlipped(false)
+            }}
+          >
+            {tr('rateHard')}
+          </button>
+          <button
+            className="btn secondary"
+            type="button"
+            onClick={async () => {
+              await rateCard(card.id, 'good')
+              setToast(tr('reviewed'))
+              setFlipped(false)
+            }}
+          >
+            {tr('rateGood')}
+          </button>
+          <button
+            className="btn"
+            type="button"
+            onClick={async () => {
+              await rateCard(card.id, 'easy')
+              setToast(tr('reviewed'))
+              setFlipped(false)
+            }}
+          >
+            {tr('rateEasy')}
+          </button>
+        </div>
+      )}
+      <Toast text={toast} onDone={() => setToast(null)} />
+    </div>
+  )
 }
 
 export function TestPage() {

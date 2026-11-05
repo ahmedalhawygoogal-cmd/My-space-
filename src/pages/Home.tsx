@@ -26,7 +26,7 @@ export default function HomePage() {
   const openToday = todayTasks.filter((t) => !t.completed)
   const doneToday = mains.filter((t) => t.completed && t.completedAt && t.completedAt >= todayStart)
   const progress = todayTasks.length ? (doneToday.length / Math.max(1, doneToday.length + openToday.length)) * 100 : 0
-  const dueCards = cards.filter((c) => c.dueAt <= Date.now())
+  const dueCards = cards.filter((c) => (c.nextReviewDate || c.dueAt) <= Date.now())
   const weekStart = todayStart - 6 * 86400000
   const weekDone = mains.filter((t) => t.completed && t.completedAt && t.completedAt >= weekStart).length
   const weekTotal = Math.max(1, mains.filter((t) => (taskDay(t) ?? t.createdAt) >= weekStart).length)

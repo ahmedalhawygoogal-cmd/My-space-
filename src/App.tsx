@@ -18,6 +18,7 @@ import NotebookPage, { NoteEditorPage, NoteReadPage } from './pages/Notebook'
 import SearchPage from './pages/Search'
 import SettingsPage from './pages/Settings'
 import DownloadsPage from './pages/Downloads'
+import OnboardingPage from './pages/Onboarding'
 import { getNative, parseReminderTime } from './native'
 import { t } from './i18n'
 
@@ -60,7 +61,7 @@ function CardReminders() {
       const items = decks.flatMap((d, i) => {
         const time = parseReminderTime(d.reminderTime)
         if (!time) return []
-        const due = cards.filter((c) => c.deckId === d.id && c.dueAt <= Date.now()).length
+        const due = cards.filter((c) => c.deckId === d.id && (c.nextReviewDate || c.dueAt) <= Date.now()).length
         if (due <= 0) return []
         return [
           {
@@ -84,8 +85,9 @@ function CardReminders() {
 }
 
 function Gate() {
-  const { ready } = useStore()
+  const { ready, settings } = useStore()
   if (!ready) return <Splash />
+  if (!settings.onboarded) return <OnboardingPage />
   return (
     <Routes>
       <Route element={<Layout />}>
