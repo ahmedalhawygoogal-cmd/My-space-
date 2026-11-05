@@ -57,14 +57,14 @@ export interface DownloadItem {
 export interface Deck {
   id: string
   name: string
+  type: DeckType
+  cardCount: number
   description: string
   subjectId?: string
   tags: string[]
   noteId?: string
   nativeLang: string
   targetLang: string
-  type: DeckType
-  reminderTime?: string
   createdAt: number
   updatedAt: number
 }
@@ -74,20 +74,21 @@ export interface Card {
   deckId: string
   front: string
   back: string
+  example?: string
+  note?: string
+  imageBlob?: string
+  reviews: number
+  nextReviewDate: number
   translation: string
   definition: string
-  example: string
   exampleTranslation: string
   explanation: string
-  note: string
   imageDataUrl?: string
   status: CardStatus
   ease: number
   interval: number
   repetitions: number
-  reviews: number
   dueAt: number
-  nextReviewDate: number
   lapses: number
   mistakes: number
   createdAt: number
@@ -171,7 +172,7 @@ export interface Link {
 }
 
 export type NotifySound = 'default' | 'chime' | 'bell'
-export type DeckType = 'vocabulary' | 'phrases' | 'synonyms' | 'definitions' | 'antonyms'
+export type DeckType = 'vocab' | 'phrases' | 'synonyms' | 'definitions' | 'antonyms'
 export type DailyGoal = '5' | '15' | '30' | '60'
 export type GoalKind = 'study' | 'languages' | 'work' | 'self' | 'other'
 
@@ -228,7 +229,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   dailyGoal: '15',
 }
 
-export const DECK_TYPES: DeckType[] = ['vocabulary', 'phrases', 'synonyms', 'definitions', 'antonyms']
+export const DECK_TYPES: DeckType[] = ['vocab', 'phrases', 'synonyms', 'definitions', 'antonyms']
 
 export const NATIVE_LANG_OPTS = [
   { code: 'ar', ar: 'العربية', en: 'Arabic' },
@@ -271,7 +272,7 @@ export const DAILY_OPTS: { id: DailyGoal; ar: string; en: string }[] = [
 ]
 
 export function isRichDeck(type?: DeckType) {
-  return type === 'vocabulary' || type === 'phrases' || !type
+  return type === 'vocab' || type === 'phrases' || !type
 }
 
 export const NOTE_COLORS = ['#FFF8E7', '#E8F4F2', '#FDECE8', '#EEF1FB', '#F4F0E6']

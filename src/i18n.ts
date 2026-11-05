@@ -342,6 +342,12 @@ const ar = {
   noDueCards: 'لا توجد بطاقات للمراجعة الآن',
   playDeck: 'العب',
   dueNow: 'للمراجعة',
+  forgot: 'نسيت',
+  recalled: 'تم الاسترجاع',
+  flipCard: 'اقلب البطاقة',
+  frontFace: 'الوجه الأمامي',
+  backFace: 'الوجه الخلفي',
+  addCardBtn: 'إضافة بطاقة',
 }
 
 const en: Record<keyof typeof ar, string> = {
@@ -686,6 +692,12 @@ const en: Record<keyof typeof ar, string> = {
   noDueCards: 'No cards to review right now',
   playDeck: 'Play',
   dueNow: 'Due',
+  forgot: 'Forgot',
+  recalled: 'Recalled',
+  flipCard: 'Flip card',
+  frontFace: 'Front',
+  backFace: 'Back',
+  addCardBtn: 'Add card',
 }
 
 export type I18nKey = keyof typeof ar

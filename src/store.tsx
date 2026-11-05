@@ -175,15 +175,20 @@ async function seedIfEmpty(): Promise<void> {
   }
 }
 
+function normalizeDeckType(type?: string): Deck['type'] {
+  if (type === 'phrases' || type === 'synonyms' || type === 'definitions' || type === 'antonyms' || type === 'vocab') return type
+  return 'vocab'
+}
+
 function normalizeDeck(raw: Deck): Deck {
   return {
     ...raw,
     nativeLang: raw.nativeLang || 'ar',
     targetLang: raw.targetLang || 'en',
-    type: raw.type || 'vocabulary',
+    type: normalizeDeckType(raw.type),
+    cardCount: typeof raw.cardCount === 'number' ? raw.cardCount : 0,
     description: raw.description ?? '',
     tags: raw.tags ?? [],
-    reminderTime: raw.reminderTime || undefined,
   }
 }
 
@@ -224,6 +229,7 @@ function normalizeNote(raw: Note): Note {
 function normalizeCard(raw: Card): Card {
   const mistakes = typeof raw.mistakes === 'number' ? raw.mistakes : raw.lapses || 0
   const due = raw.nextReviewDate || raw.dueAt || raw.createdAt || now()
+  const image = raw.imageBlob || raw.imageDataUrl
   return {
     ...raw,
     front: raw.front ?? '',
@@ -234,6 +240,8 @@ function normalizeCard(raw: Card): Card {
     exampleTranslation: raw.exampleTranslation ?? '',
     explanation: raw.explanation ?? '',
     note: raw.note ?? '',
+    imageBlob: image,
+    imageDataUrl: image,
     status: raw.status ?? 'new',
     ease: raw.ease || 2.5,
     interval: raw.interval || 0,
@@ -355,14 +363,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         db.getAll<Link>(STORES.links),
         db.getAll<DownloadItem>(STORES.downloads),
       ])
-    const decksN = decks.map(normalizeDeck)
     const cardsN = cards.map(normalizeCard)
+    const decksN = decks.map((d) => {
+      const n = normalizeDeck(d)
+      return { ...n, cardCount: cardsN.filter((c) => c.deckId === d.id).length }
+    })
     const tasksN = tasks.map(normalizeTask)
     const notesN = notes.map(normalizeNote)
-    const deckWrites = decksN.filter((_, idx) => !decks[idx]?.nativeLang || !decks[idx]?.targetLang || !decks[idx]?.type)
+    const deckWrites = decksN.filter((_, idx) => {
+      const raw = decks[idx]
+      return !raw || !raw.nativeLang || !raw.targetLang || !raw.type || (raw as { type?: string }).type === 'vocabulary' || raw.cardCount !== decksN[idx]?.cardCount
+    })
     const cardWrites = cardsN.filter((_, idx) => {
       const raw = cards[idx]
-      return !raw || typeof raw.mistakes !== 'number' || raw.exampleTranslation === undefined || raw.note === undefined || raw.nextReviewDate === undefined
+      return !raw || typeof raw.mistakes !== 'number' || raw.exampleTranslation === undefined || raw.note === undefined || raw.nextReviewDate === undefined || (raw.imageDataUrl && !raw.imageBlob)
     })
     const taskWrites = tasksN.filter((_, idx) => {
       const raw = tasks[idx]
@@ -620,14 +634,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const item: Deck = {
       id: uid(),
       name,
+      type: normalizeDeckType(extra?.type),
+      cardCount: extra?.cardCount ?? 0,
       description: extra?.description ?? '',
       subjectId: extra?.subjectId,
       tags: extra?.tags ?? [],
       noteId: extra?.noteId,
       nativeLang: extra?.nativeLang || 'ar',
       targetLang: extra?.targetLang || 'en',
-      type: extra?.type || 'vocabulary',
-      reminderTime: extra?.reminderTime,
       createdAt: t,
       updatedAt: t,
     }
@@ -655,8 +669,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }))
   }, [state.cards])
 
+  const bumpDeckCount = useCallback(async (deckId: string, delta: number) => {
+    const cur = state.decks.find((x) => x.id === deckId)
+    if (!cur) return
+    const next = { ...cur, cardCount: Math.max(0, (cur.cardCount || 0) + delta), updatedAt: now() }
+    await db.putOne(STORES.decks, next)
+    patchList('decks', deckId, next)
+  }, [state.decks, patchList])
+
   const addCard = useCallback(async (deckId: string, data: Partial<Card> & { front: string; back: string }) => {
     const t = now()
+    const image = data.imageBlob || data.imageDataUrl
     const item: Card = {
       id: uid(),
       deckId,
@@ -668,7 +691,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       exampleTranslation: data.exampleTranslation ?? '',
       explanation: data.explanation ?? '',
       note: data.note ?? '',
-      imageDataUrl: data.imageDataUrl,
+      imageBlob: image,
+      imageDataUrl: image,
       status: 'new',
       ease: 2.5,
       interval: 0,
@@ -683,8 +707,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
     await db.putOne(STORES.cards, item)
     setState((s) => ({ ...s, cards: [...s.cards, item] }))
+    await bumpDeckCount(deckId, 1)
     return item
-  }, [])
+  }, [bumpDeckCount])
 
   const updateCard = useCallback(async (id: string, p: Partial<Card>) => {
     const cur = state.cards.find((x) => x.id === id)
@@ -695,9 +720,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [state.cards, patchList])
 
   const deleteCard = useCallback(async (id: string) => {
+    const cur = state.cards.find((x) => x.id === id)
     await db.deleteById(STORES.cards, id)
     setState((s) => ({ ...s, cards: s.cards.filter((c) => c.id !== id) }))
-  }, [])
+    if (cur) await bumpDeckCount(cur.deckId, -1)
+  }, [state.cards, bumpDeckCount])
 
   const duplicateCard = useCallback(async (id: string) => {
     const cur = state.cards.find((x) => x.id === id)
@@ -711,7 +738,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       exampleTranslation: cur.exampleTranslation,
       explanation: cur.explanation,
       note: cur.note,
-      imageDataUrl: cur.imageDataUrl,
+      imageBlob: cur.imageBlob || cur.imageDataUrl,
+      imageDataUrl: cur.imageBlob || cur.imageDataUrl,
     })
   }, [state.cards, addCard])
 

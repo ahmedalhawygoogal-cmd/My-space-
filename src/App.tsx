@@ -19,7 +19,7 @@ import SearchPage from './pages/Search'
 import SettingsPage from './pages/Settings'
 import DownloadsPage from './pages/Downloads'
 import OnboardingPage from './pages/Onboarding'
-import { getNative, parseReminderTime } from './native'
+import { getNative } from './native'
 import { t } from './i18n'
 
 function NativeBack() {
@@ -58,22 +58,20 @@ function CardReminders() {
     if (!ready) return
     void getNative().then((native) => {
       if (!native) return
-      const items = decks.flatMap((d, i) => {
-        const time = parseReminderTime(d.reminderTime)
-        if (!time) return []
-        const due = cards.filter((c) => c.deckId === d.id && (c.nextReviewDate || c.dueAt) <= Date.now()).length
-        if (due <= 0) return []
-        return [
-          {
-            id: 2000 + i,
-            title: t(settings.language, 'reminderTitle'),
-            body: t(settings.language, 'reminderBody', { n: due, name: d.name }),
-            hour: time.hour,
-            minute: time.minute,
-            path: `/cards/${d.id}`,
-          },
-        ]
-      })
+      const due = cards.filter((c) => (c.nextReviewDate || c.dueAt) <= Date.now()).length
+      const items =
+        due > 0
+          ? [
+              {
+                id: 2000,
+                title: t(settings.language, 'reminderTitle'),
+                body: t(settings.language, 'reminderBody', { n: due, name: decks[0]?.name || '' }),
+                hour: 9,
+                minute: 0,
+                path: '/cards',
+              },
+            ]
+          : []
       void native.syncDeckReminders({
         enabled: !!settings.cardReminders,
         sound: settings.notifySound ?? 'default',
