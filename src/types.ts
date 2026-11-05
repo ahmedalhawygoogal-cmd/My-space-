@@ -207,7 +207,7 @@ export interface SearchHit {
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  language: 'ar',
+  language: 'en',
   theme: 'system',
   userName: '',
   speakRepeats: 1,
@@ -217,7 +217,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   fontSize: 'medium',
   accentColor: '#0F6E6B',
   onboarded: false,
-  nativeLang: 'ar',
+  nativeLang: 'en',
   nativeLangOther: '',
   targetLangs: ['en'],
   targetLangOther: '',
