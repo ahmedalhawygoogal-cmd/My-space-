@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Download, Languages } from 'lucide-react'
+import { ArrowRight, Download, Languages } from 'lucide-react'
 import { useStore } from '../store'
 import { Confirm, Segment, Toast, useT } from '../ui'
 import { downloadBlob, formatDateTime } from '../utils'
@@ -210,15 +210,13 @@ export default function SettingsPage() {
       {prefs ? (
         <div className="sheet-backdrop" onClick={() => setPrefs(false)}>
           <div className="sheet prefs-sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="spread">
-              <button className="chip" type="button" onClick={() => setPrefs(false)}>
-                {tr('back')}
+            <div className="prefs-head">
+              <h3 className="page-title">{tr('managePrefs')}</h3>
+              <button className="icon-btn prefs-head-back" type="button" aria-label={tr('back')} onClick={() => setPrefs(false)}>
+                <ArrowRight size={20} />
               </button>
             </div>
-            <h3 className="page-title" style={{ marginTop: 8 }}>
-              {tr('managePrefs')}
-            </h3>
-            <PrefsForm onSaved={() => setPrefs(false)} />
+            <PrefsForm hideOther onSaved={() => setPrefs(false)} />
           </div>
         </div>
       ) : null}

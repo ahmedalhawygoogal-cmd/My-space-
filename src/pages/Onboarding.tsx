@@ -43,19 +43,26 @@ function Chips({
   active,
   onPick,
   lang,
+  hideOther,
+  rowClass,
+  chipClass,
 }: {
   items: ({ id: string } & Labeled)[]
   active: (id: string) => boolean
   onPick: (id: string) => void
   lang: Lang
+  hideOther?: boolean
+  rowClass?: string
+  chipClass?: string
 }) {
+  const rows = hideOther ? items.filter((o) => o.id !== 'other') : items
   return (
-    <div className="chip-row wrap">
-      {items.map((o) => (
+    <div className={rowClass ?? 'chip-row wrap'}>
+      {rows.map((o) => (
         <button
           key={o.id}
           type="button"
-          className={`choice-chip ${active(o.id) ? 'active' : ''}`}
+          className={`choice-chip ${chipClass ?? ''} ${active(o.id) ? 'active' : ''}`.trim()}
           onClick={() => onPick(o.id)}
         >
           {labeled(lang, o)}
@@ -65,24 +72,35 @@ function Chips({
   )
 }
 
-export function PrefsForm({ onSaved, saveLabel }: { onSaved?: () => void; saveLabel?: string }) {
+export function PrefsForm({
+  onSaved,
+  saveLabel,
+  hideOther,
+}: {
+  onSaved?: () => void
+  saveLabel?: string
+  hideOther?: boolean
+}) {
   const tr = useT()
   const { settings, setSettings, lang } = useStore()
   const [draft, setDraft] = useState<Draft>(() => fromSettings(settings))
   const [toast, setToast] = useState<string | null>(null)
+  const chipRow = hideOther ? 'flex flex-wrap gap-3' : 'chip-row wrap'
+  const chipShape = hideOther ? 'px-4 py-2.5 rounded-xl text-sm font-medium' : ''
 
   const valid = useMemo(() => {
     if (!draft.nativeLang) return false
-    if (draft.nativeLang === 'other' && !draft.nativeLangOther.trim()) return false
+    if (!hideOther && draft.nativeLang === 'other' && !draft.nativeLangOther.trim()) return false
     if (!draft.targetLangs.length) return false
-    if (draft.targetLangs.includes('other') && !draft.targetLangOther.trim()) return false
-    if (draft.goal === 'other' && !draft.goalOther.trim()) return false
-    if (draft.fields.includes('other') && !draft.fieldOther.trim()) return false
+    if (!hideOther && draft.targetLangs.includes('other') && !draft.targetLangOther.trim()) return false
+    if (!hideOther && draft.goal === 'other' && !draft.goalOther.trim()) return false
+    if (!hideOther && draft.fields.includes('other') && !draft.fieldOther.trim()) return false
     return true
-  }, [draft])
+  }, [draft, hideOther])
 
   return (
-    <div className="stack">
+    <div className={hideOther ? 'space-y-8' : 'stack'}>
+      <section>
       <label className="label">{tr('nativeLangQ')}</label>
       <p className="muted" style={{ margin: 0, fontSize: 13 }}>
         {tr('pickOne')}
@@ -95,8 +113,11 @@ export function PrefsForm({ onSaved, saveLabel }: { onSaved?: () => void; saveLa
           void setSettings({ language: uiLangFromNative(id), nativeLang: id })
         }}
         lang={lang}
+        hideOther={hideOther}
+        rowClass={chipRow}
+        chipClass={chipShape}
       />
-      {draft.nativeLang === 'other' ? (
+      {!hideOther && draft.nativeLang === 'other' ? (
         <input
           className="field"
           value={draft.nativeLangOther}
@@ -104,7 +125,9 @@ export function PrefsForm({ onSaved, saveLabel }: { onSaved?: () => void; saveLa
           onChange={(e) => setDraft({ ...draft, nativeLangOther: e.target.value })}
         />
       ) : null}
+      </section>
 
+      <section>
       <label className="label">{tr('targetLangsQ')}</label>
       <p className="muted" style={{ margin: 0, fontSize: 13 }}>
         {tr('pickSome')}
@@ -114,8 +137,11 @@ export function PrefsForm({ onSaved, saveLabel }: { onSaved?: () => void; saveLa
         active={(id) => draft.targetLangs.includes(id)}
         onPick={(id) => setDraft({ ...draft, targetLangs: toggle(draft.targetLangs, id) })}
         lang={lang}
+        hideOther={hideOther}
+        rowClass={chipRow}
+        chipClass={chipShape}
       />
-      {draft.targetLangs.includes('other') ? (
+      {!hideOther && draft.targetLangs.includes('other') ? (
         <input
           className="field"
           value={draft.targetLangOther}
@@ -123,7 +149,9 @@ export function PrefsForm({ onSaved, saveLabel }: { onSaved?: () => void; saveLa
           onChange={(e) => setDraft({ ...draft, targetLangOther: e.target.value })}
         />
       ) : null}
+      </section>
 
+      <section>
       <label className="label">{tr('goalQ')}</label>
       <p className="muted" style={{ margin: 0, fontSize: 13 }}>
         {tr('pickOne')}
@@ -133,8 +161,11 @@ export function PrefsForm({ onSaved, saveLabel }: { onSaved?: () => void; saveLa
         active={(id) => draft.goal === id}
         onPick={(id) => setDraft({ ...draft, goal: id as GoalKind })}
         lang={lang}
+        hideOther={hideOther}
+        rowClass={chipRow}
+        chipClass={chipShape}
       />
-      {draft.goal === 'other' ? (
+      {!hideOther && draft.goal === 'other' ? (
         <input
           className="field"
           value={draft.goalOther}
@@ -142,7 +173,9 @@ export function PrefsForm({ onSaved, saveLabel }: { onSaved?: () => void; saveLa
           onChange={(e) => setDraft({ ...draft, goalOther: e.target.value })}
         />
       ) : null}
+      </section>
 
+      <section>
       <label className="label">{tr('fieldsQ')}</label>
       <p className="muted" style={{ margin: 0, fontSize: 13 }}>
         {tr('pickSome')}
@@ -152,8 +185,11 @@ export function PrefsForm({ onSaved, saveLabel }: { onSaved?: () => void; saveLa
         active={(id) => draft.fields.includes(id)}
         onPick={(id) => setDraft({ ...draft, fields: toggle(draft.fields, id) })}
         lang={lang}
+        hideOther={hideOther}
+        rowClass={chipRow}
+        chipClass={chipShape}
       />
-      {draft.fields.includes('other') ? (
+      {!hideOther && draft.fields.includes('other') ? (
         <input
           className="field"
           value={draft.fieldOther}
@@ -161,14 +197,20 @@ export function PrefsForm({ onSaved, saveLabel }: { onSaved?: () => void; saveLa
           onChange={(e) => setDraft({ ...draft, fieldOther: e.target.value })}
         />
       ) : null}
+      </section>
 
+      <section>
       <label className="label">{tr('dailyGoalQ')}</label>
       <Chips
         items={DAILY_OPTS}
         active={(id) => draft.dailyGoal === id}
         onPick={(id) => setDraft({ ...draft, dailyGoal: id as DailyGoal })}
         lang={lang}
+        hideOther={hideOther}
+        rowClass={chipRow}
+        chipClass={chipShape}
       />
+      </section>
 
       <button
         className="btn block"
