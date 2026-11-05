@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowRight, Ear, Layers, LayoutGrid, Pencil, PenLine, Play, Plus, Search, Trash2, Volume2 } from 'lucide-react'
+import { ArrowRight, Ear, Layers, LayoutGrid, Pencil, PenLine, Play, Plus, Trash2, Volume2 } from 'lucide-react'
 import { useStore } from '../store'
 import { Confirm, Empty, Sheet, Toast, useT } from '../ui'
 import type { ReactNode } from 'react'
@@ -72,14 +72,14 @@ function BackBtn({ onClick, label }: { onClick: () => void; label: string }) {
 
 function Screen({ title, onBack, backLabel, children }: { title: string; onBack: () => void; backLabel: string; children: ReactNode }) {
   return (
-    <div className="fc-screen" dir="rtl">
-      <div className="fc-screen-head">
+    <div className="stack">
+      <div className="spread">
         <BackBtn onClick={onBack} label={backLabel} />
-        <h1 className="page-title" style={{ margin: 0, fontSize: '1.15rem' }}>
+        <h1 className="page-title" style={{ margin: 0, fontSize: '1.2rem' }}>
           {title}
         </h1>
       </div>
-      <div className="fc-screen-body stack">{children}</div>
+      {children}
     </div>
   )
 }
@@ -153,13 +153,13 @@ function PlayRing({ due, total, onClick, label }: { due: number; total: number; 
   return (
     <button className="fc-play" type="button" onClick={onClick} aria-label={label}>
       <svg width="52" height="52" viewBox="0 0 52 52">
-        <circle cx="26" cy="26" r={r} fill="none" stroke="rgba(20,184,166,0.22)" strokeWidth="4" />
+        <circle cx="26" cy="26" r={r} fill="none" stroke="var(--bg-muted)" strokeWidth="4" />
         <circle
           cx="26"
           cy="26"
           r={r}
           fill="none"
-          stroke="#14B8A6"
+          stroke="var(--brand)"
           strokeWidth="4"
           strokeLinecap="round"
           strokeDasharray={`${(v / 100) * c} ${c}`}
@@ -205,72 +205,22 @@ function GamesSheet({ deck, open, onClose }: { deck: Deck | null; open: boolean;
   )
 }
 
-function ManageLangs({ onBack }: { onBack: () => void }) {
-  const tr = useT()
-  const { settings, setSettings, lang } = useStore()
-  const [native, setNative] = useState(settings.nativeLang || 'ar')
-  const [target, setTarget] = useState(settings.targetLangs?.[0] || 'en')
-  return (
-    <Screen title={tr('managePrefs')} onBack={onBack} backLabel={tr('back')}>
-      <label className="label">{tr('nativeLang')}</label>
-      <select className="field" value={native} onChange={(e) => setNative(e.target.value)}>
-        {LEARN_LANGS.map((l) => (
-          <option key={l.code} value={l.code}>
-            {langLabel(l.code, lang)}
-          </option>
-        ))}
-      </select>
-      <label className="label">{tr('targetLang')}</label>
-      <select className="field" value={target} onChange={(e) => setTarget(e.target.value)}>
-        {LEARN_LANGS.map((l) => (
-          <option key={l.code} value={l.code}>
-            {langLabel(l.code, lang)}
-          </option>
-        ))}
-      </select>
-      <button
-        className="btn block"
-        type="button"
-        onClick={async () => {
-          await setSettings({ nativeLang: native, targetLangs: [target] })
-          onBack()
-        }}
-      >
-        {tr('save')}
-      </button>
-    </Screen>
-  )
-}
-
 export default function FlashcardsPage() {
   const tr = useT()
   const nav = useNavigate()
   const { decks, cards, addDeck, settings } = useStore()
   const [open, setOpen] = useState(false)
   const [games, setGames] = useState<Deck | null>(null)
-  const [langs, setLangs] = useState(false)
   const [q, setQ] = useState('')
   const [name, setName] = useState('')
   const [type, setType] = useState<DeckType>('vocab')
 
   const shown = decks.filter((d) => !q.trim() || d.name.toLowerCase().includes(q.trim().toLowerCase()))
 
-  if (langs) return <ManageLangs onBack={() => setLangs(false)} />
-
   return (
-    <div className="stack" dir="rtl">
-      <div className="spread">
-        <h1 className="page-title" style={{ margin: 0 }}>
-          {tr('flashcards')}
-        </h1>
-        <button className="chip" type="button" onClick={() => setLangs(true)}>
-          {tr('managePrefs')}
-        </button>
-      </div>
-      <div className="row">
-        <Search size={16} />
-        <input className="field" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('search')} />
-      </div>
+    <div className="stack">
+      <h1 className="page-title">{tr('flashcards')}</h1>
+      <input className="field" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('searchPlaceholder')} />
       {shown.length === 0 ? (
         <Empty
           icon={<Layers size={36} />}
@@ -287,10 +237,10 @@ export default function FlashcardsPage() {
           const dc = cards.filter((c) => c.deckId === d.id)
           const due = dc.filter((c) => (c.nextReviewDate || c.dueAt) <= Date.now()).length
           return (
-            <div key={d.id} className="fc-deck">
+            <div key={d.id} className="card fc-deck">
               <button className="fc-deck-body" type="button" onClick={() => nav(`/cards/${d.id}`)}>
                 <div>
-                  <div className="ellipsis">{d.name}</div>
+                  <div className="ellipsis" style={{ fontWeight: 700 }}>{d.name}</div>
                   <div className="meta" style={{ marginTop: 6 }}>
                     <span className="fc-badge">{typeLabel(d.type || 'vocab', tr)}</span>
                     {dc.length} {tr('cards')}
@@ -397,7 +347,7 @@ export function DeckPage() {
   }
 
   return (
-    <div className="stack" dir="rtl">
+    <div className="stack">
       <div className="spread">
         <BackBtn onClick={() => nav('/cards')} label={tr('back')} />
         <h1 className="page-title" style={{ margin: 0, fontSize: '1.2rem' }}>
@@ -490,7 +440,7 @@ function GameShell({ title, hint, children }: { title: string; hint: string; chi
   const nav = useNavigate()
   const tr = useT()
   return (
-    <div className="stack" dir="rtl">
+    <div className="stack">
       <div className="spread">
         <BackBtn onClick={() => nav(-1)} label={tr('back')} />
         <h1 className="page-title" style={{ margin: 0, fontSize: '1.15rem' }}>
@@ -872,7 +822,7 @@ export function StudyPage() {
   }
 
   return (
-    <div className="stack" dir="rtl">
+    <div className="stack">
       <div className="spread">
         <BackBtn onClick={() => nav(`/cards/${deckId}`)} label={tr('back')} />
         <h1 className="page-title" style={{ margin: 0, fontSize: '1.15rem' }}>

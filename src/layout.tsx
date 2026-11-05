@@ -15,10 +15,9 @@ export function Layout() {
     loc.pathname.includes('/record/live') ||
     loc.pathname === '/notes/new' ||
     loc.pathname.endsWith('/edit')
-  const cardsTheme = loc.pathname.startsWith('/cards')
 
   return (
-    <div className={`app-shell${cardsTheme ? ' fc-theme' : ''}`}>
+    <div className="app-shell">
       <header className="topbar">
         <div className="brand">
           <div className="brand-mark">M</div>

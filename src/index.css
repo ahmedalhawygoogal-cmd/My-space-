@@ -784,42 +784,10 @@ img { max-width: 100%; }
   box-shadow: 0 10px 28px rgba(15, 110, 107, 0.35);
 }
 
-.app-shell.fc-theme {
-  --bg: #0B0F19;
-  --bg-elev: #111827;
-  --bg-muted: #1a2233;
-  --ink: #ffffff;
-  --ink-soft: #94a3b8;
-  --line: rgba(20, 184, 166, 0.18);
-  --brand: #14B8A6;
-  --brand-ink: #0B0F19;
-  --brand-soft: rgba(20, 184, 166, 0.16);
-  --primary-color: #14B8A6;
-  --primary-ink: #0B0F19;
-  --accent: #06B6D4;
-  --accent-soft: rgba(6, 182, 212, 0.16);
-  background: #0B0F19;
-}
-.app-shell.fc-theme .topbar,
-.app-shell.fc-theme .main {
-  background: transparent;
-}
-.app-shell.fc-theme .bottom-nav {
-  background: color-mix(in srgb, #111827 88%, transparent);
-  border-color: rgba(20, 184, 166, 0.22);
-}
-.app-shell.fc-theme .nav-item.active { color: #14B8A6; }
-.app-shell.fc-theme .btn { background: #14B8A6; color: #0B0F19; }
-.app-shell.fc-theme .fab { background: #14B8A6; color: #0B0F19; }
-
 .fc-deck {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px;
-  background: #111827;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
 }
 .fc-deck-body {
   flex: 1;
@@ -837,7 +805,7 @@ img { max-width: 100%; }
   height: 52px;
   border: 0;
   background: transparent;
-  color: #14B8A6;
+  color: var(--brand);
   flex-shrink: 0;
 }
 .fc-play svg { display: block; }
@@ -855,8 +823,8 @@ img { max-width: 100%; }
   padding: 2px 8px;
   font-size: 0.7rem;
   font-weight: 700;
-  background: rgba(20, 184, 166, 0.16);
-  color: #14B8A6;
+  background: var(--brand-soft);
+  color: var(--brand);
   margin-inline-end: 6px;
 }
 .fc-actions {
@@ -870,46 +838,23 @@ img { max-width: 100%; }
   gap: 8px;
 }
 .fc-rate .forgot {
-  background: #ef4444;
+  background: var(--danger);
   color: #fff;
 }
 .fc-rate .recalled {
-  background: #10b981;
+  background: var(--ok);
   color: #fff;
-}
-.fc-screen {
-  position: fixed;
-  inset: 0;
-  z-index: 30;
-  background: #0B0F19;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-.fc-screen-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: calc(10px + var(--safe-t)) 16px 10px;
-  flex-shrink: 0;
-}
-.fc-screen-body {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  padding: 8px 16px calc(24px + var(--safe-b));
 }
 .fc-timer {
   height: 4px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-muted);
   border-radius: 99px;
   overflow: hidden;
 }
 .fc-timer > span {
   display: block;
   height: 100%;
-  background: #14B8A6;
+  background: var(--brand);
   transform-origin: right center;
   animation: fc-drain 5s linear forwards;
 }
