@@ -209,7 +209,7 @@ export default function SettingsPage() {
       </div>
       {prefs ? (
         <div className="sheet-backdrop" onClick={() => setPrefs(false)}>
-          <div className="sheet prefs-sheet onboard" onClick={(e) => e.stopPropagation()}>
+          <div className="sheet prefs-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="spread">
               <button className="chip" type="button" onClick={() => setPrefs(false)}>
                 {tr('back')}
