@@ -40,7 +40,7 @@ export default function HomePage() {
         <h1 className="hero-hi">{hi}</h1>
       </div>
 
-      <div className="card spread">
+      <div className="card spread home-progress">
         <div className="grow">
           <div className="muted" style={{ fontSize: 13 }}>
             {tr('progressToday')}
@@ -57,7 +57,7 @@ export default function HomePage() {
 
       <button className="card pressable spread" type="button" onClick={() => nav('/record/live')}>
         <div className="row">
-          <div className="brand-mark" style={{ width: 44, height: 44, borderRadius: 14 }}>
+          <div className="mod-icon rec" style={{ width: 44, height: 44, borderRadius: 14 }}>
             <Mic size={20} />
           </div>
           <div>
@@ -71,10 +71,10 @@ export default function HomePage() {
       </button>
 
       <div className="grid-2">
-        <Mod to="/record" icon={<Mic size={18} />} label={tr('recorder')} />
-        <Mod to="/cards" icon={<Layers size={18} />} label={tr('flashcards')} />
-        <Mod to="/tasks" icon={<CheckSquare size={18} />} label={tr('tasks')} />
-        <Mod to="/notes" icon={<BookOpen size={18} />} label={tr('notebook')} />
+        <Mod to="/record" icon={<Mic size={18} />} label={tr('recorder')} tone="rec" />
+        <Mod to="/cards" icon={<Layers size={18} />} label={tr('flashcards')} tone="cards" />
+        <Mod to="/tasks" icon={<CheckSquare size={18} />} label={tr('tasks')} tone="tasks" />
+        <Mod to="/notes" icon={<BookOpen size={18} />} label={tr('notebook')} tone="notes" />
       </div>
 
       <div className="stat-grid">
@@ -99,13 +99,11 @@ export default function HomePage() {
   )
 }
 
-function Mod({ to, icon, label }: { to: string; icon: ReactNode; label: string }) {
+function Mod({ to, icon, label, tone }: { to: string; icon: ReactNode; label: string; tone: 'rec' | 'cards' | 'tasks' | 'notes' }) {
   return (
     <Link className="card pressable" to={to} style={{ textDecoration: 'none', color: 'inherit' }}>
       <div className="row">
-        <div className="brand-mark" style={{ width: 36, height: 36, borderRadius: 12 }}>
-          {icon}
-        </div>
+        <div className={`mod-icon ${tone}`}>{icon}</div>
         <b>{label}</b>
       </div>
     </Link>

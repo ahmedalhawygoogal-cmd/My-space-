@@ -64,7 +64,7 @@ export function PrefsForm({ onSaved, saveLabel }: { onSaved?: () => void; saveLa
           <button
             key={o.code}
             type="button"
-            className={`chip ${draft.nativeLang === o.code ? 'active' : ''}`}
+            className={`choice-chip ${draft.nativeLang === o.code ? 'active' : ''}`}
             onClick={() => setDraft({ ...draft, nativeLang: o.code })}
           >
             {label(o.ar, o.en)}
@@ -89,7 +89,7 @@ export function PrefsForm({ onSaved, saveLabel }: { onSaved?: () => void; saveLa
           <button
             key={o.code}
             type="button"
-            className={`chip ${draft.targetLangs.includes(o.code) ? 'active' : ''}`}
+            className={`choice-chip ${draft.targetLangs.includes(o.code) ? 'active' : ''}`}
             onClick={() => setDraft({ ...draft, targetLangs: toggle(draft.targetLangs, o.code) })}
           >
             {label(o.ar, o.en)}
@@ -114,7 +114,7 @@ export function PrefsForm({ onSaved, saveLabel }: { onSaved?: () => void; saveLa
           <button
             key={o.id}
             type="button"
-            className={`chip ${draft.goal === o.id ? 'active' : ''}`}
+            className={`choice-chip ${draft.goal === o.id ? 'active' : ''}`}
             onClick={() => setDraft({ ...draft, goal: o.id as GoalKind })}
           >
             {label(o.ar, o.en)}
@@ -139,7 +139,7 @@ export function PrefsForm({ onSaved, saveLabel }: { onSaved?: () => void; saveLa
           <button
             key={o.id}
             type="button"
-            className={`chip ${draft.fields.includes(o.id) ? 'active' : ''}`}
+            className={`choice-chip ${draft.fields.includes(o.id) ? 'active' : ''}`}
             onClick={() => setDraft({ ...draft, fields: toggle(draft.fields, o.id) })}
           >
             {label(o.ar, o.en)}
@@ -161,7 +161,7 @@ export function PrefsForm({ onSaved, saveLabel }: { onSaved?: () => void; saveLa
           <button
             key={o.id}
             type="button"
-            className={`chip ${draft.dailyGoal === o.id ? 'active' : ''}`}
+            className={`choice-chip ${draft.dailyGoal === o.id ? 'active' : ''}`}
             onClick={() => setDraft({ ...draft, dailyGoal: o.id as DailyGoal })}
           >
             {label(o.ar, o.en)}
