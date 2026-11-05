@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Download, Languages } from 'lucide-react'
 import { useStore } from '../store'
-import { Confirm, Segment, Sheet, Toast, useT } from '../ui'
+import { Confirm, Segment, Toast, useT } from '../ui'
 import { downloadBlob, formatDateTime } from '../utils'
 import { exportSnapshot, type Snapshot } from '../db'
 import type { AppFont, AppFontSize, NotifySound, Theme } from '../types'
@@ -207,9 +207,21 @@ export default function SettingsPage() {
           {tr('version')} 1.0.0 · {tr('offline')}
         </div>
       </div>
-      <Sheet open={prefs} onClose={() => setPrefs(false)} title={tr('managePrefs')}>
-        <PrefsForm onSaved={() => setPrefs(false)} />
-      </Sheet>
+      {prefs ? (
+        <div className="sheet-backdrop" onClick={() => setPrefs(false)}>
+          <div className="sheet prefs-sheet onboard" onClick={(e) => e.stopPropagation()}>
+            <div className="spread">
+              <button className="chip" type="button" onClick={() => setPrefs(false)}>
+                {tr('back')}
+              </button>
+            </div>
+            <h3 className="page-title" style={{ marginTop: 8 }}>
+              {tr('managePrefs')}
+            </h3>
+            <PrefsForm onSaved={() => setPrefs(false)} />
+          </div>
+        </div>
+      ) : null}
       <Confirm
         open={confirm}
         title={tr('restoreConfirm')}
