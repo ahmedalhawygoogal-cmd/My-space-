@@ -1,4 +1,20 @@
-export type Lang = 'ar' | 'en'
+export type Lang = 'ar' | 'en' | 'fr' | 'de' | 'es'
+
+export const UI_LANGS: Lang[] = ['ar', 'en', 'fr', 'de', 'es']
+
+export function isUiLang(code?: string): code is Lang {
+  return code === 'ar' || code === 'en' || code === 'fr' || code === 'de' || code === 'es'
+}
+
+export type Labeled = { ar: string; en: string; fr?: string; de?: string; es?: string }
+
+export function labeled(lang: Lang, o: Labeled): string {
+  if (lang === 'ar') return o.ar
+  if (lang === 'fr') return o.fr || o.en
+  if (lang === 'de') return o.de || o.en
+  if (lang === 'es') return o.es || o.en
+  return o.en
+}
 export type Theme = 'light' | 'dark' | 'system'
 export type Priority = 'low' | 'medium' | 'high'
 export type Recurrence = 'none' | 'daily' | 'weekly'
@@ -232,43 +248,45 @@ export const DEFAULT_SETTINGS: AppSettings = {
 export const DECK_TYPES: DeckType[] = ['vocab', 'phrases', 'synonyms', 'definitions', 'antonyms']
 
 export const NATIVE_LANG_OPTS = [
-  { code: 'ar', ar: 'العربية', en: 'Arabic' },
-  { code: 'en', ar: 'English', en: 'English' },
-  { code: 'fr', ar: 'Français', en: 'Français' },
-  { code: 'other', ar: 'أخرى', en: 'Other' },
+  { code: 'ar', ar: 'العربية', en: 'Arabic', fr: 'Arabe', de: 'Arabisch', es: 'Árabe' },
+  { code: 'en', ar: 'English', en: 'English', fr: 'Anglais', de: 'Englisch', es: 'Inglés' },
+  { code: 'fr', ar: 'Français', en: 'French', fr: 'Français', de: 'Französisch', es: 'Francés' },
+  { code: 'de', ar: 'Deutsch', en: 'German', fr: 'Allemand', de: 'Deutsch', es: 'Alemán' },
+  { code: 'es', ar: 'Español', en: 'Spanish', fr: 'Espagnol', de: 'Spanisch', es: 'Español' },
+  { code: 'other', ar: 'أخرى', en: 'Other', fr: 'Autre', de: 'Andere', es: 'Otro' },
 ]
 
 export const TARGET_LANG_OPTS = [
-  { code: 'en', ar: 'English', en: 'English' },
-  { code: 'fr', ar: 'Français', en: 'Français' },
-  { code: 'es', ar: 'Español', en: 'Español' },
-  { code: 'de', ar: 'Deutsch', en: 'Deutsch' },
-  { code: 'other', ar: 'أخرى', en: 'Other' },
+  { code: 'en', ar: 'English', en: 'English', fr: 'Anglais', de: 'Englisch', es: 'Inglés' },
+  { code: 'fr', ar: 'Français', en: 'French', fr: 'Français', de: 'Französisch', es: 'Francés' },
+  { code: 'es', ar: 'Español', en: 'Spanish', fr: 'Espagnol', de: 'Spanisch', es: 'Español' },
+  { code: 'de', ar: 'Deutsch', en: 'German', fr: 'Allemand', de: 'Deutsch', es: 'Alemán' },
+  { code: 'other', ar: 'أخرى', en: 'Other', fr: 'Autre', de: 'Andere', es: 'Otro' },
 ]
 
-export const GOAL_OPTS: { id: GoalKind; ar: string; en: string }[] = [
-  { id: 'study', ar: 'مذاكرة', en: 'Study' },
-  { id: 'languages', ar: 'تعلم لغات', en: 'Learn languages' },
-  { id: 'work', ar: 'تنظيم شغل', en: 'Work organization' },
-  { id: 'self', ar: 'تطوير ذات', en: 'Self development' },
-  { id: 'other', ar: 'أخرى', en: 'Other' },
+export const GOAL_OPTS: ({ id: GoalKind } & Labeled)[] = [
+  { id: 'study', ar: 'مذاكرة', en: 'Study', fr: 'Études', de: 'Lernen', es: 'Estudio' },
+  { id: 'languages', ar: 'تعلم لغات', en: 'Learn languages', fr: 'Apprendre des langues', de: 'Sprachen lernen', es: 'Aprender idiomas' },
+  { id: 'work', ar: 'تنظيم شغل', en: 'Work organization', fr: 'Organisation du travail', de: 'Arbeitsorganisation', es: 'Organización del trabajo' },
+  { id: 'self', ar: 'تطوير ذات', en: 'Self development', fr: 'Développement personnel', de: 'Persönliche Entwicklung', es: 'Desarrollo personal' },
+  { id: 'other', ar: 'أخرى', en: 'Other', fr: 'Autre', de: 'Andere', es: 'Otro' },
 ]
 
-export const FIELD_OPTS = [
-  { id: 'languages', ar: 'لغات', en: 'Languages' },
-  { id: 'science', ar: 'علوم', en: 'Science' },
-  { id: 'coding', ar: 'برمجة', en: 'Coding' },
-  { id: 'business', ar: 'أعمال', en: 'Business' },
-  { id: 'medicine', ar: 'طب', en: 'Medicine' },
-  { id: 'arts', ar: 'فنون', en: 'Arts' },
-  { id: 'other', ar: 'أخرى', en: 'Other' },
+export const FIELD_OPTS: ({ id: string } & Labeled)[] = [
+  { id: 'languages', ar: 'لغات', en: 'Languages', fr: 'Langues', de: 'Sprachen', es: 'Idiomas' },
+  { id: 'science', ar: 'علوم', en: 'Science', fr: 'Sciences', de: 'Wissenschaft', es: 'Ciencia' },
+  { id: 'coding', ar: 'برمجة', en: 'Coding', fr: 'Programmation', de: 'Programmieren', es: 'Programación' },
+  { id: 'business', ar: 'أعمال', en: 'Business', fr: 'Affaires', de: 'Wirtschaft', es: 'Negocios' },
+  { id: 'medicine', ar: 'طب', en: 'Medicine', fr: 'Médecine', de: 'Medizin', es: 'Medicina' },
+  { id: 'arts', ar: 'فنون', en: 'Arts', fr: 'Arts', de: 'Kunst', es: 'Artes' },
+  { id: 'other', ar: 'أخرى', en: 'Other', fr: 'Autre', de: 'Andere', es: 'Otro' },
 ]
 
-export const DAILY_OPTS: { id: DailyGoal; ar: string; en: string }[] = [
-  { id: '5', ar: '5 دقائق', en: '5 mins' },
-  { id: '15', ar: '15 دقيقة', en: '15 mins' },
-  { id: '30', ar: '30 دقيقة', en: '30 mins' },
-  { id: '60', ar: '60+ دقيقة', en: '60+ mins' },
+export const DAILY_OPTS: ({ id: DailyGoal } & Labeled)[] = [
+  { id: '5', ar: '5 دقائق', en: '5 mins', fr: '5 min', de: '5 Min.', es: '5 min' },
+  { id: '15', ar: '15 دقيقة', en: '15 mins', fr: '15 min', de: '15 Min.', es: '15 min' },
+  { id: '30', ar: '30 دقيقة', en: '30 mins', fr: '30 min', de: '30 Min.', es: '30 min' },
+  { id: '60', ar: '60+ دقيقة', en: '60+ mins', fr: '60+ min', de: '60+ Min.', es: '60+ min' },
 ]
 
 export function isRichDeck(type?: DeckType) {
@@ -283,11 +301,15 @@ export const APP_FONTS: { id: AppFont; label: string; stack: string }[] = [
   { id: 'almarai', label: 'Almarai', stack: "'Almarai', 'IBM Plex Sans Arabic', 'Inter', sans-serif" },
 ]
 
-export const NOTIFY_SOUNDS: { id: NotifySound; ar: string; en: string }[] = [
-  { id: 'default', ar: 'الافتراضية', en: 'Default' },
-  { id: 'chime', ar: 'رنين خفيف', en: 'Chime' },
-  { id: 'bell', ar: 'جرس', en: 'Bell' },
+export const NOTIFY_SOUNDS: ({ id: NotifySound } & Labeled)[] = [
+  { id: 'default', ar: 'الافتراضية', en: 'Default', fr: 'Par défaut', de: 'Standard', es: 'Predeterminado' },
+  { id: 'chime', ar: 'رنين خفيف', en: 'Chime', fr: 'Carillon', de: 'Glockenspiel', es: 'Campanilla' },
+  { id: 'bell', ar: 'جرس', en: 'Bell', fr: 'Cloche', de: 'Glocke', es: 'Campana' },
 ]
+
+export function uiLangFromNative(code: string): Lang {
+  return isUiLang(code) ? code : 'en'
+}
 
 export const LEARN_LANGS: { code: string; ar: string; en: string }[] = [
   { code: 'ar', ar: 'العربية', en: 'Arabic' },

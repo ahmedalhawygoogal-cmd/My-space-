@@ -102,7 +102,7 @@ function applyTheme(theme: Theme) {
 
 function applyLang(lang: Lang) {
   document.documentElement.lang = lang
-  document.documentElement.dir = 'rtl'
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
 }
 
 const APPEAR_KEY = 'myspace-appear'

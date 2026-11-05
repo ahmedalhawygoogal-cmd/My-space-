@@ -2,8 +2,8 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { Toast, useT } from '../ui'
-import type { AppSettings, DailyGoal, GoalKind, Lang } from '../types'
-import { DAILY_OPTS, FIELD_OPTS, GOAL_OPTS, NATIVE_LANG_OPTS, TARGET_LANG_OPTS } from '../types'
+import type { AppSettings, DailyGoal, GoalKind, Labeled, Lang } from '../types'
+import { DAILY_OPTS, FIELD_OPTS, GOAL_OPTS, NATIVE_LANG_OPTS, TARGET_LANG_OPTS, labeled, uiLangFromNative } from '../types'
 
 type Draft = Pick<
   AppSettings,
@@ -19,10 +19,6 @@ type Draft = Pick<
 >
 
 const STEPS = 4
-
-function uiLangFromNative(code: string): Lang {
-  return code === 'ar' ? 'ar' : 'en'
-}
 
 function fromSettings(s: AppSettings): Draft {
   return {
@@ -48,7 +44,7 @@ function Chips({
   onPick,
   lang,
 }: {
-  items: { id: string; ar: string; en: string }[]
+  items: ({ id: string } & Labeled)[]
   active: (id: string) => boolean
   onPick: (id: string) => void
   lang: Lang
@@ -62,7 +58,7 @@ function Chips({
           className={`choice-chip ${active(o.id) ? 'active' : ''}`}
           onClick={() => onPick(o.id)}
         >
-          {lang === 'ar' ? o.ar : o.en}
+          {labeled(lang, o)}
         </button>
       ))}
     </div>
@@ -92,7 +88,7 @@ export function PrefsForm({ onSaved, saveLabel }: { onSaved?: () => void; saveLa
         {tr('pickOne')}
       </p>
       <Chips
-        items={NATIVE_LANG_OPTS.map((o) => ({ id: o.code, ar: o.ar, en: o.en }))}
+        items={NATIVE_LANG_OPTS.map((o) => ({ id: o.code, ar: o.ar, en: o.en, fr: o.fr, de: o.de, es: o.es }))}
         active={(id) => draft.nativeLang === id}
         onPick={(id) => {
           setDraft({ ...draft, nativeLang: id })
@@ -114,7 +110,7 @@ export function PrefsForm({ onSaved, saveLabel }: { onSaved?: () => void; saveLa
         {tr('pickSome')}
       </p>
       <Chips
-        items={TARGET_LANG_OPTS.map((o) => ({ id: o.code, ar: o.ar, en: o.en }))}
+        items={TARGET_LANG_OPTS.map((o) => ({ id: o.code, ar: o.ar, en: o.en, fr: o.fr, de: o.de, es: o.es }))}
         active={(id) => draft.targetLangs.includes(id)}
         onPick={(id) => setDraft({ ...draft, targetLangs: toggle(draft.targetLangs, id) })}
         lang={lang}
@@ -133,7 +129,7 @@ export function PrefsForm({ onSaved, saveLabel }: { onSaved?: () => void; saveLa
         {tr('pickOne')}
       </p>
       <Chips
-        items={GOAL_OPTS.map((o) => ({ id: o.id, ar: o.ar, en: o.en }))}
+        items={GOAL_OPTS}
         active={(id) => draft.goal === id}
         onPick={(id) => setDraft({ ...draft, goal: id as GoalKind })}
         lang={lang}
@@ -168,7 +164,7 @@ export function PrefsForm({ onSaved, saveLabel }: { onSaved?: () => void; saveLa
 
       <label className="label">{tr('dailyGoalQ')}</label>
       <Chips
-        items={DAILY_OPTS.map((o) => ({ id: o.id, ar: o.ar, en: o.en }))}
+        items={DAILY_OPTS}
         active={(id) => draft.dailyGoal === id}
         onPick={(id) => setDraft({ ...draft, dailyGoal: id as DailyGoal })}
         lang={lang}
@@ -265,7 +261,7 @@ export default function OnboardingPage() {
               </h1>
               <p className="muted">{tr('pickOne')}</p>
               <Chips
-                items={NATIVE_LANG_OPTS.map((o) => ({ id: o.code, ar: o.ar, en: o.en }))}
+                items={NATIVE_LANG_OPTS.map((o) => ({ id: o.code, ar: o.ar, en: o.en, fr: o.fr, de: o.de, es: o.es }))}
                 active={(id) => draft.nativeLang === id}
                 onPick={(id) => {
                   setDraft({ ...draft, nativeLang: id })
@@ -288,7 +284,7 @@ export default function OnboardingPage() {
                 {tr('pickSome')}
               </p>
               <Chips
-                items={TARGET_LANG_OPTS.map((o) => ({ id: o.code, ar: o.ar, en: o.en }))}
+                items={TARGET_LANG_OPTS.map((o) => ({ id: o.code, ar: o.ar, en: o.en, fr: o.fr, de: o.de, es: o.es }))}
                 active={(id) => draft.targetLangs.includes(id)}
                 onPick={(id) => setDraft({ ...draft, targetLangs: toggle(draft.targetLangs, id) })}
                 lang={lang}
@@ -310,7 +306,7 @@ export default function OnboardingPage() {
               </h1>
               <p className="muted">{tr('pickOne')}</p>
               <Chips
-                items={GOAL_OPTS.map((o) => ({ id: o.id, ar: o.ar, en: o.en }))}
+                items={GOAL_OPTS}
                 active={(id) => draft.goal === id}
                 onPick={(id) => setDraft({ ...draft, goal: id as GoalKind })}
                 lang={lang}
@@ -354,7 +350,7 @@ export default function OnboardingPage() {
               </h1>
               <p className="muted">{tr('pickOne')}</p>
               <Chips
-                items={DAILY_OPTS.map((o) => ({ id: o.id, ar: o.ar, en: o.en }))}
+                items={DAILY_OPTS}
                 active={(id) => draft.dailyGoal === id}
                 onPick={(id) => setDraft({ ...draft, dailyGoal: id as DailyGoal })}
                 lang={lang}

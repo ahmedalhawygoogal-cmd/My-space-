@@ -6,7 +6,7 @@ import { Confirm, Segment, Sheet, Toast, useT } from '../ui'
 import { downloadBlob, formatDateTime } from '../utils'
 import { exportSnapshot, type Snapshot } from '../db'
 import type { AppFont, AppFontSize, NotifySound, Theme } from '../types'
-import { APP_FONTS, NOTIFY_SOUNDS } from '../types'
+import { APP_FONTS, NOTIFY_SOUNDS, labeled } from '../types'
 import { resolveColor } from '../utils'
 import { getNative } from '../native'
 import { PrefsForm } from './Onboarding'
@@ -139,7 +139,7 @@ export default function SettingsPage() {
       >
         {NOTIFY_SOUNDS.map((s) => (
           <option key={s.id} value={s.id}>
-            {lang === 'ar' ? s.ar : s.en}
+            {labeled(lang, s)}
           </option>
         ))}
       </select>

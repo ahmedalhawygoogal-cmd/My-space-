@@ -5,19 +5,19 @@ import { useStore } from '../store'
 import { Confirm, Empty, Sheet, Toast, useT } from '../ui'
 import type { ReactNode } from 'react'
 import type { AppSettings, Card, Deck, DeckType, Lang } from '../types'
-import { DECK_TYPES, LEARN_LANGS, NATIVE_LANG_OPTS, TARGET_LANG_OPTS, isRichDeck } from '../types'
+import { DECK_TYPES, LEARN_LANGS, NATIVE_LANG_OPTS, TARGET_LANG_OPTS, isRichDeck, labeled } from '../types'
 import { addDays, fileToDataUrl, normalizeAnswer, shuffle, speakText, startOfDay } from '../utils'
 
 function langLabel(code: string, ui: Lang, custom?: string) {
   if (!code) return ''
-  if (code === 'other') return custom?.trim() || (ui === 'ar' ? 'أخرى' : 'Other')
+  if (code === 'other') return custom?.trim() || labeled(ui, { ar: 'أخرى', en: 'Other', fr: 'Autre', de: 'Andere', es: 'Otro' })
   const native = NATIVE_LANG_OPTS.find((l) => l.code === code)
-  if (native) return ui === 'ar' ? native.ar : native.en
+  if (native) return labeled(ui, native)
   const target = TARGET_LANG_OPTS.find((l) => l.code === code)
-  if (target) return ui === 'ar' ? target.ar : target.en
+  if (target) return labeled(ui, target)
   const row = LEARN_LANGS.find((l) => l.code === code)
   if (!row) return custom?.trim() || code
-  return ui === 'ar' ? row.ar : row.en
+  return labeled(ui, row)
 }
 
 function nativeName(settings: AppSettings, ui: Lang) {

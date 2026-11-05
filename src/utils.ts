@@ -142,14 +142,20 @@ export function firstNoteImage(html: string): string | undefined {
   return m?.[1]
 }
 
+function dateLocale(lang: string): string {
+  if (lang === 'ar') return 'ar-EG'
+  if (lang === 'fr') return 'fr-FR'
+  if (lang === 'de') return 'de-DE'
+  if (lang === 'es') return 'es-ES'
+  return 'en-GB'
+}
+
 export function formatDate(ts: number, lang: string, opts?: Intl.DateTimeFormatOptions): string {
-  const locale = lang === 'ar' ? 'ar-EG' : 'en-GB'
-  return new Intl.DateTimeFormat(locale, opts ?? { day: 'numeric', month: 'short' }).format(new Date(ts))
+  return new Intl.DateTimeFormat(dateLocale(lang), opts ?? { day: 'numeric', month: 'short' }).format(new Date(ts))
 }
 
 export function formatDateTime(ts: number, lang: string): string {
-  const locale = lang === 'ar' ? 'ar-EG' : 'en-GB'
-  return new Intl.DateTimeFormat(locale, {
+  return new Intl.DateTimeFormat(dateLocale(lang), {
     day: 'numeric',
     month: 'short',
     hour: '2-digit',
@@ -158,8 +164,7 @@ export function formatDateTime(ts: number, lang: string): string {
 }
 
 export function weekdayLong(ts: number, lang: string): string {
-  const locale = lang === 'ar' ? 'ar-EG' : 'en-GB'
-  return new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(new Date(ts))
+  return new Intl.DateTimeFormat(dateLocale(lang), { weekday: 'long' }).format(new Date(ts))
 }
 
 export function debounce<A extends unknown[]>(fn: (...args: A) => void, ms: number): (...args: A) => void {
