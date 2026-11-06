@@ -17,6 +17,8 @@ export const NATIVE_RECORD_OPTS = {
   sampleRate: 48000,
   bitRate: 256000,
   numberOfChannels: 2,
+  autoGainControl: true,
+  noiseSuppression: true,
 }
 
 export const NATIVE_AUDIO_MIME = 'audio/mp4'
@@ -43,6 +45,52 @@ export async function startNativeRecording(): Promise<void> {
   await AudioRecorder.startRecording({
     ...NATIVE_RECORD_OPTS,
   } as StartRecordingOptions)
+}
+
+export interface ProcessedRecordingGraph {
+  context: AudioContext
+  stream: MediaStream
+  analyser: AnalyserNode
+}
+
+export async function createProcessedRecordingGraph(raw: MediaStream): Promise<ProcessedRecordingGraph> {
+  const context = new AudioContext({ sampleRate: 48000 })
+  try {
+    if (context.state === 'suspended') await context.resume()
+    const source = context.createMediaStreamSource(raw)
+    const highpass = context.createBiquadFilter()
+    highpass.type = 'highpass'
+    highpass.frequency.value = 80
+    const compressor = context.createDynamicsCompressor()
+    compressor.threshold.value = -24
+    compressor.knee.value = 30
+    compressor.ratio.value = 12
+    compressor.attack.value = 0.003
+    compressor.release.value = 0.25
+    const gain = context.createGain()
+    gain.gain.value = 1.5
+    const destination = context.createMediaStreamDestination()
+    const analyser = context.createAnalyser()
+    analyser.fftSize = 2048
+    source.connect(highpass)
+    highpass.connect(compressor)
+    compressor.connect(gain)
+    gain.connect(destination)
+    gain.connect(analyser)
+    return { context, stream: destination.stream, analyser }
+  } catch (err) {
+    await context.close().catch(() => undefined)
+    throw err
+  }
+}
+
+export async function closeProcessedRecordingGraph(context: AudioContext | null | undefined): Promise<void> {
+  if (!context) return
+  try {
+    if (context.state !== 'closed') await context.close()
+  } catch {
+    /* ignore */
+  }
 }
 
 export async function pauseNativeRecording(): Promise<void> {

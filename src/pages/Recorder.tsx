@@ -6,6 +6,8 @@ import { AudioPlayer } from '../AudioPlayer'
 import { Confirm, Empty, Segment, Sheet, SubjectSelect, TagInput, Toast, useT } from '../ui'
 import {
   cancelNativeRecording,
+  closeProcessedRecordingGraph,
+  createProcessedRecordingGraph,
   isNativePlatform,
   nativeAmplitude,
   pauseNativeRecording,
@@ -157,7 +159,7 @@ export function LiveRecordPage() {
     }
     recRef.current?.stream.getTracks().forEach((t) => t.stop())
     streamRef.current?.getTracks().forEach((t) => t.stop())
-    void audioCtx.current?.close()
+    void closeProcessedRecordingGraph(audioCtx.current)
     recRef.current = null
     audioCtx.current = null
     analyser.current = null
@@ -227,21 +229,31 @@ export function LiveRecordPage() {
   }
 
   async function startWeb() {
-    let stream: MediaStream
+    let raw: MediaStream
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: WEB_AUDIO_CONSTRAINTS })
+      raw = await navigator.mediaDevices.getUserMedia({ audio: WEB_AUDIO_CONSTRAINTS })
     } catch {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      raw = await navigator.mediaDevices.getUserMedia({ audio: true })
     }
-    streamRef.current = stream
+    streamRef.current = raw
+    let graph
+    try {
+      graph = await createProcessedRecordingGraph(raw)
+    } catch {
+      raw.getTracks().forEach((t) => t.stop())
+      streamRef.current = null
+      throw new Error('audio-graph')
+    }
+    audioCtx.current = graph.context
+    analyser.current = graph.analyser
     const mime = pickMime()
     const recOpts: MediaRecorderOptions = { audioBitsPerSecond: 256000 }
     if (mime) recOpts.mimeType = mime
     let rec: MediaRecorder
     try {
-      rec = new MediaRecorder(stream, recOpts)
+      rec = new MediaRecorder(graph.stream, recOpts)
     } catch {
-      rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream)
+      rec = mime ? new MediaRecorder(graph.stream, { mimeType: mime }) : new MediaRecorder(graph.stream)
     }
     chunks.current = []
     rec.ondataavailable = (e) => {
@@ -250,13 +262,6 @@ export function LiveRecordPage() {
     recRef.current = rec
     rec.start(200)
     beginClock()
-    const ctx = new AudioContext()
-    audioCtx.current = ctx
-    const src = ctx.createMediaStreamSource(stream)
-    const an = ctx.createAnalyser()
-    an.fftSize = 2048
-    src.connect(an)
-    analyser.current = an
     draw()
   }
 
