@@ -106,12 +106,21 @@ export interface DownloadItem {
   createdAt: number
 }
 
+export type QuoteField = string | Labeled
+
+export function quoteField(value: QuoteField | undefined, lang: string): string {
+  if (!value) return ''
+  if (typeof value === 'string') return value
+  const code = isUiLang(lang) ? lang : 'en'
+  return labeled(code, value)
+}
+
 export interface QuoteCharacter {
   id: string
-  name: string
-  story: string
-  challenge: string
-  quote: string
+  name: QuoteField
+  story: QuoteField
+  challenge: QuoteField
+  quote: QuoteField
   image?: string | Blob
   createdAt?: number
 }

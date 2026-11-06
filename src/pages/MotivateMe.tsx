@@ -5,15 +5,16 @@ import * as db from '../db'
 import { STORES } from '../db'
 import { useStore } from '../store'
 import { uid } from '../utils'
-import { RTL_LANGS, type QuoteCharacter } from '../types'
+import { RTL_LANGS, quoteField, type QuoteCharacter } from '../types'
 import { Empty, Sheet, Toast, useT } from '../ui'
 import { DEFAULT_QUOTES } from '../data/defaultQuotes'
 
 export default function MotivateMePage() {
   const tr = useT()
   const nav = useNavigate()
-  const { lang } = useStore()
+  const { lang, settings } = useStore()
   const isRTL = RTL_LANGS.has(lang)
+  const nativeLanguage = settings.nativeLang || lang || 'en'
 
   const [characters, setCharacters] = useState<QuoteCharacter[]>([])
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set())
@@ -41,6 +42,10 @@ export default function MotivateMePage() {
     imageFile: null as File | null,
     imageUrl: null as string | null,
   })
+
+  function textOf(c: QuoteCharacter, key: 'name' | 'story' | 'challenge' | 'quote') {
+    return quoteField(c[key], nativeLanguage)
+  }
 
   async function load() {
     try {
@@ -112,7 +117,7 @@ export default function MotivateMePage() {
       return
     }
     const pick = pool[Math.floor(Math.random() * pool.length)]
-    setToast(`"${pick.quote}" — ${pick.name}`)
+    setToast(`"${textOf(pick, 'quote')}" — ${textOf(pick, 'name')}`)
     setDetail(pick)
   }
 
@@ -135,9 +140,15 @@ export default function MotivateMePage() {
       setAddOpen(false)
       setToast(tr('saved'))
     } catch {
-      setToast('فشل حفظ الشخصية')
+      setToast(tr('noCharacters'))
     }
   }
+
+  const detailName = detail ? textOf(detail, 'name') : undefined
+  const detailQuote = detail ? textOf(detail, 'quote') : ''
+  const detailStory = detail ? textOf(detail, 'story') : ''
+  const detailChallenge = detail ? textOf(detail, 'challenge') : ''
+
   return (
     <div className="stack" style={{ gap: 12 }}>
       <div className="spread">
@@ -167,86 +178,88 @@ export default function MotivateMePage() {
       </div>
 
       {loading ? (
-        <div style={{ padding: 16, color: 'var(--ink-soft)', textAlign: 'center' }}>جارٍ التحميل…</div>
+        <div className="muted" style={{ padding: 16, textAlign: 'center' }}>
+          {tr('motivateMe')}
+        </div>
       ) : filtered.length === 0 ? (
         <Empty
           icon={<Sparkles size={36} />}
-          title={favoritesOnly ? 'لا توجد مفضلة بعد' : tr('noCharacters')}
-          hint={
-            favoritesOnly
-              ? 'اضغط على نجمة أي شخصية لإضافتها للمفضلة.'
-              : 'ابدأ بإضافة شخصية جديدة عبر الزر العائم.'
-          }
+          title={tr('noCharacters')}
+          hint={tr('motivateSubtitle')}
         />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
-          {filtered.map((c) => (
-            <div
-              key={c.id}
-              className="card pressable"
-              style={{ display: 'flex', flexDirection: 'column', gap: 8, minHeight: 210, cursor: 'pointer' }}
-              onClick={() => setDetail(c)}
-            >
-              {c.image && (
-                <img
-                  src={imageUrl(c)!}
-                  alt=""
-                  style={{ width: '100%', height: 110, objectFit: 'cover', borderRadius: 10, display: 'block' }}
-                />
-              )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-                <b style={{ fontSize: 15, overflowWrap: 'break-word' }}>{c.name}</b>
-                <button
-                  type="button"
-                  className="icon-btn"
-                  style={{ padding: 2 }}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    void toggleFavorite(c)
-                  }}
-                  aria-label={favoriteIds.has(c.id) ? tr('unfavorited') : tr('favorites')}
-                >
-                  <Star size={16} style={{ color: favoriteIds.has(c.id) ? 'var(--gold)' : 'var(--ink-soft)' }} />
-                </button>
-              </div>
-              <div className="muted" style={{ fontSize: 13, lineHeight: 1.4, overflowWrap: 'break-word' }}>
-                "{c.quote.slice(0, 60)}{c.quote.length > 60 ? '…' : ''}"
-              </div>
-              <button
-                type="button"
-                className="btn secondary"
-                style={{ marginTop: 'auto', padding: '6px 10px', fontSize: 0.85 }}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setDetail(c)
-                }}
+          {filtered.map((c) => {
+            const name = textOf(c, 'name')
+            const quote = textOf(c, 'quote')
+            const challenge = textOf(c, 'challenge')
+            return (
+              <div
+                key={c.id}
+                className="card pressable"
+                style={{ display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer' }}
+                onClick={() => setDetail(c)}
               >
-                {tr('readMore')}
-              </button>
-            </div>
-          ))}
+                {c.image && (
+                  <img
+                    src={imageUrl(c)!}
+                    alt=""
+                    style={{ width: '100%', height: 110, objectFit: 'cover', borderRadius: 10, display: 'block' }}
+                  />
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
+                  <b style={{ fontSize: 15, overflowWrap: 'break-word' }}>{name}</b>
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    style={{ padding: 2 }}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      void toggleFavorite(c)
+                    }}
+                    aria-label={favoriteIds.has(c.id) ? tr('unfavorited') : tr('favorites')}
+                  >
+                    <Star size={16} style={{ color: favoriteIds.has(c.id) ? 'var(--gold)' : 'var(--ink-soft)' }} />
+                  </button>
+                </div>
+                <div className="muted" style={{ fontSize: 13, lineHeight: 1.4, overflowWrap: 'break-word' }}>
+                  “{quote}”
+                </div>
+                {challenge ? (
+                  <div className="muted ellipsis" style={{ fontSize: 12 }}>
+                    {tr('challenge')}: {challenge}
+                  </div>
+                ) : null}
+              </div>
+            )
+          })}
         </div>
       )}
 
       {toast && <Toast text={toast} onDone={() => setToast(null)} />}
 
-      <Sheet open={!!detail} onClose={() => setDetail(null)} title={detail ? detail.name : undefined}>
+      <Sheet open={!!detail} onClose={() => setDetail(null)} title={detailName}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
           {detail?.image && (
             <img src={imageUrl(detail)!} alt="" style={{ width: 88, height: 88, objectFit: 'cover', borderRadius: 12, flexShrink: 0 }} />
           )}
           <div className="grow">
-            {detail?.challenge && (
-              <div className="muted" style={{ fontSize: 12, marginBottom: 8 }}>
-                <b>{tr('challenge')}:</b> {detail?.challenge}
+            {detailQuote ? (
+              <div className="card-quiet" style={{ marginBottom: 12, fontSize: 15, lineHeight: 1.6, overflowWrap: 'break-word' }}>
+                “{detailQuote}”
               </div>
-            )}
-            <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 10, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
-              {detail?.story}
-            </div>
-            <div style={{ background: 'var(--bg-muted)', border: '1px solid var(--line)', borderRadius: 12, padding: 14, fontSize: 15, lineHeight: 1.6, overflowWrap: 'break-word' }}>
-              “{detail?.quote}”
-            </div>
+            ) : null}
+            {detailStory ? (
+              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 10, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                <div className="muted" style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>{tr('story')}</div>
+                {detailStory}
+              </div>
+            ) : null}
+            {detailChallenge ? (
+              <div className="muted" style={{ fontSize: 13, lineHeight: 1.5 }}>
+                <b>{tr('challenge')}:</b> {detailChallenge}
+              </div>
+            ) : null}
           </div>
         </div>
       </Sheet>
@@ -284,26 +297,7 @@ export default function MotivateMePage() {
         </div>
       </Sheet>
 
-      <button
-        className="fab"
-        type="button"
-        onClick={() => setAddOpen(true)}
-        aria-label={tr('addCharacter')}
-        style={{
-          position: 'fixed',
-          bottom: 24,
-          [isRTL ? 'left' : 'right']: 24,
-          width: 56,
-          height: 56,
-          borderRadius: '50%',
-          background: 'var(--brand)',
-          color: 'var(--brand-ink)',
-          boxShadow: 'var(--shadow)',
-          display: 'grid',
-          placeItems: 'center',
-          zIndex: 50,
-        }}
-      >
+      <button className="fab" type="button" onClick={() => setAddOpen(true)} aria-label={tr('addCharacter')}>
         <Plus size={22} />
       </button>
     </div>
