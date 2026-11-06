@@ -4,6 +4,16 @@ import { FolderPlus, Mic, Pause, Play, Square, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
 import { AudioPlayer } from '../AudioPlayer'
 import { Confirm, Empty, Segment, Sheet, SubjectSelect, TagInput, Toast, useT } from '../ui'
+import {
+  cancelNativeRecording,
+  isNativePlatform,
+  nativeAmplitude,
+  pauseNativeRecording,
+  resumeNativeRecording,
+  startNativeRecording,
+  stopNativeRecording,
+  WEB_AUDIO_CONSTRAINTS,
+} from '../record'
 import { formatDateTime, formatDuration, pickMime } from '../utils'
 
 export default function RecorderPage() {
@@ -123,6 +133,7 @@ export function LiveRecordPage() {
   const [folderOpen, setFolderOpen] = useState(false)
   const [folderName, setFolderName] = useState('')
   const recRef = useRef<MediaRecorder | null>(null)
+  const nativeRef = useRef(false)
   const chunks = useRef<Blob[]>([])
   const timer = useRef<number | null>(null)
   const started = useRef(0)
@@ -133,143 +144,226 @@ export function LiveRecordPage() {
   const analyser = useRef<AnalyserNode | null>(null)
   const raf = useRef<number>(0)
   const streamRef = useRef<MediaStream | null>(null)
+  const ampBuf = useRef<number[]>(Array.from({ length: 80 }, () => 0.5))
+  const saving = useRef(false)
 
   useEffect(() => () => cleanup(), [])
 
   function cleanup() {
     if (timer.current) window.clearInterval(timer.current)
-    if (raf.current) cancelAnimationFrame(raf.current)
+    if (raf.current) {
+      cancelAnimationFrame(raf.current)
+      window.clearTimeout(raf.current)
+    }
     recRef.current?.stream.getTracks().forEach((t) => t.stop())
     streamRef.current?.getTracks().forEach((t) => t.stop())
     void audioCtx.current?.close()
     recRef.current = null
     audioCtx.current = null
+    analyser.current = null
+    if (nativeRef.current) {
+      nativeRef.current = false
+      void cancelNativeRecording()
+    }
   }
 
   function tick() {
     setMs(acc.current + (Date.now() - started.current))
   }
 
-  function draw() {
-    const an = analyser.current
+  function paintWave(samples: number[]) {
     const cv = canvas.current
-    if (!an || !cv) return
+    if (!cv) return
     const ctx = cv.getContext('2d')
     if (!ctx) return
     const w = (cv.width = cv.clientWidth * 2)
     const h = (cv.height = cv.clientHeight * 2)
-    const data = new Uint8Array(an.fftSize)
-    an.getByteTimeDomainData(data)
     ctx.clearRect(0, 0, w, h)
     ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg-muted') || '#eee'
     ctx.fillRect(0, 0, w, h)
     ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#0f6e6b'
     ctx.lineWidth = 3
     ctx.beginPath()
-    const step = Math.max(1, Math.floor(data.length / 80))
-    for (let i = 0, x = 0; i < data.length; i += step, x += w / 80) {
-      const v = data[i] / 128
-      const y = (v * h) / 2
+    const n = Math.max(1, samples.length)
+    for (let i = 0; i < n; i++) {
+      const x = (i / Math.max(1, n - 1)) * w
+      const y = samples[i] * h
       if (i === 0) ctx.moveTo(x, y)
       else ctx.lineTo(x, y)
     }
     ctx.stroke()
+  }
+
+  function draw() {
+    const an = analyser.current
+    if (!an) return
+    const data = new Uint8Array(an.fftSize)
+    an.getByteTimeDomainData(data)
+    const step = Math.max(1, Math.floor(data.length / 80))
+    const samples: number[] = []
+    for (let i = 0; i < data.length; i += step) samples.push(data[i] / 256)
+    paintWave(samples)
     raf.current = requestAnimationFrame(draw)
+  }
+
+  async function drawNative() {
+    if (!nativeRef.current) return
+    const amp = await nativeAmplitude()
+    if (!nativeRef.current) return
+    const next = ampBuf.current.slice(1)
+    next.push(0.5 + (amp - 0.5) * 0.9)
+    ampBuf.current = next
+    paintWave(next)
+    raf.current = window.setTimeout(() => {
+      void drawNative()
+    }, 80) as unknown as number
+  }
+
+  function beginClock() {
+    started.current = Date.now()
+    acc.current = 0
+    timer.current = window.setInterval(tick, 200)
+    setStatus('live')
+  }
+
+  async function startWeb() {
+    let stream: MediaStream
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: WEB_AUDIO_CONSTRAINTS })
+    } catch {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    }
+    streamRef.current = stream
+    const mime = pickMime()
+    const recOpts: MediaRecorderOptions = { audioBitsPerSecond: 256000 }
+    if (mime) recOpts.mimeType = mime
+    let rec: MediaRecorder
+    try {
+      rec = new MediaRecorder(stream, recOpts)
+    } catch {
+      rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream)
+    }
+    chunks.current = []
+    rec.ondataavailable = (e) => {
+      if (e.data.size) chunks.current.push(e.data)
+    }
+    recRef.current = rec
+    rec.start(200)
+    beginClock()
+    const ctx = new AudioContext()
+    audioCtx.current = ctx
+    const src = ctx.createMediaStreamSource(stream)
+    const an = ctx.createAnalyser()
+    an.fftSize = 2048
+    src.connect(an)
+    analyser.current = an
+    draw()
   }
 
   async function start() {
     setError('')
     try {
-      const stereo = {
-        channelCount: 2,
-        noiseSuppression: true,
-        echoCancellation: true,
-        autoGainControl: true,
-        sampleRate: 48000,
-      } as const
-      let stream: MediaStream
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: stereo })
-      } catch {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      if (isNativePlatform()) {
+        nativeRef.current = true
+        await startNativeRecording()
+        ampBuf.current = Array.from({ length: 80 }, () => 0.5)
+        beginClock()
+        void drawNative()
+        return
       }
-      streamRef.current = stream
-      const mime = pickMime()
-      const recOpts: MediaRecorderOptions = { audioBitsPerSecond: 256000 }
-      if (mime) recOpts.mimeType = mime
-      let rec: MediaRecorder
-      try {
-        rec = new MediaRecorder(stream, recOpts)
-      } catch {
-        rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream)
-      }
-      chunks.current = []
-      rec.ondataavailable = (e) => {
-        if (e.data.size) chunks.current.push(e.data)
-      }
-      recRef.current = rec
-      rec.start(200)
-      started.current = Date.now()
-      acc.current = 0
-      timer.current = window.setInterval(tick, 200)
-      setStatus('live')
-      const ctx = new AudioContext()
-      audioCtx.current = ctx
-      const src = ctx.createMediaStreamSource(stream)
-      const an = ctx.createAnalyser()
-      an.fftSize = 2048
-      src.connect(an)
-      analyser.current = an
-      draw()
+      nativeRef.current = false
+      await startWeb()
     } catch (err) {
+      nativeRef.current = false
       const e = err as DOMException
       setError(e.name === 'NotAllowedError' ? tr('micDenied') : tr('micError'))
     }
   }
 
-  function pause() {
-    const rec = recRef.current
-    if (!rec || rec.state !== 'recording') return
-    rec.pause()
+  async function pause() {
+    try {
+      if (nativeRef.current) {
+        await pauseNativeRecording()
+      } else {
+        const rec = recRef.current
+        if (!rec || rec.state !== 'recording') return
+        rec.pause()
+      }
+    } catch {
+      setError(tr('micError'))
+      return
+    }
     acc.current += Date.now() - started.current
     pausedAt.current = Date.now()
     if (timer.current) window.clearInterval(timer.current)
     setStatus('paused')
   }
 
-  function resume() {
-    const rec = recRef.current
-    if (!rec || rec.state !== 'paused') return
-    rec.resume()
+  async function resume() {
+    try {
+      if (nativeRef.current) {
+        await resumeNativeRecording()
+      } else {
+        const rec = recRef.current
+        if (!rec || rec.state !== 'paused') return
+        rec.resume()
+      }
+    } catch {
+      setError(tr('micError'))
+      return
+    }
     started.current = Date.now()
     timer.current = window.setInterval(tick, 200)
     setStatus('live')
   }
 
   async function stopAndSave() {
-    const rec = recRef.current
-    if (!rec) return
-    await new Promise<void>((resolve) => {
-      rec.onstop = () => resolve()
-      if (rec.state !== 'inactive') rec.stop()
-      else resolve()
-    })
-    if (timer.current) window.clearInterval(timer.current)
-    const duration = acc.current + (status === 'live' ? Date.now() - started.current : 0)
-    const blob = new Blob(chunks.current, { type: rec.mimeType || 'audio/webm' })
-    const item = await addRecording(
-      {
-        name: name.trim() || `${tr('recording')} ${new Date().toLocaleString()}`,
-        durationMs: duration,
-        mimeType: blob.type,
-        sizeBytes: blob.size,
-        folderId,
-        subjectId,
-      },
-      blob,
-    )
-    cleanup()
-    nav(`/record/${item.id}`, { replace: true })
+    if (saving.current) return
+    if (!nativeRef.current && !recRef.current) return
+    saving.current = true
+    try {
+      if (timer.current) window.clearInterval(timer.current)
+      const duration = acc.current + (status === 'live' ? Date.now() - started.current : 0)
+      let blob: Blob
+      let mimeType: string
+      let durationMs = duration
+      if (nativeRef.current) {
+        const result = await stopNativeRecording()
+        nativeRef.current = false
+        blob = result.blob
+        mimeType = result.mimeType
+        if (result.durationMs > 0) durationMs = result.durationMs
+      } else {
+        const rec = recRef.current
+        if (!rec) {
+          saving.current = false
+          return
+        }
+        await new Promise<void>((resolve) => {
+          rec.onstop = () => resolve()
+          if (rec.state !== 'inactive') rec.stop()
+          else resolve()
+        })
+        blob = new Blob(chunks.current, { type: rec.mimeType || 'audio/webm' })
+        mimeType = blob.type || 'audio/webm'
+      }
+      const item = await addRecording(
+        {
+          name: name.trim() || `${tr('recording')} ${new Date().toLocaleString()}`,
+          durationMs,
+          mimeType,
+          sizeBytes: blob.size,
+          folderId,
+          subjectId,
+        },
+        blob,
+      )
+      cleanup()
+      nav(`/record/${item.id}`, { replace: true })
+    } catch {
+      setError(tr('micError'))
+      saving.current = false
+    }
   }
 
   return (
