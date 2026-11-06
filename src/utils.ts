@@ -286,6 +286,7 @@ export function speakLocale(code: string): string {
 let speakHold: SpeechSynthesisUtterance[] = []
 let speakTimer = 0
 let voicesWait: (() => void) | null = null
+let speakGen = 0
 
 function normLang(s: string): string {
   return s.replace('_', '-').toLowerCase()
@@ -306,6 +307,7 @@ export function speakText(text: string, langCode: string, repeats = 1): void {
   const synth = window.speechSynthesis
   const locale = speakLocale(langCode)
   const n = Math.max(1, Math.min(5, repeats))
+  const gen = ++speakGen
   speakHold = []
   if (speakTimer) window.clearTimeout(speakTimer)
   if (voicesWait) {
@@ -313,8 +315,7 @@ export function speakText(text: string, langCode: string, repeats = 1): void {
     voicesWait = null
   }
 
-  const start = () => {
-    const voice = pickVoice(synth.getVoices(), langCode, locale)
+  const kick = () => {
     try {
       synth.cancel()
     } catch {
@@ -327,25 +328,42 @@ export function speakText(text: string, langCode: string, repeats = 1): void {
         /* ignore */
       }
     }
+  }
+
+  const start = () => {
+    if (gen !== speakGen) return
+    const voice = pickVoice(synth.getVoices(), langCode, locale)
+    kick()
     let left = n
     const play = () => {
-      if (left <= 0) return
+      if (gen !== speakGen || left <= 0) return
       left -= 1
       const u = new SpeechSynthesisUtterance(text)
       u.lang = voice?.lang || locale
       u.rate = 0.92
       u.pitch = 1
       if (voice) u.voice = voice
-      u.onend = () => play()
+      u.onend = () => {
+        if (gen === speakGen) play()
+      }
       u.onerror = () => {
+        if (gen !== speakGen) return
         left = 0
       }
       speakHold.push(u)
+      if (synth.paused) {
+        try {
+          synth.resume()
+        } catch {
+          /* ignore */
+        }
+      }
       synth.speak(u)
     }
-    speakTimer = window.setTimeout(play, 80)
+    speakTimer = window.setTimeout(play, 140)
   }
 
+  kick()
   if (synth.getVoices().length) {
     start()
     return

@@ -884,6 +884,13 @@ img { max-width: 100%; }
   grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
+.fc-dir {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
 .fc-rate {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -906,13 +913,13 @@ img { max-width: 100%; }
 .fc-timer > span {
   display: block;
   height: 100%;
+  width: 100%;
   background: var(--brand);
-  transform-origin: right center;
   animation: fc-drain 5s linear forwards;
 }
 @keyframes fc-drain {
-  from { transform: scaleX(1); }
-  to { transform: scaleX(0); }
+  from { width: 100%; }
+  to { width: 0%; }
 }
 .fc-thumb {
   border-radius: 12px;

@@ -185,6 +185,7 @@ function normalizeDeck(raw: Deck): Deck {
     ...raw,
     nativeLang: raw.nativeLang || 'ar',
     targetLang: raw.targetLang || 'en',
+    swapped: !!raw.swapped,
     type: normalizeDeckType(raw.type),
     cardCount: typeof raw.cardCount === 'number' ? raw.cardCount : 0,
     description: raw.description ?? '',
@@ -621,6 +622,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       noteId: extra?.noteId,
       nativeLang: extra?.nativeLang || 'ar',
       targetLang: extra?.targetLang || 'en',
+      swapped: !!extra?.swapped,
       createdAt: t,
       updatedAt: t,
     }

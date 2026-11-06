@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeftRight, ArrowRight, Ear, Layers, LayoutGrid, Pencil, PenLine, Play, Plus, Trash2, Volume2 } from 'lucide-react'
+import { ArrowLeftRight, ArrowRight, Ear, Layers, LayoutGrid, Pencil, PenLine, Play, Plus, RefreshCw, Trash2, Volume2 } from 'lucide-react'
 import { useStore } from '../store'
 import { Confirm, Empty, Sheet, Toast, useT } from '../ui'
 import type { ReactNode } from 'react'
@@ -47,9 +47,45 @@ function cardImage(card: Pick<Card, 'imageBlob' | 'imageDataUrl'>) {
 
 function ListenAuto({ text, lang, repeats, round }: { text: string; lang: string; repeats: number; round: number }) {
   useEffect(() => {
+    if (!text.trim()) return
     speakText(text, lang, repeats)
   }, [text, lang, repeats, round])
   return null
+}
+
+function promptOf(card: Card, swapped: boolean) {
+  return swapped ? card.back : card.front
+}
+
+function answerOf(card: Card, swapped: boolean) {
+  return swapped ? card.front : card.back
+}
+
+function promptLangCode(deck: Deck | undefined, swapped: boolean) {
+  return swapped ? deck?.targetLang || 'en' : deck?.nativeLang || 'ar'
+}
+
+function speakTarget(card: Card, deck?: Deck, repeats = 1) {
+  speakText(card.back, deck?.targetLang || 'en', repeats)
+}
+
+function useQuestionTimer(running: boolean, token: number, onTimeout: () => void) {
+  const cb = useRef(onTimeout)
+  cb.current = onTimeout
+  useEffect(() => {
+    if (!running) return
+    const id = window.setTimeout(() => cb.current(), 5000)
+    return () => window.clearTimeout(id)
+  }, [running, token])
+}
+
+function TimerBar({ show, token }: { show: boolean; token: number }) {
+  if (!show) return null
+  return (
+    <div className="fc-timer" key={token}>
+      <span />
+    </div>
+  )
 }
 
 type CardFormState = {
@@ -153,8 +189,8 @@ function dueCount(list: Card[]) {
   return list.filter((c) => (c.nextReviewDate || c.dueAt) <= t).length
 }
 
-function speakCorrect(card: Card, deck?: Deck) {
-  speakText(card.back, deck?.targetLang || 'en')
+function deckSwapped(deck?: Deck) {
+  return !!deck?.swapped
 }
 
 function PlayRing({ due, total, onClick, label }: { due: number; total: number; onClick: () => void; label: string }) {
@@ -190,6 +226,7 @@ function SessionDone({ deckId }: { deckId: string }) {
   const nav = useNavigate()
   return (
     <div className="stack">
+      <BackBtn onClick={() => nav(`/cards/${deckId}`)} label={tr('back')} />
       <div className="card game-done">
         <h2>{tr('sessionSuccess')}</h2>
         <button className="btn block" type="button" onClick={() => nav(`/cards/${deckId}`)}>
@@ -248,6 +285,10 @@ function GamesSheet({ deck, open, onClose }: { deck: Deck | null; open: boolean;
   return (
     <Sheet open={open} onClose={onClose} title={tr('games')}>
       <div className="stack">
+        <button className="list-item pressable" type="button" onClick={() => go(`/cards/${deck.id}/study`)}>
+          <RefreshCw size={16} />
+          <div className="grow">{tr('review')}</div>
+        </button>
         <button className="list-item pressable" type="button" onClick={() => go(`/cards/${deck.id}/game/choice`)}>
           <LayoutGrid size={16} />
           <div className="grow">{tr('gameChoice')}</div>
@@ -275,9 +316,19 @@ export default function FlashcardsPage() {
   const { decks, cards, addDeck, settings } = useStore()
   const [open, setOpen] = useState(false)
   const [games, setGames] = useState<Deck | null>(null)
+  const [early, setEarly] = useState<Deck | null>(null)
   const [q, setQ] = useState('')
   const [name, setName] = useState('')
   const [type, setType] = useState<DeckType>('vocab')
+
+  function tryPlay(d: Deck) {
+    const list = cards.filter((c) => c.deckId === d.id)
+    if (list.length > 0 && dueCount(list) === 0 && localStorage.getItem(SKIP_EARLY_KEY) !== '1') {
+      setEarly(d)
+      return
+    }
+    setGames(d)
+  }
 
   const shown = decks.filter((d) => !q.trim() || d.name.toLowerCase().includes(q.trim().toLowerCase()))
 
@@ -311,7 +362,7 @@ export default function FlashcardsPage() {
                   </div>
                 </div>
               </button>
-              <PlayRing due={due} total={dc.length} label={tr('playDeck')} onClick={() => setGames(d)} />
+              <PlayRing due={due} total={dc.length} label={tr('playDeck')} onClick={() => tryPlay(d)} />
             </div>
           )
         })
@@ -353,6 +404,16 @@ export default function FlashcardsPage() {
         </button>
       </Sheet>
       <GamesSheet deck={games} open={!!games} onClose={() => setGames(null)} />
+      <EarlyReviewDialog
+        open={!!early}
+        onClose={() => setEarly(null)}
+        onContinue={(dontShow) => {
+          if (dontShow) localStorage.setItem(SKIP_EARLY_KEY, '1')
+          const d = early
+          setEarly(null)
+          if (d) setGames(d)
+        }}
+      />
     </div>
   )
 }
@@ -361,23 +422,14 @@ export function DeckPage() {
   const tr = useT()
   const nav = useNavigate()
   const { deckId } = useParams()
-  const { decks, cards, deleteDeck, addCard, updateCard, deleteCard, lang, settings } = useStore()
+  const { decks, cards, deleteDeck, addCard, updateCard, deleteCard, updateDeck, lang, settings } = useStore()
   const deck = decks.find((d) => d.id === deckId)
   const dc = cards.filter((c) => c.deckId === deckId)
   const [open, setOpen] = useState(false)
   const [edit, setEdit] = useState<Card | null>(null)
   const [confirm, setConfirm] = useState(false)
-  const [early, setEarly] = useState(false)
   const [form, setForm] = useState<CardFormState>(emptyForm)
-
-  function startReview() {
-    if (!deck) return
-    if (dc.length === 0 || dueCount(dc) > 0 || localStorage.getItem(SKIP_EARLY_KEY) === '1') {
-      nav(`/cards/${deck.id}/study`)
-      return
-    }
-    setEarly(true)
-  }
+  const swapped = deckSwapped(deck)
   const rich = isRichDeck(deck?.type)
   const frontFromLang = nativeName(settings, lang)
   const backFromLang = targetName(settings, lang, deck)
@@ -428,21 +480,27 @@ export function DeckPage() {
           {deck.name}
         </h1>
       </div>
-      <div className="fc-actions">
-        <button
-          className="btn"
-          type="button"
-          onClick={() => {
-            setForm(emptyForm)
-            setOpen(true)
-          }}
-        >
-          <Plus size={16} /> {tr('addCardBtn')}
-        </button>
-        <button className="btn secondary" type="button" onClick={startReview}>
-          {tr('review')}
-        </button>
-      </div>
+      <button
+        className="btn ghost fc-dir"
+        type="button"
+        aria-label={tr('swapSides')}
+        onClick={() => void updateDeck(deck.id, { swapped: !swapped })}
+      >
+        <ArrowLeftRight size={16} />
+        <span>{swapped ? backLabel : frontLabel}</span>
+        <ArrowLeftRight size={14} />
+        <span>{swapped ? frontLabel : backLabel}</span>
+      </button>
+      <button
+        className="btn"
+        type="button"
+        onClick={() => {
+          setForm(emptyForm)
+          setOpen(true)
+        }}
+      >
+        <Plus size={16} /> {tr('addCardBtn')}
+      </button>
       {dc.length === 0 ? (
         <Empty icon={<Layers size={32} />} title={tr('emptyDeck')} hint={tr('emptyDeckHint')} />
       ) : (
@@ -487,15 +545,6 @@ export function DeckPage() {
         onConfirm={async () => {
           await deleteDeck(deck.id)
           nav('/cards')
-        }}
-      />
-      <EarlyReviewDialog
-        open={early}
-        onClose={() => setEarly(false)}
-        onContinue={(dontShow) => {
-          if (dontShow) localStorage.setItem(SKIP_EARLY_KEY, '1')
-          setEarly(false)
-          nav(`/cards/${deck.id}/study`)
         }}
       />
     </div>
@@ -557,11 +606,13 @@ export function ChoiceGamePage() {
   const { pickCards, recordAnswer } = useStore()
   const [round, setRound] = useState(0)
   const [picked, setPicked] = useState<string | null>(null)
+  const [timedOut, setTimedOut] = useState(false)
   const [answered, setAnswered] = useState(0)
   const [finished, setFinished] = useState(false)
   const live = useRef({ deck, dc, pickCards })
   live.current = { deck, dc, pickCards }
   const total = dc.length
+  const swapped = deckSwapped(deck)
   const pack = useMemo(() => {
     const { deck: d, dc: list, pickCards: pick } = live.current
     if (!d || list.length < 4) return null
@@ -570,6 +621,22 @@ export function ChoiceGamePage() {
     const others = shuffle(list.filter((c) => c.id !== target.id)).slice(0, 3)
     return { target, options: shuffle([target, ...others]) }
   }, [round, deckId])
+  const locked = !!picked || timedOut
+  const done = useRef(false)
+
+  async function settle(ok: boolean, pickId: string | null) {
+    if (!pack || done.current) return
+    done.current = true
+    setPicked(pickId)
+    setTimedOut(!ok && !pickId)
+    speakTarget(pack.target, deck)
+    await recordAnswer(pack.target.id, ok)
+    setAnswered((n) => n + 1)
+  }
+
+  useQuestionTimer(!locked && !!pack, round, () => {
+    void settle(false, null)
+  })
 
   if (!deck) return <Empty icon={<Layers />} title={tr('noDecks')} />
   if (dc.length < 4 || !pack) return <NeedCards n={4} deckId={deckId} />
@@ -577,34 +644,29 @@ export function ChoiceGamePage() {
 
   return (
     <GameShell title={tr('gameChoice')} hint={tr('gameChoiceHint')}>
+      <TimerBar show={!locked} token={round} />
       <div className="flash-card">
         <HintImage src={cardImage(pack.target)} />
-        <h2>{pack.target.front}</h2>
+        <h2>{promptOf(pack.target, swapped)}</h2>
       </div>
       <div className="stack">
         {pack.options.map((o) => {
-          const cls = picked ? (o.id === pack.target.id ? 'choice ok' : o.id === picked ? 'choice bad' : 'choice') : 'choice'
+          const cls = locked ? (o.id === pack.target.id ? 'choice ok' : o.id === picked ? 'choice bad' : 'choice') : 'choice'
           return (
             <button
               key={o.id}
               className={cls}
               type="button"
-              disabled={!!picked}
-              onClick={async () => {
-                const ok = o.id === pack.target.id
-                setPicked(o.id)
-                speakCorrect(pack.target, deck)
-                await recordAnswer(pack.target.id, ok)
-                setAnswered((n) => n + 1)
-              }}
+              disabled={locked}
+              onClick={() => void settle(o.id === pack.target.id, o.id)}
             >
               {cardImage(o) ? <img src={cardImage(o)} alt="" className="fc-opt" /> : null}
-              {o.back}
+              {answerOf(o, swapped)}
             </button>
           )
         })}
       </div>
-      {picked ? (
+      {locked ? (
         <button
           className="btn block"
           type="button"
@@ -613,7 +675,9 @@ export function ChoiceGamePage() {
               setFinished(true)
               return
             }
+            done.current = false
             setPicked(null)
+            setTimedOut(false)
             setRound((n) => n + 1)
           }}
         >
@@ -632,6 +696,7 @@ export function MatchGamePage() {
   const [finished, setFinished] = useState(false)
   const live = useRef({ deck, dc, pickCards })
   live.current = { deck, dc, pickCards }
+  const swapped = deckSwapped(deck)
   const pack = useMemo(() => {
     const { deck: d, pickCards: pick } = live.current
     if (!d || live.current.dc.length < 4) return []
@@ -654,7 +719,7 @@ export function MatchGamePage() {
     setBusy(true)
     const ok = l === r
     const card = pack.find((c) => c.id === l)
-    if (card) speakCorrect(card, deck)
+    if (card) speakTarget(card, deck)
     await recordAnswer(l, ok)
     if (ok) setDone((d) => [...d, l])
     setSelL(null)
@@ -678,7 +743,7 @@ export function MatchGamePage() {
               }}
             >
               {cardImage(c) ? <img src={cardImage(c)} alt="" className="fc-opt" /> : null}
-              {c.front}
+              {promptOf(c, swapped)}
             </button>
           ))}
         </div>
@@ -694,7 +759,7 @@ export function MatchGamePage() {
                 void tryMatch(selL, c.id)
               }}
             >
-              {c.back}
+              {answerOf(c, swapped)}
             </button>
           ))}
         </div>
@@ -731,16 +796,18 @@ export function WriteGamePage() {
   const live = useRef({ deck, dc, pickCards })
   live.current = { deck, dc, pickCards }
   const total = dc.length
+  const swapped = deckSwapped(deck)
   const card = useMemo(() => {
     const { deck: d, pickCards: pick } = live.current
     return d && live.current.dc.length ? pick(d.id, 1)[0] : undefined
   }, [round, deckId])
+  const expected = card ? answerOf(card, swapped) : ''
 
   async function grade() {
-    if (!card || !deck) return
-    const ok = normalizeAnswer(value) === normalizeAnswer(card.back)
+    if (!card || !deck || result) return
+    const ok = normalizeAnswer(value) === normalizeAnswer(expected)
     setResult(ok ? 'ok' : 'bad')
-    speakCorrect(card, deck)
+    speakTarget(card, deck)
     await recordAnswer(card.id, ok)
     setAnswered((n) => n + 1)
   }
@@ -753,7 +820,7 @@ export function WriteGamePage() {
     <GameShell title={tr('gameWrite')} hint={tr('gameWriteHint')}>
       <div className="flash-card">
         <HintImage src={cardImage(card)} />
-        <h2>{card.front}</h2>
+        <h2>{promptOf(card, swapped)}</h2>
       </div>
       <input
         className="field"
@@ -774,7 +841,7 @@ export function WriteGamePage() {
         </button>
       ) : (
         <>
-          <div className={result === 'ok' ? 'choice ok' : 'choice bad'}>{result === 'ok' ? tr('correct') : `${tr('wrong')}: ${card.back}`}</div>
+          <div className={result === 'ok' ? 'choice ok' : 'choice bad'}>{result === 'ok' ? tr('correct') : `${tr('wrong')}: ${expected}`}</div>
           <button
             className="btn block"
             type="button"
@@ -802,11 +869,13 @@ export function ListenGamePage() {
   const { pickCards, recordAnswer, settings } = useStore()
   const [round, setRound] = useState(0)
   const [picked, setPicked] = useState<string | null>(null)
+  const [timedOut, setTimedOut] = useState(false)
   const [answered, setAnswered] = useState(0)
   const [finished, setFinished] = useState(false)
   const live = useRef({ deck, dc, pickCards })
   live.current = { deck, dc, pickCards }
   const total = dc.length
+  const swapped = deckSwapped(deck)
   const pack = useMemo(() => {
     const { deck: d, dc: list, pickCards: pick } = live.current
     if (!d || list.length < 4) return null
@@ -815,45 +884,61 @@ export function ListenGamePage() {
     const others = shuffle(list.filter((c) => c.id !== target.id)).slice(0, 3)
     return { target, options: shuffle([target, ...others]) }
   }, [round, deckId])
+  const locked = !!picked || timedOut
+  const done = useRef(false)
+  const repeats = settings.speakRepeats ?? 1
+  const promptLang = promptLangCode(deck, swapped)
+  const promptText = pack ? promptOf(pack.target, swapped) : ''
+
+  async function settle(ok: boolean, pickId: string | null) {
+    if (!pack || done.current) return
+    done.current = true
+    setPicked(pickId)
+    setTimedOut(!ok && !pickId)
+    speakTarget(pack.target, deck, repeats)
+    await recordAnswer(pack.target.id, ok)
+    setAnswered((n) => n + 1)
+  }
+
+  useQuestionTimer(!locked && !!pack, round, () => {
+    void settle(false, null)
+  })
 
   if (!deck) return <Empty icon={<Layers />} title={tr('noDecks')} />
   if (dc.length < 4 || !pack) return <NeedCards n={4} deckId={deckId} />
   if (finished) return <SessionDone deckId={deckId} />
 
-  const voiceLang = deck.targetLang || settings.targetLangs?.[0] || 'en'
-
   return (
     <GameShell title={tr('gameListen')} hint={tr('gameListenHint')}>
-      <ListenAuto text={pack.target.front} lang={voiceLang} repeats={settings.speakRepeats ?? 1} round={round} />
+      <TimerBar show={!locked} token={round} />
+      <ListenAuto text={promptText} lang={promptLang} repeats={repeats} round={round} />
       <div className="flash-card">
-        <button className="btn" type="button" onClick={() => speakText(pack.target.front, voiceLang, settings.speakRepeats ?? 1)}>
+        <button
+          className="btn"
+          type="button"
+          onClick={() => speakText(promptText, promptLang, repeats)}
+        >
           <Volume2 size={18} /> {tr('speak')}
         </button>
         {typeof window === 'undefined' || !('speechSynthesis' in window) ? <div className="muted">{tr('noSpeech')}</div> : null}
       </div>
       <div className="stack">
         {pack.options.map((o) => {
-          const cls = picked ? (o.id === pack.target.id ? 'choice ok' : o.id === picked ? 'choice bad' : 'choice') : 'choice'
+          const cls = locked ? (o.id === pack.target.id ? 'choice ok' : o.id === picked ? 'choice bad' : 'choice') : 'choice'
           return (
             <button
               key={o.id}
               className={cls}
               type="button"
-              disabled={!!picked}
-              onClick={async () => {
-                const ok = o.id === pack.target.id
-                setPicked(o.id)
-                speakCorrect(pack.target, deck)
-                await recordAnswer(pack.target.id, ok)
-                setAnswered((n) => n + 1)
-              }}
+              disabled={locked}
+              onClick={() => void settle(o.id === pack.target.id, o.id)}
             >
-              {o.back}
+              {answerOf(o, swapped)}
             </button>
           )
         })}
       </div>
-      {picked ? (
+      {locked ? (
         <button
           className="btn block"
           type="button"
@@ -862,7 +947,9 @@ export function ListenGamePage() {
               setFinished(true)
               return
             }
+            done.current = false
             setPicked(null)
+            setTimedOut(false)
             setRound((n) => n + 1)
           }}
         >
@@ -885,10 +972,9 @@ export function StudyPage() {
   const [idx, setIdx] = useState(0)
   const [flipped, setFlipped] = useState(false)
   const [autoForgot, setAutoForgot] = useState(false)
-  const [swapped, setSwapped] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
-  const timerRef = useRef<number>(0)
   const ratedRef = useRef(false)
+  const swapped = deckSwapped(deck)
   const card = cards.find((c) => c.id === ids[idx])
   const cardRef = useRef(card)
   cardRef.current = card
@@ -905,35 +991,28 @@ export function StudyPage() {
     await rateCard(target.id, 'good')
   }
 
-  useEffect(() => {
-    setFlipped(false)
-    setAutoForgot(false)
-    ratedRef.current = false
-    const id = ids[idx]
-    if (!id) return
-    timerRef.current = window.setTimeout(() => {
-      setFlipped(true)
-      setAutoForgot(true)
-      void markForgot()
-      setToast(tr('forgot'))
-    }, 5000)
-    return () => {
-      if (timerRef.current) window.clearTimeout(timerRef.current)
-    }
-  }, [idx, ids])
+  useQuestionTimer(!!card && !flipped, idx, () => {
+    setFlipped(true)
+    setAutoForgot(true)
+    void markForgot()
+    setToast(tr('forgot'))
+    if (cardRef.current) speakTarget(cardRef.current, deck)
+  })
 
   function goNext() {
     setFlipped(false)
     setAutoForgot(false)
+    ratedRef.current = false
     setIdx((n) => n + 1)
   }
 
   if (!deck) return <Empty icon={<Layers />} title={tr('noDecks')} />
   if (!card) {
+    if (idx > 0) return <SessionDone deckId={deckId} />
     return (
       <Empty
         icon={<Layers size={36} />}
-        title={idx > 0 ? tr('sessionSuccess') : tr('noDueCards')}
+        title={tr('noDueCards')}
         action={
           <button className="btn" type="button" onClick={() => nav(`/cards/${deckId}`)}>
             {tr('backToDeck')}
@@ -943,8 +1022,8 @@ export function StudyPage() {
     )
   }
 
-  const prompt = swapped ? card.back : card.front
-  const answer = swapped ? card.front : card.back
+  const prompt = promptOf(card, swapped)
+  const answer = answerOf(card, swapped)
 
   return (
     <div className="stack">
@@ -957,13 +1036,8 @@ export function StudyPage() {
       <div className="muted">
         {Math.max(0, ids.length - idx)} {tr('remaining')}
       </div>
-      {!flipped ? <div className="fc-timer"><span /></div> : null}
+      <TimerBar show={!flipped} token={idx} />
       <div className="flash-card fc-review">
-        <div className="fc-swap">
-          <button className="icon-btn" type="button" onClick={() => setSwapped((v) => !v)} aria-label={tr('swapSides')}>
-            <ArrowLeftRight size={16} />
-          </button>
-        </div>
         {!flipped && cardImage(card) ? <img src={cardImage(card)} alt="" className="fc-hint" /> : null}
         <h2>{flipped ? answer : prompt}</h2>
         {flipped && card.example ? <p className="muted">{card.example}</p> : null}
@@ -974,7 +1048,6 @@ export function StudyPage() {
           className="btn block"
           type="button"
           onClick={() => {
-            if (timerRef.current) window.clearTimeout(timerRef.current)
             setFlipped(true)
             setAutoForgot(false)
           }}
@@ -992,6 +1065,7 @@ export function StudyPage() {
             type="button"
             onClick={async () => {
               await markForgot()
+              speakTarget(card, deck)
               setToast(tr('forgot'))
               goNext()
             }}
@@ -1003,6 +1077,7 @@ export function StudyPage() {
             type="button"
             onClick={async () => {
               await markRecalled()
+              speakTarget(card, deck)
               setToast(tr('recalled'))
               goNext()
             }}

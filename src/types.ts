@@ -117,6 +117,7 @@ export interface Deck {
   noteId?: string
   nativeLang: string
   targetLang: string
+  swapped?: boolean
   createdAt: number
   updatedAt: number
 }
