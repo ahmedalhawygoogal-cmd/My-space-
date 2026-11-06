@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { FolderPlus, Mic, Pause, Play, Square, Trash2 } from 'lucide-react'
+import { FolderPlus, Mic, Pause, Play, Sparkles, Square, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
 import { AudioPlayer } from '../AudioPlayer'
 import { Confirm, Empty, Segment, Sheet, SubjectSelect, TagInput, Toast, useT } from '../ui'
@@ -17,6 +17,16 @@ import {
   WEB_AUDIO_CONSTRAINTS,
 } from '../record'
 import { formatDateTime, formatDuration, pickMime } from '../utils'
+
+const ENHANCE_KEY = 'myspace.enhanceAudio'
+
+function readEnhance(): boolean {
+  try {
+    return localStorage.getItem(ENHANCE_KEY) === '1'
+  } catch {
+    return false
+  }
+}
 
 export default function RecorderPage() {
   const tr = useT()
@@ -125,7 +135,7 @@ export default function RecorderPage() {
 export function LiveRecordPage() {
   const tr = useT()
   const nav = useNavigate()
-  const { addRecording, addFolder, folders } = useStore()
+  const { addRecording, addFolder, folders, lang } = useStore()
   const [status, setStatus] = useState<'idle' | 'live' | 'paused'>('idle')
   const [ms, setMs] = useState(0)
   const [name, setName] = useState('')
@@ -134,6 +144,8 @@ export function LiveRecordPage() {
   const [error, setError] = useState('')
   const [folderOpen, setFolderOpen] = useState(false)
   const [folderName, setFolderName] = useState('')
+  const [enhance, setEnhance] = useState(readEnhance)
+  const [nameOpen, setNameOpen] = useState(false)
   const recRef = useRef<MediaRecorder | null>(null)
   const nativeRef = useRef(false)
   const chunks = useRef<Blob[]>([])
@@ -148,6 +160,36 @@ export function LiveRecordPage() {
   const streamRef = useRef<MediaStream | null>(null)
   const ampBuf = useRef<number[]>(Array.from({ length: 80 }, () => 0.5))
   const saving = useRef(false)
+  const pending = useRef<{ blob: Blob; mimeType: string; durationMs: number } | null>(null)
+
+  function defaultRecName() {
+    const locale = lang === 'ar' ? 'ar-EG' : lang
+    return `${tr('newRecording')} - ${new Date().toLocaleTimeString(locale)}`
+  }
+
+  function setEnhancePersist(next: boolean) {
+    setEnhance(next)
+    try {
+      localStorage.setItem(ENHANCE_KEY, next ? '1' : '0')
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function releaseCapture() {
+    if (raf.current) {
+      cancelAnimationFrame(raf.current)
+      window.clearTimeout(raf.current)
+      raf.current = 0
+    }
+    recRef.current?.stream.getTracks().forEach((t) => t.stop())
+    streamRef.current?.getTracks().forEach((t) => t.stop())
+    void closeProcessedRecordingGraph(audioCtx.current)
+    recRef.current = null
+    streamRef.current = null
+    audioCtx.current = null
+    analyser.current = null
+  }
 
   useEffect(() => () => cleanup(), [])
 
@@ -238,7 +280,7 @@ export function LiveRecordPage() {
     streamRef.current = raw
     let graph
     try {
-      graph = await createProcessedRecordingGraph(raw)
+      graph = await createProcessedRecordingGraph(raw, { enhance })
     } catch {
       raw.getTracks().forEach((t) => t.stop())
       streamRef.current = null
@@ -322,7 +364,7 @@ export function LiveRecordPage() {
     setStatus('live')
   }
 
-  async function stopAndSave() {
+  async function stopAndPrompt() {
     if (saving.current) return
     if (!nativeRef.current && !recRef.current) return
     saving.current = true
@@ -352,23 +394,52 @@ export function LiveRecordPage() {
         blob = new Blob(chunks.current, { type: rec.mimeType || 'audio/webm' })
         mimeType = blob.type || 'audio/webm'
       }
+      pending.current = { blob, mimeType, durationMs }
+      releaseCapture()
+      setStatus('idle')
+      setName((prev) => prev.trim() || defaultRecName())
+      setNameOpen(true)
+      saving.current = false
+    } catch {
+      setError(tr('micError'))
+      saving.current = false
+    }
+  }
+
+  async function confirmSave() {
+    const data = pending.current
+    if (!data || saving.current) return
+    saving.current = true
+    try {
       const item = await addRecording(
         {
-          name: name.trim() || `${tr('recording')} ${new Date().toLocaleString()}`,
-          durationMs,
-          mimeType,
-          sizeBytes: blob.size,
+          name: name.trim() || defaultRecName(),
+          durationMs: data.durationMs,
+          mimeType: data.mimeType,
+          sizeBytes: data.blob.size,
           folderId,
           subjectId,
         },
-        blob,
+        data.blob,
       )
+      pending.current = null
+      setNameOpen(false)
       cleanup()
       nav(`/record/${item.id}`, { replace: true })
     } catch {
       setError(tr('micError'))
       saving.current = false
     }
+  }
+
+  function cancelSave() {
+    pending.current = null
+    setNameOpen(false)
+    cleanup()
+    setStatus('idle')
+    setMs(0)
+    setName('')
+    saving.current = false
   }
 
   return (
@@ -383,6 +454,17 @@ export function LiveRecordPage() {
         <div className="muted">{status === 'live' ? tr('recording') : status === 'paused' ? tr('paused') : tr('record')}</div>
         <div className="rec-time">{formatDuration(ms)}</div>
         <canvas ref={canvas} className="wave" />
+        <button
+          className={`choice-chip ${enhance ? 'active' : ''}`}
+          type="button"
+          onClick={() => status === 'idle' && setEnhancePersist(!enhance)}
+          style={{ marginTop: 14 }}
+          aria-pressed={enhance}
+          disabled={status !== 'idle'}
+        >
+          <Sparkles size={14} />
+          {tr('enhanceAudio')}
+        </button>
         <div className="row" style={{ marginTop: 18, gap: 16 }}>
           {status !== 'idle' && (
             <button className="icon-btn" type="button" onClick={status === 'live' ? pause : resume} aria-label={tr('pause')}>
@@ -392,16 +474,14 @@ export function LiveRecordPage() {
           <button
             className={`rec-btn ${status === 'live' ? 'live' : ''}`}
             type="button"
-            onClick={status === 'idle' ? start : stopAndSave}
-            aria-label={tr('record')}
+            onClick={status === 'idle' ? start : stopAndPrompt}
+            aria-label={status === 'idle' ? tr('record') : tr('stop')}
           >
             {status === 'idle' ? <Mic size={28} /> : <Square size={22} />}
           </button>
         </div>
         {error ? <p className="muted" style={{ color: 'var(--danger)' }}>{error}</p> : null}
       </div>
-      <label className="label">{tr('recName')}</label>
-      <input className="field" value={name} onChange={(e) => setName(e.target.value)} placeholder={tr('recNamePlaceholder')} />
       <label className="label">{tr('folder')}</label>
       <select
         className="field"
@@ -441,6 +521,23 @@ export function LiveRecordPage() {
         >
           {tr('create')}
         </button>
+      </Sheet>
+      <Sheet open={nameOpen} onClose={cancelSave} title={tr('recName')}>
+        <label className="label">{tr('recName')}</label>
+        <input
+          className="field"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder={tr('recNamePlaceholder')}
+        />
+        <div className="row" style={{ justifyContent: 'flex-end', gap: 8, marginTop: 14 }}>
+          <button className="btn ghost" type="button" onClick={cancelSave}>
+            {tr('cancel')}
+          </button>
+          <button className="btn accent" type="button" onClick={() => void confirmSave()}>
+            {tr('save')}
+          </button>
+        </div>
       </Sheet>
     </div>
   )

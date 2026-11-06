@@ -53,7 +53,12 @@ export interface ProcessedRecordingGraph {
   analyser: AnalyserNode
 }
 
-export async function createProcessedRecordingGraph(raw: MediaStream): Promise<ProcessedRecordingGraph> {
+const gateTimers = new WeakMap<AudioContext, number>()
+
+export async function createProcessedRecordingGraph(
+  raw: MediaStream,
+  opts?: { enhance?: boolean },
+): Promise<ProcessedRecordingGraph> {
   const context = new AudioContext({ sampleRate: 48000 })
   try {
     if (context.state === 'suspended') await context.resume()
@@ -75,8 +80,38 @@ export async function createProcessedRecordingGraph(raw: MediaStream): Promise<P
     source.connect(highpass)
     highpass.connect(compressor)
     compressor.connect(gain)
-    gain.connect(destination)
-    gain.connect(analyser)
+    let out: AudioNode = gain
+    if (opts?.enhance) {
+      const presence = context.createBiquadFilter()
+      presence.type = 'highshelf'
+      presence.frequency.value = 3200
+      presence.gain.value = 4.5
+      gain.connect(presence)
+      const gate = context.createGain()
+      gate.gain.value = 1
+      presence.connect(gate)
+      presence.connect(analyser)
+      gate.connect(destination)
+      out = gate
+      const data = new Uint8Array(analyser.fftSize)
+      const tick = () => {
+        if (context.state === 'closed') return
+        analyser.getByteTimeDomainData(data)
+        let sum = 0
+        for (let i = 0; i < data.length; i++) {
+          const v = (data[i] - 128) / 128
+          sum += v * v
+        }
+        const rms = Math.sqrt(sum / data.length)
+        gate.gain.setTargetAtTime(rms > 0.045 ? 1 : 0, context.currentTime, 0.04)
+        gateTimers.set(context, window.setTimeout(tick, 40))
+      }
+      tick()
+    }
+    if (out === gain) {
+      gain.connect(destination)
+      gain.connect(analyser)
+    }
     return { context, stream: destination.stream, analyser }
   } catch (err) {
     await context.close().catch(() => undefined)
@@ -86,6 +121,8 @@ export async function createProcessedRecordingGraph(raw: MediaStream): Promise<P
 
 export async function closeProcessedRecordingGraph(context: AudioContext | null | undefined): Promise<void> {
   if (!context) return
+  const timer = gateTimers.get(context)
+  if (timer) window.clearTimeout(timer)
   try {
     if (context.state !== 'closed') await context.close()
   } catch {
