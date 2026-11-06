@@ -106,6 +106,16 @@ export interface DownloadItem {
   createdAt: number
 }
 
+export interface QuoteCharacter {
+  id: string
+  name: string
+  story: string
+  challenge: string
+  quote: string
+  image?: string | Blob
+  createdAt?: number
+}
+
 export interface Deck {
   id: string
   name: string

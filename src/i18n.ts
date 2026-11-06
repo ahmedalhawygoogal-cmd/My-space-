@@ -361,6 +361,19 @@ const ar = {
   swapSides: 'تبديل الوجهين',
   sessionSuccess: 'تمت الجلسة بنجاح!',
   backToDeck: 'العودة للمجموعة',
+  motivateMe: 'حفزني',
+  motivateSubtitle: 'ابدأ يومك بطاقة إيجابية',
+  surpriseMe: 'فاجئني',
+  favorites: 'المفضلة',
+  favorited: 'تمت الإضافة للمفضلة',
+  unfavorited: 'تمت الإزالة من المفضلة',
+  readMore: 'اقرأ المزيد',
+  addCharacter: 'إضافة شخصية',
+  story: 'القصة',
+  challenge: 'التحدي',
+  quote: 'الاقتباس',
+  uploadImage: 'رفع صورة',
+  noCharacters: 'لا توجد شخصيات',
 }
 
 const en: Record<keyof typeof ar, string> = {
@@ -724,6 +737,19 @@ const en: Record<keyof typeof ar, string> = {
   swapSides: 'Swap sides',
   sessionSuccess: 'Session completed successfully!',
   backToDeck: 'Back to deck',
+  motivateMe: 'Motivate Me',
+  motivateSubtitle: 'Start your day with positive energy',
+  surpriseMe: 'Surprise Me',
+  favorites: 'Favorites',
+  favorited: 'Added to favorites',
+  unfavorited: 'Removed from favorites',
+  readMore: 'Read More',
+  addCharacter: 'Add Character',
+  story: 'Story',
+  challenge: 'Challenge',
+  quote: 'Quote',
+  uploadImage: 'Upload Image',
+  noCharacters: 'No characters',
 }
 
 const fr: Record<keyof typeof ar, string> = {
@@ -1087,6 +1113,19 @@ const fr: Record<keyof typeof ar, string> = {
   swapSides: 'Inverser les faces',
   sessionSuccess: 'Session terminée avec succès !',
   backToDeck: 'Retour au paquet',
+  motivateMe: 'Motivate Me',
+  motivateSubtitle: 'Start your day with positive energy',
+  surpriseMe: 'Surprise Me',
+  favorites: 'Favorites',
+  favorited: 'Added to favorites',
+  unfavorited: 'Removed from favorites',
+  readMore: 'Read More',
+  addCharacter: 'Add Character',
+  story: 'Story',
+  challenge: 'Challenge',
+  quote: 'Quote',
+  uploadImage: 'Upload Image',
+  noCharacters: 'No characters',
 }
 
 const de: Record<keyof typeof ar, string> = {
@@ -1450,6 +1489,19 @@ const de: Record<keyof typeof ar, string> = {
   swapSides: 'Seiten tauschen',
   sessionSuccess: 'Sitzung erfolgreich abgeschlossen!',
   backToDeck: 'Zurück zum Stapel',
+  motivateMe: 'Motivate Me',
+  motivateSubtitle: 'Start your day with positive energy',
+  surpriseMe: 'Surprise Me',
+  favorites: 'Favorites',
+  favorited: 'Added to favorites',
+  unfavorited: 'Removed from favorites',
+  readMore: 'Read More',
+  addCharacter: 'Add Character',
+  story: 'Story',
+  challenge: 'Challenge',
+  quote: 'Quote',
+  uploadImage: 'Upload Image',
+  noCharacters: 'No characters',
 }
 
 const es: Record<keyof typeof ar, string> = {
@@ -1813,6 +1865,19 @@ const es: Record<keyof typeof ar, string> = {
   swapSides: 'Intercambiar caras',
   sessionSuccess: '¡Sesión completada con éxito!',
   backToDeck: 'Volver al mazo',
+  motivateMe: 'Motivate Me',
+  motivateSubtitle: 'Start your day with positive energy',
+  surpriseMe: 'Surprise Me',
+  favorites: 'Favorites',
+  favorited: 'Added to favorites',
+  unfavorited: 'Removed from favorites',
+  readMore: 'Read More',
+  addCharacter: 'Add Character',
+  story: 'Story',
+  challenge: 'Challenge',
+  quote: 'Quote',
+  uploadImage: 'Upload Image',
+  noCharacters: 'No characters',
 }
 
 const tr: Record<keyof typeof ar, string> = {
@@ -2176,6 +2241,19 @@ const tr: Record<keyof typeof ar, string> = {
   swapSides: 'Yüzleri değiştir',
   sessionSuccess: 'Oturum başarıyla tamamlandı!',
   backToDeck: 'Desteye dön',
+  motivateMe: 'Motivate Me',
+  motivateSubtitle: 'Start your day with positive energy',
+  surpriseMe: 'Surprise Me',
+  favorites: 'Favorites',
+  favorited: 'Added to favorites',
+  unfavorited: 'Removed from favorites',
+  readMore: 'Read More',
+  addCharacter: 'Add Character',
+  story: 'Story',
+  challenge: 'Challenge',
+  quote: 'Quote',
+  uploadImage: 'Upload Image',
+  noCharacters: 'No characters',
 }
 
 const it: Record<keyof typeof ar, string> = {
@@ -2539,6 +2617,19 @@ const it: Record<keyof typeof ar, string> = {
   swapSides: 'Inverti i lati',
   sessionSuccess: 'Sessione completata con successo!',
   backToDeck: 'Torna al mazzo',
+  motivateMe: 'Motivate Me',
+  motivateSubtitle: 'Start your day with positive energy',
+  surpriseMe: 'Surprise Me',
+  favorites: 'Favorites',
+  favorited: 'Added to favorites',
+  unfavorited: 'Removed from favorites',
+  readMore: 'Read More',
+  addCharacter: 'Add Character',
+  story: 'Story',
+  challenge: 'Challenge',
+  quote: 'Quote',
+  uploadImage: 'Upload Image',
+  noCharacters: 'No characters',
 }
 
 const ru: Record<keyof typeof ar, string> = {
@@ -2902,6 +2993,19 @@ const ru: Record<keyof typeof ar, string> = {
   swapSides: 'Поменять стороны',
   sessionSuccess: 'Сессия успешно завершена!',
   backToDeck: 'К колоде',
+  motivateMe: 'Motivate Me',
+  motivateSubtitle: 'Start your day with positive energy',
+  surpriseMe: 'Surprise Me',
+  favorites: 'Favorites',
+  favorited: 'Added to favorites',
+  unfavorited: 'Removed from favorites',
+  readMore: 'Read More',
+  addCharacter: 'Add Character',
+  story: 'Story',
+  challenge: 'Challenge',
+  quote: 'Quote',
+  uploadImage: 'Upload Image',
+  noCharacters: 'No characters',
 }
 
 const zh: Record<keyof typeof ar, string> = {
@@ -3265,6 +3369,19 @@ const zh: Record<keyof typeof ar, string> = {
   swapSides: '交换正反面',
   sessionSuccess: '本轮已顺利完成！',
   backToDeck: '返回卡组',
+  motivateMe: 'Motivate Me',
+  motivateSubtitle: 'Start your day with positive energy',
+  surpriseMe: 'Surprise Me',
+  favorites: 'Favorites',
+  favorited: 'Added to favorites',
+  unfavorited: 'Removed from favorites',
+  readMore: 'Read More',
+  addCharacter: 'Add Character',
+  story: 'Story',
+  challenge: 'Challenge',
+  quote: 'Quote',
+  uploadImage: 'Upload Image',
+  noCharacters: 'No characters',
 }
 
 const ja: Record<keyof typeof ar, string> = {
@@ -3628,6 +3745,19 @@ const ja: Record<keyof typeof ar, string> = {
   swapSides: '表裏を入れ替え',
   sessionSuccess: 'セッションが完了しました！',
   backToDeck: 'デッキに戻る',
+  motivateMe: 'Motivate Me',
+  motivateSubtitle: 'Start your day with positive energy',
+  surpriseMe: 'Surprise Me',
+  favorites: 'Favorites',
+  favorited: 'Added to favorites',
+  unfavorited: 'Removed from favorites',
+  readMore: 'Read More',
+  addCharacter: 'Add Character',
+  story: 'Story',
+  challenge: 'Challenge',
+  quote: 'Quote',
+  uploadImage: 'Upload Image',
+  noCharacters: 'No characters',
 }
 
 const ko: Record<keyof typeof ar, string> = {
@@ -3991,6 +4121,19 @@ const ko: Record<keyof typeof ar, string> = {
   swapSides: '앞뒤 바꾸기',
   sessionSuccess: '세션이 성공적으로 완료되었습니다!',
   backToDeck: '덱으로 돌아가기',
+  motivateMe: 'Motivate Me',
+  motivateSubtitle: 'Start your day with positive energy',
+  surpriseMe: 'Surprise Me',
+  favorites: 'Favorites',
+  favorited: 'Added to favorites',
+  unfavorited: 'Removed from favorites',
+  readMore: 'Read More',
+  addCharacter: 'Add Character',
+  story: 'Story',
+  challenge: 'Challenge',
+  quote: 'Quote',
+  uploadImage: 'Upload Image',
+  noCharacters: 'No characters',
 }
 
 const pt: Record<keyof typeof ar, string> = {
@@ -4354,6 +4497,19 @@ const pt: Record<keyof typeof ar, string> = {
   swapSides: 'Trocar faces',
   sessionSuccess: 'Sessão concluída com sucesso!',
   backToDeck: 'Voltar ao baralho',
+  motivateMe: 'Motivate Me',
+  motivateSubtitle: 'Start your day with positive energy',
+  surpriseMe: 'Surprise Me',
+  favorites: 'Favorites',
+  favorited: 'Added to favorites',
+  unfavorited: 'Removed from favorites',
+  readMore: 'Read More',
+  addCharacter: 'Add Character',
+  story: 'Story',
+  challenge: 'Challenge',
+  quote: 'Quote',
+  uploadImage: 'Upload Image',
+  noCharacters: 'No characters',
 }
 
 const hi: Record<keyof typeof ar, string> = {
@@ -4717,6 +4873,19 @@ const hi: Record<keyof typeof ar, string> = {
   swapSides: 'पक्ष बदलें',
   sessionSuccess: 'सत्र सफलतापूर्वक पूरा हुआ!',
   backToDeck: 'डेक पर वापस',
+  motivateMe: 'Motivate Me',
+  motivateSubtitle: 'Start your day with positive energy',
+  surpriseMe: 'Surprise Me',
+  favorites: 'Favorites',
+  favorited: 'Added to favorites',
+  unfavorited: 'Removed from favorites',
+  readMore: 'Read More',
+  addCharacter: 'Add Character',
+  story: 'Story',
+  challenge: 'Challenge',
+  quote: 'Quote',
+  uploadImage: 'Upload Image',
+  noCharacters: 'No characters',
 }
 
 const ur: Record<keyof typeof ar, string> = {
@@ -5080,6 +5249,19 @@ const ur: Record<keyof typeof ar, string> = {
   swapSides: 'رخ تبدیل کریں',
   sessionSuccess: 'سیشن کامیابی سے مکمل ہوا!',
   backToDeck: 'ڈیک پر واپس',
+  motivateMe: 'Motivate Me',
+  motivateSubtitle: 'Start your day with positive energy',
+  surpriseMe: 'Surprise Me',
+  favorites: 'Favorites',
+  favorited: 'Added to favorites',
+  unfavorited: 'Removed from favorites',
+  readMore: 'Read More',
+  addCharacter: 'Add Character',
+  story: 'Story',
+  challenge: 'Challenge',
+  quote: 'Quote',
+  uploadImage: 'Upload Image',
+  noCharacters: 'No characters',
 }
 
 const fa: Record<keyof typeof ar, string> = {
@@ -5443,6 +5625,19 @@ const fa: Record<keyof typeof ar, string> = {
   swapSides: 'جابه‌جایی رویه‌ها',
   sessionSuccess: 'جلسه با موفقیت تمام شد!',
   backToDeck: 'بازگشت به دسته',
+  motivateMe: 'Motivate Me',
+  motivateSubtitle: 'Start your day with positive energy',
+  surpriseMe: 'Surprise Me',
+  favorites: 'Favorites',
+  favorited: 'Added to favorites',
+  unfavorited: 'Removed from favorites',
+  readMore: 'Read More',
+  addCharacter: 'Add Character',
+  story: 'Story',
+  challenge: 'Challenge',
+  quote: 'Quote',
+  uploadImage: 'Upload Image',
+  noCharacters: 'No characters',
 }
 
 const nl: Record<keyof typeof ar, string> = {
@@ -5806,6 +6001,19 @@ const nl: Record<keyof typeof ar, string> = {
   swapSides: 'Kanten wisselen',
   sessionSuccess: 'Sessie succesvol afgerond!',
   backToDeck: 'Terug naar het deck',
+  motivateMe: 'Motivate Me',
+  motivateSubtitle: 'Start your day with positive energy',
+  surpriseMe: 'Surprise Me',
+  favorites: 'Favorites',
+  favorited: 'Added to favorites',
+  unfavorited: 'Removed from favorites',
+  readMore: 'Read More',
+  addCharacter: 'Add Character',
+  story: 'Story',
+  challenge: 'Challenge',
+  quote: 'Quote',
+  uploadImage: 'Upload Image',
+  noCharacters: 'No characters',
 }
 
 const pl: Record<keyof typeof ar, string> = {
@@ -6169,6 +6377,19 @@ const pl: Record<keyof typeof ar, string> = {
   swapSides: 'Zamień strony',
   sessionSuccess: 'Sesja zakończona pomyślnie!',
   backToDeck: 'Wróć do talii',
+  motivateMe: 'Motivate Me',
+  motivateSubtitle: 'Start your day with positive energy',
+  surpriseMe: 'Surprise Me',
+  favorites: 'Favorites',
+  favorited: 'Added to favorites',
+  unfavorited: 'Removed from favorites',
+  readMore: 'Read More',
+  addCharacter: 'Add Character',
+  story: 'Story',
+  challenge: 'Challenge',
+  quote: 'Quote',
+  uploadImage: 'Upload Image',
+  noCharacters: 'No characters',
 }
 
 const id: Record<keyof typeof ar, string> = {
@@ -6532,6 +6753,19 @@ const id: Record<keyof typeof ar, string> = {
   swapSides: 'Tukar sisi',
   sessionSuccess: 'Sesi berhasil diselesaikan!',
   backToDeck: 'Kembali ke dek',
+  motivateMe: 'Motivate Me',
+  motivateSubtitle: 'Start your day with positive energy',
+  surpriseMe: 'Surprise Me',
+  favorites: 'Favorites',
+  favorited: 'Added to favorites',
+  unfavorited: 'Removed from favorites',
+  readMore: 'Read More',
+  addCharacter: 'Add Character',
+  story: 'Story',
+  challenge: 'Challenge',
+  quote: 'Quote',
+  uploadImage: 'Upload Image',
+  noCharacters: 'No characters',
 }
 
 export type I18nKey = keyof typeof ar

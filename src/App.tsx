@@ -19,6 +19,7 @@ import SearchPage from './pages/Search'
 import SettingsPage from './pages/Settings'
 import DownloadsPage from './pages/Downloads'
 import OnboardingPage from './pages/Onboarding'
+import MotivateMePage from './pages/MotivateMe'
 import { getNative } from './native'
 import { t } from './i18n'
 
@@ -108,6 +109,7 @@ function Gate() {
         <Route path="/notes/:id" element={<NoteReadPage />} />
         <Route path="/notes/:id/edit" element={<NoteEditorPage />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/motivate" element={<MotivateMePage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/downloads" element={<DownloadsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

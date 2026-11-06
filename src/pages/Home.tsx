@@ -1,6 +1,5 @@
-import type { ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { BookOpen, CheckSquare, Layers, Mic, Play } from 'lucide-react'
+import { Mic, Play, Sparkles } from 'lucide-react'
 import { useStore } from '../store'
 import { Ring, useT } from '../ui'
 import { endOfDay, formatDate, startOfDay, weekdayLong } from '../utils'
@@ -70,12 +69,15 @@ export default function HomePage() {
         <Play size={18} />
       </button>
 
-      <div className="grid-2">
-        <Mod to="/record" icon={<Mic size={18} />} label={tr('recorder')} tone="rec" />
-        <Mod to="/cards" icon={<Layers size={18} />} label={tr('flashcards')} tone="cards" />
-        <Mod to="/tasks" icon={<CheckSquare size={18} />} label={tr('tasks')} tone="tasks" />
-        <Mod to="/notes" icon={<BookOpen size={18} />} label={tr('notebook')} tone="notes" />
-      </div>
+      <Link className="card pressable block bg-card text-foreground border-border" to="/motivate" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+        <div className="row" style={{ gap: 14, padding: 20 }}>
+          <Sparkles size={30} style={{ flexShrink: 0 }} />
+          <div className="grow">
+            <b style={{ fontSize: 20, fontWeight: 800, display: 'block', marginBottom: 4 }}>{tr('motivateMe')}</b>
+            <div className="muted" style={{ fontSize: 14 }}>{tr('motivateSubtitle')}</div>
+          </div>
+        </div>
+      </Link>
 
       <div className="stat-grid">
         <div className="stat">
@@ -96,16 +98,5 @@ export default function HomePage() {
         </div>
       </div>
     </div>
-  )
-}
-
-function Mod({ to, icon, label, tone }: { to: string; icon: ReactNode; label: string; tone: 'rec' | 'cards' | 'tasks' | 'notes' }) {
-  return (
-    <Link className="card pressable" to={to} style={{ textDecoration: 'none', color: 'inherit' }}>
-      <div className="row">
-        <div className={`mod-icon ${tone}`}>{icon}</div>
-        <b>{label}</b>
-      </div>
-    </Link>
   )
 }
