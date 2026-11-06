@@ -355,6 +355,12 @@ const ar = {
   frontFace: 'الوجه الأمامي',
   backFace: 'الوجه الخلفي',
   addCardBtn: 'إضافة بطاقة',
+  earlyReviewWarn: 'لم يحن وقت المراجعة بعد! المراجعة المبكرة قد تقلل من الفعالية.',
+  continueReview: 'استمرار',
+  dontShowAgain: 'لا تظهر هذه الرسالة مرة أخرى',
+  swapSides: 'تبديل الوجهين',
+  sessionSuccess: 'تمت الجلسة بنجاح!',
+  backToDeck: 'العودة للمجموعة',
 }
 
 const en: Record<keyof typeof ar, string> = {
@@ -712,6 +718,12 @@ const en: Record<keyof typeof ar, string> = {
   frontFace: 'Front',
   backFace: 'Back',
   addCardBtn: 'Add card',
+  earlyReviewWarn: 'It is not time to review yet! Reviewing early may reduce effectiveness.',
+  continueReview: 'Continue',
+  dontShowAgain: 'Do not show this message again',
+  swapSides: 'Swap sides',
+  sessionSuccess: 'Session completed successfully!',
+  backToDeck: 'Back to deck',
 }
 
 const fr: Record<keyof typeof ar, string> = {
@@ -1069,6 +1081,12 @@ const fr: Record<keyof typeof ar, string> = {
   frontFace: 'Recto',
   backFace: 'Verso',
   addCardBtn: 'Ajouter une carte',
+  earlyReviewWarn: "Ce n'est pas encore l'heure de réviser ! Une révision trop tôt peut réduire l'efficacité.",
+  continueReview: 'Continuer',
+  dontShowAgain: 'Ne plus afficher ce message',
+  swapSides: 'Inverser les faces',
+  sessionSuccess: 'Session terminée avec succès !',
+  backToDeck: 'Retour au paquet',
 }
 
 const de: Record<keyof typeof ar, string> = {
@@ -1426,6 +1444,12 @@ const de: Record<keyof typeof ar, string> = {
   frontFace: 'Vorderseite',
   backFace: 'Rückseite',
   addCardBtn: 'Karte hinzufügen',
+  earlyReviewWarn: 'Noch nicht Zeit zur Wiederholung! Zu frühes Üben kann die Wirkung verringern.',
+  continueReview: 'Weiter',
+  dontShowAgain: 'Diese Meldung nicht mehr anzeigen',
+  swapSides: 'Seiten tauschen',
+  sessionSuccess: 'Sitzung erfolgreich abgeschlossen!',
+  backToDeck: 'Zurück zum Stapel',
 }
 
 const es: Record<keyof typeof ar, string> = {
@@ -1783,6 +1807,12 @@ const es: Record<keyof typeof ar, string> = {
   frontFace: 'Anverso',
   backFace: 'Reverso',
   addCardBtn: 'Añadir tarjeta',
+  earlyReviewWarn: '¡Aún no es hora de repasar! Repasar demasiado pronto puede reducir la eficacia.',
+  continueReview: 'Continuar',
+  dontShowAgain: 'No volver a mostrar este mensaje',
+  swapSides: 'Intercambiar caras',
+  sessionSuccess: '¡Sesión completada con éxito!',
+  backToDeck: 'Volver al mazo',
 }
 
 const tr: Record<keyof typeof ar, string> = {
@@ -2140,6 +2170,12 @@ const tr: Record<keyof typeof ar, string> = {
   frontFace: 'Ön yüz',
   backFace: 'Arka yüz',
   addCardBtn: 'Kart ekle',
+  earlyReviewWarn: 'Henüz tekrar zamanı değil! Erken tekrar etkinliği azaltabilir.',
+  continueReview: 'Devam',
+  dontShowAgain: 'Bu mesajı bir daha gösterme',
+  swapSides: 'Yüzleri değiştir',
+  sessionSuccess: 'Oturum başarıyla tamamlandı!',
+  backToDeck: 'Desteye dön',
 }
 
 const it: Record<keyof typeof ar, string> = {
@@ -2497,6 +2533,12 @@ const it: Record<keyof typeof ar, string> = {
   frontFace: 'Fronte',
   backFace: 'Retro',
   addCardBtn: 'Aggiungi carta',
+  earlyReviewWarn: 'Non è ancora il momento di ripassare! Un ripasso troppo presto può ridurne l’efficacia.',
+  continueReview: 'Continua',
+  dontShowAgain: 'Non mostrare più questo messaggio',
+  swapSides: 'Inverti i lati',
+  sessionSuccess: 'Sessione completata con successo!',
+  backToDeck: 'Torna al mazzo',
 }
 
 const ru: Record<keyof typeof ar, string> = {
@@ -2854,6 +2896,12 @@ const ru: Record<keyof typeof ar, string> = {
   frontFace: 'Лицевая сторона',
   backFace: 'Обратная сторона',
   addCardBtn: 'Добавить карточку',
+  earlyReviewWarn: 'Ещё не время повторять! Раннее повторение может снизить эффективность.',
+  continueReview: 'Продолжить',
+  dontShowAgain: 'Больше не показывать это сообщение',
+  swapSides: 'Поменять стороны',
+  sessionSuccess: 'Сессия успешно завершена!',
+  backToDeck: 'К колоде',
 }
 
 const zh: Record<keyof typeof ar, string> = {
@@ -3211,6 +3259,12 @@ const zh: Record<keyof typeof ar, string> = {
   frontFace: '正面',
   backFace: '背面',
   addCardBtn: '添加卡片',
+  earlyReviewWarn: '还没到复习时间！过早复习可能会降低效果。',
+  continueReview: '继续',
+  dontShowAgain: '不再显示此消息',
+  swapSides: '交换正反面',
+  sessionSuccess: '本轮已顺利完成！',
+  backToDeck: '返回卡组',
 }
 
 const ja: Record<keyof typeof ar, string> = {
@@ -3568,6 +3622,12 @@ const ja: Record<keyof typeof ar, string> = {
   frontFace: '表面',
   backFace: '裏面',
   addCardBtn: 'カードを追加',
+  earlyReviewWarn: 'まだ復習の時間ではありません。早すぎる復習は効果を下げることがあります。',
+  continueReview: '続ける',
+  dontShowAgain: 'このメッセージを再表示しない',
+  swapSides: '表裏を入れ替え',
+  sessionSuccess: 'セッションが完了しました！',
+  backToDeck: 'デッキに戻る',
 }
 
 const ko: Record<keyof typeof ar, string> = {
@@ -3925,6 +3985,12 @@ const ko: Record<keyof typeof ar, string> = {
   frontFace: '앞면',
   backFace: '뒷면',
   addCardBtn: '카드 추가',
+  earlyReviewWarn: '아직 복습할 시간이 아닙니다! 너무 이른 복습은 효과를 낮출 수 있습니다.',
+  continueReview: '계속',
+  dontShowAgain: '이 메시지를 다시 표시하지 않기',
+  swapSides: '앞뒤 바꾸기',
+  sessionSuccess: '세션이 성공적으로 완료되었습니다!',
+  backToDeck: '덱으로 돌아가기',
 }
 
 const pt: Record<keyof typeof ar, string> = {
@@ -4282,6 +4348,12 @@ const pt: Record<keyof typeof ar, string> = {
   frontFace: 'Frente',
   backFace: 'Verso',
   addCardBtn: 'Adicionar cartão',
+  earlyReviewWarn: 'Ainda não é hora de rever! Rever cedo demais pode reduzir a eficácia.',
+  continueReview: 'Continuar',
+  dontShowAgain: 'Não mostrar esta mensagem novamente',
+  swapSides: 'Trocar faces',
+  sessionSuccess: 'Sessão concluída com sucesso!',
+  backToDeck: 'Voltar ao baralho',
 }
 
 const hi: Record<keyof typeof ar, string> = {
@@ -4639,6 +4711,12 @@ const hi: Record<keyof typeof ar, string> = {
   frontFace: 'आगे',
   backFace: 'पीछे',
   addCardBtn: 'कार्ड जोड़ें',
+  earlyReviewWarn: 'अभी समीक्षा का समय नहीं है! जल्दी समीक्षा प्रभाव कम कर सकती है।',
+  continueReview: 'जारी रखें',
+  dontShowAgain: 'यह संदेश फिर न दिखाएँ',
+  swapSides: 'पक्ष बदलें',
+  sessionSuccess: 'सत्र सफलतापूर्वक पूरा हुआ!',
+  backToDeck: 'डेक पर वापस',
 }
 
 const ur: Record<keyof typeof ar, string> = {
@@ -4996,6 +5074,12 @@ const ur: Record<keyof typeof ar, string> = {
   frontFace: 'سامنے',
   backFace: 'پیچھے',
   addCardBtn: 'کارڈ شامل کریں',
+  earlyReviewWarn: 'ابھی جائزے کا وقت نہیں! جلدی جائزہ مؤثریت کم کر سکتا ہے۔',
+  continueReview: 'جاری رکھیں',
+  dontShowAgain: 'یہ پیغام دوبارہ نہ دکھائیں',
+  swapSides: 'رخ تبدیل کریں',
+  sessionSuccess: 'سیشن کامیابی سے مکمل ہوا!',
+  backToDeck: 'ڈیک پر واپس',
 }
 
 const fa: Record<keyof typeof ar, string> = {
@@ -5353,6 +5437,12 @@ const fa: Record<keyof typeof ar, string> = {
   frontFace: 'رو',
   backFace: 'پشت',
   addCardBtn: 'افزودن کارت',
+  earlyReviewWarn: 'هنوز زمان مرور نرسیده! مرور زودهنگام ممکن است اثربخشی را کم کند.',
+  continueReview: 'ادامه',
+  dontShowAgain: 'این پیام را دیگر نشان نده',
+  swapSides: 'جابه‌جایی رویه‌ها',
+  sessionSuccess: 'جلسه با موفقیت تمام شد!',
+  backToDeck: 'بازگشت به دسته',
 }
 
 const nl: Record<keyof typeof ar, string> = {
@@ -5710,6 +5800,12 @@ const nl: Record<keyof typeof ar, string> = {
   frontFace: 'Voorkant',
   backFace: 'Achterkant',
   addCardBtn: 'Kaart toevoegen',
+  earlyReviewWarn: 'Het is nog geen tijd om te herhalen! Te vroeg herhalen kan de werking verminderen.',
+  continueReview: 'Doorgaan',
+  dontShowAgain: 'Dit bericht niet meer tonen',
+  swapSides: 'Kanten wisselen',
+  sessionSuccess: 'Sessie succesvol afgerond!',
+  backToDeck: 'Terug naar het deck',
 }
 
 const pl: Record<keyof typeof ar, string> = {
@@ -6067,6 +6163,12 @@ const pl: Record<keyof typeof ar, string> = {
   frontFace: 'Przód',
   backFace: 'Tył',
   addCardBtn: 'Dodaj kartę',
+  earlyReviewWarn: 'Jeszcze nie czas na powtórkę! Zbyt wczesna powtórka może obniżyć skuteczność.',
+  continueReview: 'Kontynuuj',
+  dontShowAgain: 'Nie pokazuj więcej tego komunikatu',
+  swapSides: 'Zamień strony',
+  sessionSuccess: 'Sesja zakończona pomyślnie!',
+  backToDeck: 'Wróć do talii',
 }
 
 const id: Record<keyof typeof ar, string> = {
@@ -6424,6 +6526,12 @@ const id: Record<keyof typeof ar, string> = {
   frontFace: 'Depan',
   backFace: 'Belakang',
   addCardBtn: 'Tambah kartu',
+  earlyReviewWarn: 'Belum waktunya mengulas! Ulasan terlalu awal dapat mengurangi efektivitas.',
+  continueReview: 'Lanjut',
+  dontShowAgain: 'Jangan tampilkan pesan ini lagi',
+  swapSides: 'Tukar sisi',
+  sessionSuccess: 'Sesi berhasil diselesaikan!',
+  backToDeck: 'Kembali ke dek',
 }
 
 export type I18nKey = keyof typeof ar

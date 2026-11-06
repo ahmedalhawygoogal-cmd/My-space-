@@ -243,7 +243,8 @@ function normalizeCard(raw: Card): Card {
     imageBlob: image,
     imageDataUrl: image,
     status: raw.status ?? 'new',
-    ease: raw.ease || 2.5,
+    ease: raw.easeFactor || raw.ease || 2.5,
+    easeFactor: raw.easeFactor || raw.ease || 2.5,
     interval: raw.interval || 0,
     repetitions: raw.repetitions || 0,
     reviews: raw.reviews ?? raw.repetitions ?? 0,
@@ -254,81 +255,53 @@ function normalizeCard(raw: Card): Card {
   }
 }
 
-function applyAnswer(card: Card, correct: boolean): Card {
+function applySm2(card: Card, recalled: boolean): Card {
   const t = now()
-  if (!correct) {
-    const mistakes = (card.mistakes || 0) + 1
-    return {
-      ...card,
-      mistakes,
-      lapses: (card.lapses || 0) + 1,
-      repetitions: 0,
-      interval: 0,
-      ease: Math.max(1.3, (card.ease || 2.5) - 0.2),
-      status: 'learning',
-      dueAt: t,
-      nextReviewDate: t,
-      updatedAt: t,
-    }
+  let easeFactor = card.easeFactor || card.ease || 2.5
+  let interval = card.interval || 0
+  let repetitions = card.repetitions || 0
+  let lapses = card.lapses || 0
+  let mistakes = card.mistakes || 0
+  let status = card.status
+  if (!recalled) {
+    repetitions = 0
+    interval = 1
+    easeFactor = Math.max(1.3, easeFactor - 0.2)
+    lapses += 1
+    mistakes += 1
+    status = 'learning'
+  } else {
+    repetitions += 1
+    if (repetitions === 1) interval = 1
+    else if (repetitions === 2) interval = 6
+    else interval = Math.max(1, Math.round(interval * easeFactor))
+    easeFactor = Math.min(2.5, easeFactor + 0.1)
+    mistakes = Math.max(0, mistakes - 1)
+    status = repetitions >= 3 ? 'learned' : 'review'
   }
-  const mistakes = Math.max(0, (card.mistakes || 0) - 1)
-  const repetitions = (card.repetitions || 0) + 1
-  const ease = Math.min(3.2, (card.ease || 2.5) + 0.08)
-  const due = t + Math.max(1, 8 - mistakes) * 60 * 1000
+  const due = startOfDay(t) + interval * 24 * 60 * 60 * 1000
   return {
     ...card,
-    mistakes,
+    ease: easeFactor,
+    easeFactor,
+    interval,
     repetitions,
     reviews: (card.reviews || 0) + 1,
-    ease,
-    status: mistakes === 0 && repetitions >= 3 ? 'learned' : 'review',
+    lapses,
+    mistakes,
+    status,
     dueAt: due,
     nextReviewDate: due,
     updatedAt: t,
   }
 }
 
+function applyAnswer(card: Card, correct: boolean): Card {
+  return applySm2(card, correct)
+}
+
 function schedule(card: Card, rating: CardRating): Card {
-  const t = now()
-  let { ease, interval, repetitions, lapses, status } = card
-  ease = ease || 2.5
-  if (rating === 'again') {
-    repetitions = 0
-    interval = 0
-    ease = Math.max(1.3, ease - 0.2)
-    lapses += 1
-    status = 'learning'
-    const due = t + 1 * 24 * 60 * 60 * 1000
-    return { ...card, ease, interval: 1, repetitions, reviews: (card.reviews || 0) + 1, lapses, status, dueAt: due, nextReviewDate: due, updatedAt: t }
-  }
-  if (rating === 'hard') {
-    interval = 1
-    ease = Math.max(1.3, ease - 0.15)
-    repetitions += 1
-    status = 'review'
-  } else if (rating === 'good') {
-    interval = 3
-    repetitions += 1
-    status = repetitions >= 3 ? 'learned' : 'review'
-  } else {
-    interval = 7
-    ease += 0.15
-    repetitions += 1
-    status = 'learned'
-  }
-  const due = startOfDay(t) + interval * 24 * 60 * 60 * 1000
-  return {
-    ...card,
-    ease,
-    interval,
-    repetitions,
-    reviews: (card.reviews || 0) + 1,
-    lapses,
-    status,
-    dueAt: due,
-    nextReviewDate: due,
-    updatedAt: t,
-  }
+  return applySm2(card, rating !== 'again')
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {
@@ -376,7 +349,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     })
     const cardWrites = cardsN.filter((_, idx) => {
       const raw = cards[idx]
-      return !raw || typeof raw.mistakes !== 'number' || raw.exampleTranslation === undefined || raw.note === undefined || raw.nextReviewDate === undefined || (raw.imageDataUrl && !raw.imageBlob)
+      return !raw || typeof raw.mistakes !== 'number' || raw.exampleTranslation === undefined || raw.note === undefined || raw.nextReviewDate === undefined || raw.easeFactor === undefined || (raw.imageDataUrl && !raw.imageBlob)
     })
     const taskWrites = tasksN.filter((_, idx) => {
       const raw = tasks[idx]
@@ -701,6 +674,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       imageDataUrl: image,
       status: 'new',
       ease: 2.5,
+      easeFactor: 2.5,
       interval: 0,
       repetitions: 0,
       reviews: 0,

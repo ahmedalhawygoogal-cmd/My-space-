@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowRight, Ear, Layers, LayoutGrid, Pencil, PenLine, Play, Plus, Trash2, Volume2 } from 'lucide-react'
+import { ArrowLeftRight, ArrowRight, Ear, Layers, LayoutGrid, Pencil, PenLine, Play, Plus, Trash2, Volume2 } from 'lucide-react'
 import { useStore } from '../store'
 import { Confirm, Empty, Sheet, Toast, useT } from '../ui'
 import type { ReactNode } from 'react'
 import type { AppSettings, Card, Deck, DeckType, Lang } from '../types'
 import { DECK_TYPES, LEARN_LANGS, NATIVE_LANG_OPTS, TARGET_LANG_OPTS, isRichDeck, labeled } from '../types'
-import { addDays, fileToDataUrl, normalizeAnswer, shuffle, speakText, startOfDay } from '../utils'
+import { fileToDataUrl, normalizeAnswer, shuffle, speakText } from '../utils'
 
 function langLabel(code: string, ui: Lang, custom?: string) {
   if (!code) return ''
@@ -146,6 +146,17 @@ function CardForm({
   )
 }
 
+const SKIP_EARLY_KEY = 'myspace-skip-early-review'
+
+function dueCount(list: Card[]) {
+  const t = Date.now()
+  return list.filter((c) => (c.nextReviewDate || c.dueAt) <= t).length
+}
+
+function speakCorrect(card: Card, deck?: Deck) {
+  speakText(card.back, deck?.targetLang || 'en')
+}
+
 function PlayRing({ due, total, onClick, label }: { due: number; total: number; onClick: () => void; label: string }) {
   const r = 18
   const c = 2 * Math.PI * r
@@ -169,7 +180,60 @@ function PlayRing({ due, total, onClick, label }: { due: number; total: number; 
       <span className="fc-play-icon">
         <Play size={16} fill="currentColor" />
       </span>
+      {due > 0 ? <span className="fc-play-dot" /> : null}
     </button>
+  )
+}
+
+function SessionDone({ deckId }: { deckId: string }) {
+  const tr = useT()
+  const nav = useNavigate()
+  return (
+    <div className="stack">
+      <div className="card game-done">
+        <h2>{tr('sessionSuccess')}</h2>
+        <button className="btn block" type="button" onClick={() => nav(`/cards/${deckId}`)}>
+          {tr('backToDeck')}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function EarlyReviewDialog({
+  open,
+  onClose,
+  onContinue,
+}: {
+  open: boolean
+  onClose: () => void
+  onContinue: (dontShow: boolean) => void
+}) {
+  const tr = useT()
+  const [dontShow, setDontShow] = useState(false)
+  useEffect(() => {
+    if (open) setDontShow(false)
+  }, [open])
+  if (!open) return null
+  return (
+    <div className="sheet-backdrop" onClick={onClose}>
+      <div className="dialog" onClick={(e) => e.stopPropagation()}>
+        <h3 style={{ marginTop: 0 }}>{tr('review')}</h3>
+        <p className="muted">{tr('earlyReviewWarn')}</p>
+        <label className="check-row">
+          <input type="checkbox" checked={dontShow} onChange={(e) => setDontShow(e.target.checked)} />
+          {tr('dontShowAgain')}
+        </label>
+        <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>
+          <button className="btn ghost" type="button" onClick={onClose}>
+            {tr('cancel')}
+          </button>
+          <button className="btn" type="button" onClick={() => onContinue(dontShow)}>
+            {tr('continueReview')}
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -303,7 +367,17 @@ export function DeckPage() {
   const [open, setOpen] = useState(false)
   const [edit, setEdit] = useState<Card | null>(null)
   const [confirm, setConfirm] = useState(false)
+  const [early, setEarly] = useState(false)
   const [form, setForm] = useState<CardFormState>(emptyForm)
+
+  function startReview() {
+    if (!deck) return
+    if (dc.length === 0 || dueCount(dc) > 0 || localStorage.getItem(SKIP_EARLY_KEY) === '1') {
+      nav(`/cards/${deck.id}/study`)
+      return
+    }
+    setEarly(true)
+  }
   const rich = isRichDeck(deck?.type)
   const frontFromLang = nativeName(settings, lang)
   const backFromLang = targetName(settings, lang, deck)
@@ -365,7 +439,7 @@ export function DeckPage() {
         >
           <Plus size={16} /> {tr('addCardBtn')}
         </button>
-        <button className="btn secondary" type="button" onClick={() => nav(`/cards/${deck.id}/study`)}>
+        <button className="btn secondary" type="button" onClick={startReview}>
           {tr('review')}
         </button>
       </div>
@@ -413,6 +487,15 @@ export function DeckPage() {
         onConfirm={async () => {
           await deleteDeck(deck.id)
           nav('/cards')
+        }}
+      />
+      <EarlyReviewDialog
+        open={early}
+        onClose={() => setEarly(false)}
+        onContinue={(dontShow) => {
+          if (dontShow) localStorage.setItem(SKIP_EARLY_KEY, '1')
+          setEarly(false)
+          nav(`/cards/${deck.id}/study`)
         }}
       />
     </div>
@@ -474,8 +557,11 @@ export function ChoiceGamePage() {
   const { pickCards, recordAnswer } = useStore()
   const [round, setRound] = useState(0)
   const [picked, setPicked] = useState<string | null>(null)
+  const [answered, setAnswered] = useState(0)
+  const [finished, setFinished] = useState(false)
   const live = useRef({ deck, dc, pickCards })
   live.current = { deck, dc, pickCards }
+  const total = dc.length
   const pack = useMemo(() => {
     const { deck: d, dc: list, pickCards: pick } = live.current
     if (!d || list.length < 4) return null
@@ -487,6 +573,7 @@ export function ChoiceGamePage() {
 
   if (!deck) return <Empty icon={<Layers />} title={tr('noDecks')} />
   if (dc.length < 4 || !pack) return <NeedCards n={4} deckId={deckId} />
+  if (finished) return <SessionDone deckId={deckId} />
 
   return (
     <GameShell title={tr('gameChoice')} hint={tr('gameChoiceHint')}>
@@ -506,7 +593,9 @@ export function ChoiceGamePage() {
               onClick={async () => {
                 const ok = o.id === pack.target.id
                 setPicked(o.id)
+                speakCorrect(pack.target, deck)
                 await recordAnswer(pack.target.id, ok)
+                setAnswered((n) => n + 1)
               }}
             >
               {cardImage(o) ? <img src={cardImage(o)} alt="" className="fc-opt" /> : null}
@@ -520,11 +609,15 @@ export function ChoiceGamePage() {
           className="btn block"
           type="button"
           onClick={() => {
+            if (answered >= total) {
+              setFinished(true)
+              return
+            }
             setPicked(null)
             setRound((n) => n + 1)
           }}
         >
-          {tr('next')}
+          {answered >= total ? tr('finish') : tr('next')}
         </button>
       ) : null}
     </GameShell>
@@ -536,6 +629,7 @@ export function MatchGamePage() {
   const { deck, dc, deckId } = useDeckCards()
   const { pickCards, recordAnswer } = useStore()
   const [round, setRound] = useState(0)
+  const [finished, setFinished] = useState(false)
   const live = useRef({ deck, dc, pickCards })
   live.current = { deck, dc, pickCards }
   const pack = useMemo(() => {
@@ -549,14 +643,18 @@ export function MatchGamePage() {
   const [selR, setSelR] = useState<string | null>(null)
   const [done, setDone] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
+  const totalRounds = Math.max(1, Math.ceil(dc.length / 4))
 
   if (!deck) return <Empty icon={<Layers />} title={tr('noDecks')} />
   if (dc.length < 4) return <NeedCards n={4} deckId={deckId} />
+  if (finished) return <SessionDone deckId={deckId} />
 
   async function tryMatch(l: string | null, r: string | null) {
     if (!l || !r || busy) return
     setBusy(true)
     const ok = l === r
+    const card = pack.find((c) => c.id === l)
+    if (card) speakCorrect(card, deck)
     await recordAnswer(l, ok)
     if (ok) setDone((d) => [...d, l])
     setSelL(null)
@@ -606,11 +704,15 @@ export function MatchGamePage() {
           className="btn block"
           type="button"
           onClick={() => {
+            if (round + 1 >= totalRounds) {
+              setFinished(true)
+              return
+            }
             setDone([])
             setRound((n) => n + 1)
           }}
         >
-          {tr('next')}
+          {round + 1 >= totalRounds ? tr('finish') : tr('next')}
         </button>
       ) : null}
     </GameShell>
@@ -624,15 +726,28 @@ export function WriteGamePage() {
   const [round, setRound] = useState(0)
   const [value, setValue] = useState('')
   const [result, setResult] = useState<'ok' | 'bad' | null>(null)
+  const [answered, setAnswered] = useState(0)
+  const [finished, setFinished] = useState(false)
   const live = useRef({ deck, dc, pickCards })
   live.current = { deck, dc, pickCards }
+  const total = dc.length
   const card = useMemo(() => {
     const { deck: d, pickCards: pick } = live.current
     return d && live.current.dc.length ? pick(d.id, 1)[0] : undefined
   }, [round, deckId])
 
+  async function grade() {
+    if (!card || !deck) return
+    const ok = normalizeAnswer(value) === normalizeAnswer(card.back)
+    setResult(ok ? 'ok' : 'bad')
+    speakCorrect(card, deck)
+    await recordAnswer(card.id, ok)
+    setAnswered((n) => n + 1)
+  }
+
   if (!deck) return <Empty icon={<Layers />} title={tr('noDecks')} />
   if (dc.length < 1 || !card) return <NeedCards n={1} deckId={deckId} />
+  if (finished) return <SessionDone deckId={deckId} />
 
   return (
     <GameShell title={tr('gameWrite')} hint={tr('gameWriteHint')}>
@@ -649,24 +764,12 @@ export function WriteGamePage() {
         onKeyDown={(e) => {
           if (e.key === 'Enter' && !result) {
             e.preventDefault()
-            void (async () => {
-              const ok = normalizeAnswer(value) === normalizeAnswer(card.back)
-              setResult(ok ? 'ok' : 'bad')
-              await recordAnswer(card.id, ok)
-            })()
+            void grade()
           }
         }}
       />
       {!result ? (
-        <button
-          className="btn block"
-          type="button"
-          onClick={async () => {
-            const ok = normalizeAnswer(value) === normalizeAnswer(card.back)
-            setResult(ok ? 'ok' : 'bad')
-            await recordAnswer(card.id, ok)
-          }}
-        >
+        <button className="btn block" type="button" onClick={() => void grade()}>
           {tr('check')}
         </button>
       ) : (
@@ -676,12 +779,16 @@ export function WriteGamePage() {
             className="btn block"
             type="button"
             onClick={() => {
+              if (answered >= total) {
+                setFinished(true)
+                return
+              }
               setValue('')
               setResult(null)
               setRound((n) => n + 1)
             }}
           >
-            {tr('next')}
+            {answered >= total ? tr('finish') : tr('next')}
           </button>
         </>
       )}
@@ -695,8 +802,11 @@ export function ListenGamePage() {
   const { pickCards, recordAnswer, settings } = useStore()
   const [round, setRound] = useState(0)
   const [picked, setPicked] = useState<string | null>(null)
+  const [answered, setAnswered] = useState(0)
+  const [finished, setFinished] = useState(false)
   const live = useRef({ deck, dc, pickCards })
   live.current = { deck, dc, pickCards }
+  const total = dc.length
   const pack = useMemo(() => {
     const { deck: d, dc: list, pickCards: pick } = live.current
     if (!d || list.length < 4) return null
@@ -708,6 +818,7 @@ export function ListenGamePage() {
 
   if (!deck) return <Empty icon={<Layers />} title={tr('noDecks')} />
   if (dc.length < 4 || !pack) return <NeedCards n={4} deckId={deckId} />
+  if (finished) return <SessionDone deckId={deckId} />
 
   const voiceLang = deck.targetLang || settings.targetLangs?.[0] || 'en'
 
@@ -732,7 +843,9 @@ export function ListenGamePage() {
               onClick={async () => {
                 const ok = o.id === pack.target.id
                 setPicked(o.id)
+                speakCorrect(pack.target, deck)
                 await recordAnswer(pack.target.id, ok)
+                setAnswered((n) => n + 1)
               }}
             >
               {o.back}
@@ -745,11 +858,15 @@ export function ListenGamePage() {
           className="btn block"
           type="button"
           onClick={() => {
+            if (answered >= total) {
+              setFinished(true)
+              return
+            }
             setPicked(null)
             setRound((n) => n + 1)
           }}
         >
-          {tr('next')}
+          {answered >= total ? tr('finish') : tr('next')}
         </button>
       ) : null}
     </GameShell>
@@ -760,7 +877,7 @@ export function StudyPage() {
   const tr = useT()
   const nav = useNavigate()
   const { deck, dc, deckId } = useDeckCards()
-  const { updateCard, cards } = useStore()
+  const { rateCard, cards } = useStore()
   const [ids] = useState(() => {
     const due = dc.filter((c) => (c.nextReviewDate || c.dueAt) <= Date.now()).sort((a, b) => (a.nextReviewDate || a.dueAt) - (b.nextReviewDate || b.dueAt))
     return (due.length ? due : dc).map((c) => c.id)
@@ -768,31 +885,36 @@ export function StudyPage() {
   const [idx, setIdx] = useState(0)
   const [flipped, setFlipped] = useState(false)
   const [autoForgot, setAutoForgot] = useState(false)
+  const [swapped, setSwapped] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const timerRef = useRef<number>(0)
+  const ratedRef = useRef(false)
   const card = cards.find((c) => c.id === ids[idx])
   const cardRef = useRef(card)
   cardRef.current = card
 
-  async function mark(days: number, target = cardRef.current) {
-    if (!target) return
-    const due = addDays(startOfDay(), days)
-    await updateCard(target.id, {
-      reviews: (target.reviews || 0) + 1,
-      nextReviewDate: due,
-      dueAt: due,
-    })
+  async function markForgot(target = cardRef.current) {
+    if (!target || ratedRef.current) return
+    ratedRef.current = true
+    await rateCard(target.id, 'again')
+  }
+
+  async function markRecalled(target = cardRef.current) {
+    if (!target || ratedRef.current) return
+    ratedRef.current = true
+    await rateCard(target.id, 'good')
   }
 
   useEffect(() => {
     setFlipped(false)
     setAutoForgot(false)
+    ratedRef.current = false
     const id = ids[idx]
     if (!id) return
     timerRef.current = window.setTimeout(() => {
       setFlipped(true)
       setAutoForgot(true)
-      void mark(1)
+      void markForgot()
       setToast(tr('forgot'))
     }, 5000)
     return () => {
@@ -811,15 +933,18 @@ export function StudyPage() {
     return (
       <Empty
         icon={<Layers size={36} />}
-        title={idx > 0 ? tr('sessionDone') : tr('noDueCards')}
+        title={idx > 0 ? tr('sessionSuccess') : tr('noDueCards')}
         action={
           <button className="btn" type="button" onClick={() => nav(`/cards/${deckId}`)}>
-            {tr('back')}
+            {tr('backToDeck')}
           </button>
         }
       />
     )
   }
+
+  const prompt = swapped ? card.back : card.front
+  const answer = swapped ? card.front : card.back
 
   return (
     <div className="stack">
@@ -834,8 +959,13 @@ export function StudyPage() {
       </div>
       {!flipped ? <div className="fc-timer"><span /></div> : null}
       <div className="flash-card fc-review">
+        <div className="fc-swap">
+          <button className="icon-btn" type="button" onClick={() => setSwapped((v) => !v)} aria-label={tr('swapSides')}>
+            <ArrowLeftRight size={16} />
+          </button>
+        </div>
         {!flipped && cardImage(card) ? <img src={cardImage(card)} alt="" className="fc-hint" /> : null}
-        <h2>{flipped ? card.back : card.front}</h2>
+        <h2>{flipped ? answer : prompt}</h2>
         {flipped && card.example ? <p className="muted">{card.example}</p> : null}
         {flipped && card.note ? <p className="muted">{card.note}</p> : null}
       </div>
@@ -861,7 +991,7 @@ export function StudyPage() {
             className="btn forgot"
             type="button"
             onClick={async () => {
-              await mark(1)
+              await markForgot()
               setToast(tr('forgot'))
               goNext()
             }}
@@ -872,7 +1002,7 @@ export function StudyPage() {
             className="btn recalled"
             type="button"
             onClick={async () => {
-              await mark(3)
+              await markRecalled()
               setToast(tr('recalled'))
               goNext()
             }}

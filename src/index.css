@@ -849,6 +849,17 @@ img { max-width: 100%; }
   color: var(--brand);
   flex-shrink: 0;
 }
+.fc-play-dot {
+  position: absolute;
+  top: 4px;
+  inset-inline-end: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--danger);
+  border: 2px solid var(--bg-elev);
+  pointer-events: none;
+}
 .fc-play svg { display: block; }
 .fc-play-icon {
   position: absolute;
@@ -929,7 +940,33 @@ img { max-width: 100%; }
   margin-inline-end: 8px;
   vertical-align: middle;
 }
-.fc-review { min-height: 220px; display: grid; place-items: center; text-align: center; }
+.fc-review {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+}
+.fc-swap {
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 8px;
+}
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  margin: 12px 0 4px;
+}
+.check-row input { accent-color: var(--brand); }
+.game-done {
+  text-align: center;
+  padding: 28px 12px;
+}
+.game-done h2 { margin: 0 0 16px; }
 
 @media (min-width: 860px) {
   .app-shell { max-width: 480px; margin: 0 auto; border-inline: 1px solid var(--line); }

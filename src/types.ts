@@ -138,6 +138,7 @@ export interface Card {
   imageDataUrl?: string
   status: CardStatus
   ease: number
+  easeFactor: number
   interval: number
   repetitions: number
   dueAt: number
