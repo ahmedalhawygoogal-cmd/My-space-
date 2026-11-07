@@ -59,8 +59,10 @@ interface StoreApi extends StoreState {
   addRecording: (rec: Omit<Recording, 'id' | 'createdAt' | 'updatedAt' | 'noteIds' | 'tags' | 'description'> & Partial<Recording>, blob: Blob) => Promise<Recording>
   updateRecording: (id: string, p: Partial<Recording>) => Promise<void>
   replaceAudioBlob: (id: string, blob: Blob, extra?: Partial<Recording>) => Promise<void>
+  enhanceRecordingAudio: (id: string, blob: Blob, extra?: Partial<Recording>) => Promise<void>
   deleteRecording: (id: string) => Promise<void>
   getAudioBlob: (id: string) => Promise<Blob | undefined>
+  getOriginalAudioBlob: (id: string) => Promise<Blob | undefined>
   addDownload: (name: string, blob: Blob, mimeType?: string) => Promise<DownloadItem>
   getDownloadBlob: (id: string) => Promise<Blob | undefined>
   deleteDownload: (id: string) => Promise<void>
@@ -221,6 +223,7 @@ function normalizeRecording(raw: Recording & { distance?: unknown }): Recording 
     description: raw.description ?? '',
     tags: raw.tags ?? [],
     noteIds: raw.noteIds ?? [],
+    enhanced: !!raw.enhanced,
   }
 }
 
@@ -583,6 +586,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const deleteRecording = useCallback(async (id: string) => {
     await db.deleteById(STORES.recordings, id)
     await db.deleteById(STORES.audioBlobs, id)
+    await db.deleteById(STORES.originalAudioBlobs, id)
     setState((s) => ({
       ...s,
       recordings: s.recordings.filter((x) => x.id !== id),
@@ -612,8 +616,37 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [state.recordings, patchList],
   )
 
+  const enhanceRecordingAudio = useCallback(
+    async (id: string, blob: Blob, extra?: Partial<Recording>) => {
+      const cur = state.recordings.find((x) => x.id === id)
+      if (!cur) return
+      const existingOriginal = await db.getById<{ id: string; blob: Blob }>(STORES.originalAudioBlobs, id)
+      if (!existingOriginal) {
+        const current = await db.getById<{ id: string; blob: Blob }>(STORES.audioBlobs, id)
+        if (current?.blob) await db.putOne(STORES.originalAudioBlobs, { id, blob: current.blob })
+      }
+      const next: Recording = {
+        ...cur,
+        ...extra,
+        mimeType: extra?.mimeType || blob.type || cur.mimeType,
+        sizeBytes: extra?.sizeBytes ?? blob.size,
+        enhanced: true,
+        updatedAt: now(),
+      }
+      await db.putOne(STORES.audioBlobs, { id, blob })
+      await db.putOne(STORES.recordings, next)
+      patchList('recordings', id, next)
+    },
+    [state.recordings, patchList],
+  )
+
   const getAudioBlob = useCallback(async (id: string) => {
     const row = await db.getById<{ id: string; blob: Blob }>(STORES.audioBlobs, id)
+    return row?.blob
+  }, [])
+
+  const getOriginalAudioBlob = useCallback(async (id: string) => {
+    const row = await db.getById<{ id: string; blob: Blob }>(STORES.originalAudioBlobs, id)
     return row?.blob
   }, [])
 
@@ -1112,8 +1145,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addRecording,
       updateRecording,
       replaceAudioBlob,
+      enhanceRecordingAudio,
       deleteRecording,
       getAudioBlob,
+      getOriginalAudioBlob,
       addDownload,
       getDownloadBlob,
       deleteDownload,
@@ -1157,8 +1192,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addRecording,
       updateRecording,
       replaceAudioBlob,
+      enhanceRecordingAudio,
       deleteRecording,
       getAudioBlob,
+      getOriginalAudioBlob,
       addDownload,
       getDownloadBlob,
       deleteDownload,

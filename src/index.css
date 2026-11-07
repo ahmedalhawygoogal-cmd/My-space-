@@ -254,6 +254,12 @@ img { max-width: 100%; }
 .btn.accent { background: var(--primary-color); color: var(--brand-ink); }
 .btn.block { width: 100%; }
 .btn:disabled { opacity: 0.5; }
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 
 .field {
   width: 100%;

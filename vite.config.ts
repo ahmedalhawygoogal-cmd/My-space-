@@ -46,7 +46,8 @@ if (!native) {
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,woff2,png,ico}'],
+        globPatterns: ['**/*.{js,css,html,svg,woff2,png,ico,wasm}'],
+        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         navigateFallback: '/index.html',
         runtimeCaching: [
           {

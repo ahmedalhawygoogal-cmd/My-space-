@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ChevronDown, FolderPlus, Mic, Pause, Pencil, Play, Sparkles, Square, Trash2 } from 'lucide-react'
+import { ChevronDown, FolderPlus, Loader2, Mic, Pause, Pencil, Play, Sparkles, Square, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
 import { AudioPlayer } from '../AudioPlayer'
 import { Confirm, Empty, Segment, Sheet, SubjectSelect, TagInput, Toast, useT } from '../ui'
@@ -17,13 +17,13 @@ import {
   stopNativeRecording,
   WEB_AUDIO_CONSTRAINTS,
 } from '../record'
-import { enhanceAudioBlob } from '../enhanceAudio'
+
 import { formatDateTime, formatDuration, pickMime } from '../utils'
 
 function RecListCard({ rec }: { rec: Recording }) {
   const tr = useT()
   const nav = useNavigate()
-  const { subjects, lang, getAudioBlob, replaceAudioBlob, deleteRecording, addDownload } = useStore()
+  const { subjects, lang, getAudioBlob, getOriginalAudioBlob, enhanceRecordingAudio, deleteRecording, addDownload } = useStore()
   const [open, setOpen] = useState(false)
   const [url, setUrl] = useState<string>()
   const [confirm, setConfirm] = useState(false)
@@ -51,10 +51,11 @@ function RecListCard({ rec }: { rec: Recording }) {
     if (enhancing) return
     setEnhancing(true)
     try {
-      const src = await getAudioBlob(rec.id)
+      const src = (await getOriginalAudioBlob(rec.id)) || (await getAudioBlob(rec.id))
       if (!src) throw new Error('missing')
+      const { enhanceAudioBlob } = await import('../enhanceAudio')
       const next = await enhanceAudioBlob(src)
-      await replaceAudioBlob(rec.id, next.blob, {
+      await enhanceRecordingAudio(rec.id, next.blob, {
         mimeType: next.mimeType,
         durationMs: next.durationMs,
         sizeBytes: next.blob.size,
@@ -117,7 +118,7 @@ function RecListCard({ rec }: { rec: Recording }) {
               disabled={enhancing}
               style={{ marginTop: 12, width: '100%' }}
             >
-              <Sparkles size={16} />
+              {enhancing ? <Loader2 size={16} className="spin" /> : <Sparkles size={16} />}
               {enhancing ? tr('enhanceAudioBusy') : tr('enhanceAudio')}
             </button>
           </div>

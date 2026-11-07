@@ -89,6 +89,7 @@ export interface Recording {
   description: string
   tags: string[]
   noteIds: string[]
+  enhanced?: boolean
   createdAt: number
   updatedAt: number
 }

@@ -14,13 +14,14 @@ import type {
 import { DEFAULT_SETTINGS } from './types'
 
 const DB_NAME = 'myspace-db'
-const DB_VERSION = 3
+const DB_VERSION = 4
 
 export const STORES = {
   subjects: 'subjects',
   folders: 'folders',
   recordings: 'recordings',
   audioBlobs: 'audioBlobs',
+  originalAudioBlobs: 'originalAudioBlobs',
   decks: 'decks',
   cards: 'cards',
   tasks: 'tasks',
