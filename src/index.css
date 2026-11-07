@@ -426,6 +426,56 @@ img { max-width: 100%; }
   box-shadow: 0 10px 24px color-mix(in srgb, var(--primary-color) 35%, transparent);
 }
 .rec-btn.live { animation: pulse 1.4s ease-in-out infinite; }
+.rec-distance {
+  width: 100%;
+  margin-bottom: 8px;
+}
+.rec-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.rec-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+}
+.rec-card-body {
+  flex: 1;
+  min-width: 0;
+  text-align: start;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: inherit;
+}
+.rec-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.rec-card-panel {
+  border-top: 1px solid var(--line);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rec-card-panel .player {
+  padding: 10px;
+}
+.rec-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.icon-btn.chev.open svg {
+  transform: rotate(180deg);
+}
 @keyframes pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.04); }

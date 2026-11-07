@@ -20,6 +20,7 @@ import type {
   Link,
   Note,
   Notebook,
+  RecDistance,
   Recording,
   SearchHit,
   Subject,
@@ -211,6 +212,22 @@ function normalizeTask(raw: Task): Task {
   }
 }
 
+function normalizeDistance(raw?: string): RecDistance {
+  if (raw === 'near' || raw === 'far') return raw
+  return 'medium'
+}
+
+function normalizeRecording(raw: Recording): Recording {
+  return {
+    ...raw,
+    name: raw.name ?? '',
+    description: raw.description ?? '',
+    tags: raw.tags ?? [],
+    noteIds: raw.noteIds ?? [],
+    distance: normalizeDistance(raw.distance),
+  }
+}
+
 function normalizeNote(raw: Note): Note {
   return {
     ...raw,
@@ -337,6 +354,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         db.getAll<Link>(STORES.links),
         db.getAll<DownloadItem>(STORES.downloads),
       ])
+    const recordingsN = recordings.map(normalizeRecording)
+    const recWrites = recordingsN.filter((_, idx) => recordings[idx]?.distance === undefined)
     const cardsN = cards.map(normalizeCard)
     const decksN = decks.map((d) => {
       const n = normalizeDeck(d)
@@ -361,6 +380,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return !raw || raw.type === undefined || raw.color === undefined || raw.audioId === undefined
     })
     await Promise.all([
+      ...recWrites.map((r) => db.putOne(STORES.recordings, r)),
       ...deckWrites.map((d) => db.putOne(STORES.decks, d)),
       ...cardWrites.map((c) => db.putOne(STORES.cards, c)),
       ...taskWrites.map((tk) => db.putOne(STORES.tasks, tk)),
@@ -413,7 +433,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       settings: settingsN,
       subjects,
       folders,
-      recordings,
+      recordings: recordingsN,
       decks: decksN,
       cards: cardsN,
       tasks: tasksN,
@@ -545,6 +565,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         description: rec.description ?? '',
         tags: rec.tags ?? [],
         noteIds: rec.noteIds ?? [],
+        distance: normalizeDistance(rec.distance),
         createdAt: t,
         updatedAt: t,
       }

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { FolderPlus, Mic, Pause, Play, Sparkles, Square, Trash2 } from 'lucide-react'
+import { ChevronDown, FolderPlus, Mic, Pause, Pencil, Play, Sparkles, Square, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
 import { AudioPlayer } from '../AudioPlayer'
 import { Confirm, Empty, Segment, Sheet, SubjectSelect, TagInput, Toast, useT } from '../ui'
+import type { RecDistance, Recording } from '../types'
 import {
   cancelNativeRecording,
   closeProcessedRecordingGraph,
@@ -20,6 +21,125 @@ import { formatDateTime, formatDuration, pickMime } from '../utils'
 
 const ENHANCE_KEY = 'myspace.enhanceAudio'
 
+function RecDistanceSeg({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: RecDistance
+  onChange: (v: RecDistance) => void
+  disabled?: boolean
+}) {
+  const tr = useT()
+  return (
+    <div className="rec-distance">
+      <label className="label">{tr('recDistance')}</label>
+      <Segment
+        value={value}
+        onChange={(v) => {
+          if (disabled) return
+          onChange(v as RecDistance)
+        }}
+        options={[
+          { id: 'near', label: tr('distNear') },
+          { id: 'medium', label: tr('distMedium') },
+          { id: 'far', label: tr('distFar') },
+        ]}
+      />
+    </div>
+  )
+}
+
+function RecListCard({ rec }: { rec: Recording }) {
+  const tr = useT()
+  const nav = useNavigate()
+  const { subjects, lang, getAudioBlob, deleteRecording, addDownload } = useStore()
+  const [open, setOpen] = useState(false)
+  const [url, setUrl] = useState<string>()
+  const [confirm, setConfirm] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+  const sub = subjects.find((s) => s.id === rec.subjectId)
+
+  useEffect(() => {
+    if (!open) return
+    let alive = true
+    let objectUrl: string | undefined
+    void getAudioBlob(rec.id).then((blob) => {
+      if (!alive || !blob) return
+      objectUrl = URL.createObjectURL(blob)
+      setUrl(objectUrl)
+    })
+    return () => {
+      alive = false
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [open, rec.id, getAudioBlob])
+
+  return (
+    <div className="card rec-card">
+      <div className="rec-card-head">
+        <div className="dot" style={{ background: sub?.color ?? 'var(--accent)' }} />
+        <div className="rec-card-body grow">
+          <div className="ellipsis">{rec.name}</div>
+          <div className="meta">
+            {formatDuration(rec.durationMs)} · {formatDateTime(rec.createdAt, lang)}
+          </div>
+        </div>
+        <div className="rec-card-actions">
+          <button className="icon-btn" type="button" aria-label={tr('edit')} onClick={() => nav(`/record/${rec.id}`)}>
+            <Pencil size={16} />
+          </button>
+          <button className="icon-btn" type="button" aria-label={tr('delete')} onClick={() => setConfirm(true)}>
+            <Trash2 size={16} />
+          </button>
+          <button
+            className={`icon-btn chev ${open ? 'open' : ''}`}
+            type="button"
+            aria-expanded={open}
+            aria-label={tr('seeAll')}
+            onClick={() => setOpen((v) => !v)}
+          >
+            <ChevronDown size={16} />
+          </button>
+        </div>
+      </div>
+      {open ? (
+        <div className="rec-card-panel">
+          <AudioPlayer
+            src={url}
+            name={rec.name}
+            durationMs={rec.durationMs}
+            mimeType={rec.mimeType}
+            onArchive={async (blob) => {
+              await addDownload(rec.name, blob, rec.mimeType || blob.type)
+              setToast(tr('downloaded'))
+            }}
+          />
+          {rec.description ? <p className="muted" style={{ margin: 0 }}>{rec.description}</p> : null}
+          <div className="ellipsis" style={{ fontWeight: 700 }}>{rec.name}</div>
+          {rec.tags.length ? (
+            <div className="rec-card-tags">
+              {rec.tags.map((t) => (
+                <span key={t} className="chip">{t}</span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+      <Confirm
+        open={confirm}
+        title={tr('deleteRecConfirm')}
+        danger
+        onClose={() => setConfirm(false)}
+        onConfirm={async () => {
+          await deleteRecording(rec.id)
+        }}
+      />
+      <Toast text={toast} onDone={() => setToast(null)} />
+    </div>
+  )
+}
+
 function readEnhance(): boolean {
   try {
     return localStorage.getItem(ENHANCE_KEY) === '1'
@@ -31,7 +151,7 @@ function readEnhance(): boolean {
 export default function RecorderPage() {
   const tr = useT()
   const nav = useNavigate()
-  const { recordings, folders, subjects, addFolder, lang } = useStore()
+  const { recordings, folders, addFolder } = useStore()
   const [q, setQ] = useState('')
   const [sort, setSort] = useState<'date' | 'duration' | 'name'>('date')
   const [folderId, setFolderId] = useState<string | 'all'>('all')
@@ -93,20 +213,7 @@ export default function RecorderPage() {
       {list.length === 0 ? (
         <Empty icon={<Mic size={36} />} title={tr('noRecordings')} hint={tr('noRecordingsHint')} />
       ) : (
-        list.map((r) => {
-          const sub = subjects.find((s) => s.id === r.subjectId)
-          return (
-            <Link key={r.id} className="list-item pressable" to={`/record/${r.id}`}>
-              <div className="dot" style={{ background: sub?.color ?? 'var(--accent)' }} />
-              <div className="grow">
-                <div className="ellipsis">{r.name}</div>
-                <div className="meta">
-                  {formatDuration(r.durationMs)} · {formatDateTime(r.createdAt, lang)}
-                </div>
-              </div>
-            </Link>
-          )
-        })
+        list.map((r) => <RecListCard key={r.id} rec={r} />)
       )}
       <button className="fab accent" type="button" onClick={() => nav('/record/live')} aria-label={tr('record')}>
         <Mic size={22} />
@@ -145,6 +252,7 @@ export function LiveRecordPage() {
   const [folderOpen, setFolderOpen] = useState(false)
   const [folderName, setFolderName] = useState('')
   const [enhance, setEnhance] = useState(readEnhance)
+  const [distance, setDistance] = useState<RecDistance>('medium')
   const [nameOpen, setNameOpen] = useState(false)
   const recRef = useRef<MediaRecorder | null>(null)
   const nativeRef = useRef(false)
@@ -419,6 +527,7 @@ export function LiveRecordPage() {
           sizeBytes: data.blob.size,
           folderId,
           subjectId,
+          distance,
         },
         data.blob,
       )
@@ -465,6 +574,7 @@ export function LiveRecordPage() {
           <Sparkles size={14} />
           {tr('enhanceAudio')}
         </button>
+        <RecDistanceSeg value={distance} onChange={setDistance} />
         <div className="row" style={{ marginTop: 18, gap: 16 }}>
           {status !== 'idle' && (
             <button className="icon-btn" type="button" onClick={status === 'live' ? pause : resume} aria-label={tr('pause')}>
@@ -547,12 +657,17 @@ export function RecordingDetailPage() {
   const tr = useT()
   const nav = useNavigate()
   const { id } = useParams()
-  const { recordings, notes, notebooks, updateRecording, deleteRecording, getAudioBlob, addNote, addDownload, linkEntities, lang } = useStore()
+  const { recordings, notes, notebooks, updateRecording, getAudioBlob, addNote, addDownload, linkEntities, lang } = useStore()
   const rec = recordings.find((r) => r.id === id)
   const [url, setUrl] = useState<string>()
-  const [confirm, setConfirm] = useState(false)
   const [noteOpen, setNoteOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [tags, setTags] = useState<string[]>([])
+  const [subjectId, setSubjectId] = useState<string | undefined>()
+  const [distance, setDistance] = useState<RecDistance>('medium')
+  const loaded = useRef('')
 
   useEffect(() => {
     if (!id) return
@@ -569,9 +684,31 @@ export function RecordingDetailPage() {
     }
   }, [id, getAudioBlob])
 
+  useEffect(() => {
+    if (!rec || loaded.current === rec.id) return
+    loaded.current = rec.id
+    setName(rec.name)
+    setDescription(rec.description)
+    setTags(rec.tags)
+    setSubjectId(rec.subjectId)
+    setDistance(rec.distance || 'medium')
+  }, [rec])
+
   if (!rec) return <Empty icon={<Mic />} title={tr('noRecordings')} />
 
-  const linked = notes.filter((n) => rec.noteIds.includes(n.id) || n.recordingIds.includes(rec.id))
+  const item = rec
+  const linked = notes.filter((n) => item.noteIds.includes(n.id) || n.recordingIds.includes(item.id))
+
+  async function persist() {
+    await updateRecording(item.id, {
+      name: name.trim() || item.name,
+      description,
+      tags,
+      subjectId,
+      distance,
+    })
+    nav('/record')
+  }
 
   return (
     <div className="stack">
@@ -580,26 +717,27 @@ export function RecordingDetailPage() {
           {tr('back')}
         </button>
       </div>
-      <input className="note-title" value={rec.name} onChange={(e) => void updateRecording(rec.id, { name: e.target.value })} />
+      <input className="note-title" value={name} onChange={(e) => setName(e.target.value)} />
       <div className="muted">
-        {formatDateTime(rec.createdAt, lang)} · {formatDuration(rec.durationMs)}
+        {formatDateTime(item.createdAt, lang)} · {formatDuration(item.durationMs)}
       </div>
       <AudioPlayer
         src={url}
-        name={rec.name}
-        durationMs={rec.durationMs}
-        mimeType={rec.mimeType}
+        name={name || item.name}
+        durationMs={item.durationMs}
+        mimeType={item.mimeType}
         onArchive={async (blob) => {
-          await addDownload(rec.name, blob, rec.mimeType || blob.type)
+          await addDownload(name || item.name, blob, item.mimeType || blob.type)
           setToast(tr('downloaded'))
         }}
       />
+      <RecDistanceSeg value={distance} onChange={setDistance} />
       <label className="label">{tr('description')}</label>
-      <textarea className="field textarea" value={rec.description} onChange={(e) => void updateRecording(rec.id, { description: e.target.value })} />
+      <textarea className="field textarea" value={description} onChange={(e) => setDescription(e.target.value)} />
       <label className="label">{tr('tags')}</label>
-      <TagInput value={rec.tags} onChange={(tags) => void updateRecording(rec.id, { tags })} />
+      <TagInput value={tags} onChange={setTags} />
       <label className="label">{tr('subject')}</label>
-      <SubjectSelect value={rec.subjectId} onChange={(subjectId) => void updateRecording(rec.id, { subjectId })} />
+      <SubjectSelect value={subjectId} onChange={setSubjectId} />
       <div className="spread">
         <h3 style={{ margin: 0, fontSize: '1rem' }}>{tr('attachedNotes')}</h3>
         <button className="chip" type="button" onClick={() => setNoteOpen(true)}>
@@ -618,31 +756,21 @@ export function RecordingDetailPage() {
           const nb = notebooks[0]
           if (!nb) return
           const note = await addNote(nb.id, {
-            title: rec.name,
-            content: rec.description,
-            subjectId: rec.subjectId,
-            audioId: rec.id,
-            recordingIds: [rec.id],
+            title: name.trim() || item.name,
+            content: description,
+            subjectId,
+            audioId: item.id,
+            recordingIds: [item.id],
           })
-          await linkEntities('recording', rec.id, 'note', note.id)
+          await linkEntities('recording', item.id, 'note', note.id)
           nav(`/notes/${note.id}`)
         }}
       >
         {tr('createNoteFromRec')}
       </button>
-      <button className="btn danger block" type="button" onClick={() => setConfirm(true)}>
-        <Trash2 size={16} /> {tr('delete')}
+      <button className="btn block" type="button" onClick={() => void persist()}>
+        {tr('save')}
       </button>
-      <Confirm
-        open={confirm}
-        title={tr('deleteRecConfirm')}
-        danger
-        onClose={() => setConfirm(false)}
-        onConfirm={async () => {
-          await deleteRecording(rec.id)
-          nav('/record')
-        }}
-      />
       <Sheet open={noteOpen} onClose={() => setNoteOpen(false)} title={tr('attachToNote')}>
         {notes.map((n) => (
           <button
@@ -650,7 +778,7 @@ export function RecordingDetailPage() {
             className="list-item"
             type="button"
             onClick={async () => {
-              await linkEntities('recording', rec.id, 'note', n.id)
+              await linkEntities('recording', item.id, 'note', n.id)
               setNoteOpen(false)
             }}
           >
