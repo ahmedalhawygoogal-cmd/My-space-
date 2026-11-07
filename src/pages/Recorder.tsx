@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ChevronDown, FolderPlus, Mic, Pause, Pencil, Play, Sparkles, Square, Trash2 } from 'lucide-react'
+import { ChevronDown, FolderPlus, Mic, Pause, Pencil, Play, Square, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
 import { AudioPlayer } from '../AudioPlayer'
 import { Confirm, Empty, Segment, Sheet, SubjectSelect, TagInput, Toast, useT } from '../ui'
@@ -18,8 +18,6 @@ import {
   webAudioConstraints,
 } from '../record'
 import { formatDateTime, formatDuration, pickMime } from '../utils'
-
-const ENHANCE_KEY = 'myspace.enhanceAudio'
 
 function distLabel(tr: ReturnType<typeof useT>, d?: RecDistance) {
   if (d === 'near') return tr('distNear')
@@ -171,14 +169,6 @@ function RecListCard({ rec }: { rec: Recording }) {
   )
 }
 
-function readEnhance(): boolean {
-  try {
-    return localStorage.getItem(ENHANCE_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-
 export default function RecorderPage() {
   const tr = useT()
   const nav = useNavigate()
@@ -282,7 +272,6 @@ export function LiveRecordPage() {
   const [error, setError] = useState('')
   const [folderOpen, setFolderOpen] = useState(false)
   const [folderName, setFolderName] = useState('')
-  const [enhance, setEnhance] = useState(readEnhance)
   const [distance, setDistance] = useState<RecDistance>('medium')
   const [description, setDescription] = useState('')
   const [tags, setTags] = useState<string[]>([])
@@ -307,15 +296,6 @@ export function LiveRecordPage() {
   function defaultRecName() {
     const locale = lang === 'ar' ? 'ar-EG' : lang
     return `${tr('newRecording')} - ${new Date().toLocaleTimeString(locale)}`
-  }
-
-  function setEnhancePersist(next: boolean) {
-    setEnhance(next)
-    try {
-      localStorage.setItem(ENHANCE_KEY, next ? '1' : '0')
-    } catch {
-      /* ignore */
-    }
   }
 
   function releaseCapture() {
@@ -422,7 +402,7 @@ export function LiveRecordPage() {
     streamRef.current = raw
     let graph
     try {
-      graph = await createProcessedRecordingGraph(raw, { enhance, distance })
+      graph = await createProcessedRecordingGraph(raw, { distance })
     } catch {
       raw.getTracks().forEach((t) => t.stop())
       streamRef.current = null
@@ -456,7 +436,7 @@ export function LiveRecordPage() {
     try {
       if (isNativePlatform()) {
         nativeRef.current = true
-        await startNativeRecording({ distance, enhance })
+        await startNativeRecording({ distance })
         ampBuf.current = Array.from({ length: 80 }, () => 0.5)
         beginClock()
         void drawNative()
@@ -616,16 +596,6 @@ export function LiveRecordPage() {
         </div>
         <div className="rec-time text-5xl font-bold text-foreground">{formatDuration(ms)}</div>
         <canvas ref={canvas} className="wave" />
-        <button
-          className={`choice-chip ${enhance ? 'active' : ''}`}
-          type="button"
-          onClick={() => !busy && setEnhancePersist(!enhance)}
-          aria-pressed={enhance}
-          disabled={busy}
-        >
-          <Sparkles size={14} />
-          {tr('enhanceAudio')}
-        </button>
         <div className="row" style={{ marginTop: 18, gap: 16 }}>
           {busy && (
             <button className="icon-btn" type="button" onClick={status === 'live' ? pause : resume} aria-label={tr('pause')}>

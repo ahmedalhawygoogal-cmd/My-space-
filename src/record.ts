@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core'
 import { CapacitorAudioRecorder as AudioRecorder, type StartRecordingOptions } from '@capgo/capacitor-audio-recorder'
+import { startRecordingKeepAlive, stopRecordingKeepAlive } from './keepAlive'
 import type { RecDistance } from './types'
 import { base64ToBlob } from './utils'
 
@@ -91,9 +92,15 @@ export async function ensureMicPermission(): Promise<void> {
 
 export async function startNativeRecording(opts?: { distance?: RecDistance; enhance?: boolean }): Promise<void> {
   await ensureMicPermission()
-  await AudioRecorder.startRecording({
-    ...nativeRecordOpts(opts?.distance ?? 'medium', !!opts?.enhance),
-  } as StartRecordingOptions)
+  await startRecordingKeepAlive()
+  try {
+    await AudioRecorder.startRecording({
+      ...nativeRecordOpts(opts?.distance ?? 'medium', !!opts?.enhance),
+    } as StartRecordingOptions)
+  } catch (err) {
+    await stopRecordingKeepAlive()
+    throw err
+  }
 }
 
 export interface ProcessedRecordingGraph {
@@ -186,6 +193,7 @@ export async function cancelNativeRecording(): Promise<void> {
   } catch {
     /* ignore */
   }
+  await stopRecordingKeepAlive()
 }
 
 export async function nativeAmplitude(): Promise<number> {
@@ -223,11 +231,15 @@ export async function recordingToBlob(result: {
 }
 
 export async function stopNativeRecording(): Promise<{ blob: Blob; durationMs: number; mimeType: string }> {
-  const result = await AudioRecorder.stopRecording()
-  const blob = await recordingToBlob(result)
-  return {
-    blob,
-    durationMs: result.duration ?? 0,
-    mimeType: blob.type || NATIVE_AUDIO_MIME,
+  try {
+    const result = await AudioRecorder.stopRecording()
+    const blob = await recordingToBlob(result)
+    return {
+      blob,
+      durationMs: result.duration ?? 0,
+      mimeType: blob.type || NATIVE_AUDIO_MIME,
+    }
+  } finally {
+    await stopRecordingKeepAlive()
   }
 }
