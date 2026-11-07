@@ -108,19 +108,6 @@ export default function MotivateMePage() {
     }
   }
 
-  function surpriseMe() {
-    const pool = favoritesOnly
-      ? characters.filter((c) => favoriteIds.has(c.id))
-      : characters
-    if (!pool.length) {
-      setToast(tr('noCharacters'))
-      return
-    }
-    const pick = pool[Math.floor(Math.random() * pool.length)]
-    setToast(`"${textOf(pick, 'quote')}" — ${textOf(pick, 'name')}`)
-    setDetail(pick)
-  }
-
   async function saveCharacter() {
     if (!draft.name.trim() || !draft.quote.trim()) return
     const char: QuoteCharacter = {
@@ -165,9 +152,6 @@ export default function MotivateMePage() {
       </div>
 
       <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-        <button className="btn accent" type="button" onClick={surpriseMe}>
-          {tr('surpriseMe')}
-        </button>
         <button
           className={`btn ${favoritesOnly ? 'accent' : 'secondary'}`}
           type="button"

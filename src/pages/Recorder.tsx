@@ -21,6 +21,12 @@ import { formatDateTime, formatDuration, pickMime } from '../utils'
 
 const ENHANCE_KEY = 'myspace.enhanceAudio'
 
+function distLabel(tr: ReturnType<typeof useT>, d?: RecDistance) {
+  if (d === 'near') return tr('distNear')
+  if (d === 'far') return tr('distFar')
+  return tr('distMedium')
+}
+
 function RecDistanceSeg({
   value,
   onChange,
@@ -31,21 +37,29 @@ function RecDistanceSeg({
   disabled?: boolean
 }) {
   const tr = useT()
+  const opts: { id: RecDistance; label: string; hint: string }[] = [
+    { id: 'near', label: tr('distNear'), hint: tr('distNearHint') },
+    { id: 'medium', label: tr('distMedium'), hint: tr('distMediumHint') },
+    { id: 'far', label: tr('distFar'), hint: tr('distFarHint') },
+  ]
   return (
-    <div className="rec-distance">
-      <label className="label">{tr('recDistance')}</label>
-      <Segment
-        value={value}
-        onChange={(v) => {
-          if (disabled) return
-          onChange(v as RecDistance)
-        }}
-        options={[
-          { id: 'near', label: tr('distNear') },
-          { id: 'medium', label: tr('distMedium') },
-          { id: 'far', label: tr('distFar') },
-        ]}
-      />
+    <div className={`rec-distance ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
+      <label className="label text-muted-foreground">{tr('recDistance')}</label>
+      <div className="flex gap-3 rec-dist-grid">
+        {opts.map((o) => (
+          <button
+            key={o.id}
+            type="button"
+            className={`rec-dist-card bg-card border rounded-2xl p-4 ${value === o.id ? 'selected' : ''}`}
+            onClick={() => onChange(o.id)}
+            disabled={disabled}
+            aria-pressed={value === o.id}
+          >
+            <b className="text-foreground">{o.label}</b>
+            <span className="text-muted-foreground">{o.hint}</span>
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
@@ -76,13 +90,13 @@ function RecListCard({ rec }: { rec: Recording }) {
   }, [open, rec.id, getAudioBlob])
 
   return (
-    <div className="card rec-card">
+    <div className="card rec-card bg-card border">
       <div className="rec-card-head">
         <div className="dot" style={{ background: sub?.color ?? 'var(--accent)' }} />
         <div className="rec-card-body grow">
-          <div className="ellipsis">{rec.name}</div>
-          <div className="meta">
-            {formatDuration(rec.durationMs)} · {formatDateTime(rec.createdAt, lang)}
+          <div className="rec-card-title ellipsis text-foreground">{rec.name}</div>
+          <div className="rec-card-date">
+            {formatDateTime(rec.createdAt, lang)} · {formatDuration(rec.durationMs)}
           </div>
         </div>
         <div className="rec-card-actions">
@@ -105,25 +119,42 @@ function RecListCard({ rec }: { rec: Recording }) {
       </div>
       {open ? (
         <div className="rec-card-panel">
-          <AudioPlayer
-            src={url}
-            name={rec.name}
-            durationMs={rec.durationMs}
-            mimeType={rec.mimeType}
-            onArchive={async (blob) => {
-              await addDownload(rec.name, blob, rec.mimeType || blob.type)
-              setToast(tr('downloaded'))
-            }}
-          />
-          {rec.description ? <p className="muted" style={{ margin: 0 }}>{rec.description}</p> : null}
-          <div className="ellipsis" style={{ fontWeight: 700 }}>{rec.name}</div>
-          {rec.tags.length ? (
-            <div className="rec-card-tags">
-              {rec.tags.map((t) => (
-                <span key={t} className="chip">{t}</span>
-              ))}
+          <div className="rec-player-wrap bg-muted/50 rounded-xl p-4">
+            <AudioPlayer
+              src={url}
+              name={rec.name}
+              durationMs={rec.durationMs}
+              mimeType={rec.mimeType}
+              onArchive={async (blob) => {
+                await addDownload(rec.name, blob, rec.mimeType || blob.type)
+                setToast(tr('downloaded'))
+              }}
+            />
+          </div>
+          <div className="rec-card-meta">
+            <div className="rec-meta-row">
+              <div className="rec-meta-label text-muted-foreground">{tr('description')}:</div>
+              <div className="rec-meta-value text-foreground">{rec.description.trim() || tr('none')}</div>
             </div>
-          ) : null}
+            <div className="rec-meta-row">
+              <div className="rec-meta-label text-muted-foreground">{tr('tags')}:</div>
+              <div className="rec-meta-value text-foreground">
+                {rec.tags.length ? (
+                  <div className="rec-card-tags">
+                    {rec.tags.map((t) => (
+                      <span key={t} className="chip">{t}</span>
+                    ))}
+                  </div>
+                ) : (
+                  tr('none')
+                )}
+              </div>
+            </div>
+            <div className="rec-meta-row">
+              <div className="rec-meta-label text-muted-foreground">{tr('recDistance')}:</div>
+              <div className="rec-meta-value text-foreground">{distLabel(tr, rec.distance)}</div>
+            </div>
+          </div>
         </div>
       ) : null}
       <Confirm
@@ -178,7 +209,7 @@ export default function RecorderPage() {
   }, [recordings, folderId, q, sort])
 
   return (
-    <div className="stack">
+    <div className="stack rec-list">
       <div className="spread">
         <button className="chip" type="button" onClick={() => nav('/')}>
           {tr('back')}
@@ -253,7 +284,10 @@ export function LiveRecordPage() {
   const [folderName, setFolderName] = useState('')
   const [enhance, setEnhance] = useState(readEnhance)
   const [distance, setDistance] = useState<RecDistance>('medium')
-  const [nameOpen, setNameOpen] = useState(false)
+  const [description, setDescription] = useState('')
+  const [tags, setTags] = useState<string[]>([])
+  const [hasPending, setHasPending] = useState(false)
+  const [distLocked, setDistLocked] = useState(false)
   const recRef = useRef<MediaRecorder | null>(null)
   const nativeRef = useRef(false)
   const chunks = useRef<Blob[]>([])
@@ -416,6 +450,8 @@ export function LiveRecordPage() {
   }
 
   async function start() {
+    if (hasPending) cancelSave()
+    setDistLocked(true)
     setError('')
     try {
       if (isNativePlatform()) {
@@ -430,6 +466,7 @@ export function LiveRecordPage() {
       await startWeb()
     } catch (err) {
       nativeRef.current = false
+      setDistLocked(false)
       const e = err as DOMException
       setError(e.name === 'NotAllowedError' ? tr('micDenied') : tr('micError'))
     }
@@ -506,7 +543,7 @@ export function LiveRecordPage() {
       releaseCapture()
       setStatus('idle')
       setName((prev) => prev.trim() || defaultRecName())
-      setNameOpen(true)
+      setHasPending(true)
       saving.current = false
     } catch {
       setError(tr('micError'))
@@ -527,12 +564,14 @@ export function LiveRecordPage() {
           sizeBytes: data.blob.size,
           folderId,
           subjectId,
+          description,
+          tags,
           distance,
         },
         data.blob,
       )
       pending.current = null
-      setNameOpen(false)
+      setHasPending(false)
       cleanup()
       nav(`/record/${item.id}`, { replace: true })
     } catch {
@@ -543,40 +582,52 @@ export function LiveRecordPage() {
 
   function cancelSave() {
     pending.current = null
-    setNameOpen(false)
+    setHasPending(false)
     cleanup()
     setStatus('idle')
     setMs(0)
     setName('')
+    setDescription('')
+    setTags([])
+    setDistLocked(false)
     saving.current = false
   }
+
+  const busy = status !== 'idle'
 
   return (
     <div className="stack">
       <div className="spread">
-        <button className="chip" type="button" onClick={() => nav('/record')}>
+        <button
+          className="chip"
+          type="button"
+          onClick={() => {
+            cancelSave()
+            nav('/record')
+          }}
+        >
           {tr('back')}
         </button>
       </div>
       <h1 className="page-title">{tr('newRecording')}</h1>
-      <div className="card rec-stage">
-        <div className="muted">{status === 'live' ? tr('recording') : status === 'paused' ? tr('paused') : tr('record')}</div>
-        <div className="rec-time">{formatDuration(ms)}</div>
+      <div className="card rec-stage bg-card border">
+        <div className="text-muted-foreground">
+          {status === 'live' ? tr('recording') : status === 'paused' ? tr('paused') : tr('record')}
+        </div>
+        <div className="rec-time text-5xl font-bold text-foreground">{formatDuration(ms)}</div>
         <canvas ref={canvas} className="wave" />
         <button
           className={`choice-chip ${enhance ? 'active' : ''}`}
           type="button"
-          onClick={() => status === 'idle' && setEnhancePersist(!enhance)}
-          style={{ marginTop: 14 }}
+          onClick={() => !busy && setEnhancePersist(!enhance)}
           aria-pressed={enhance}
-          disabled={status !== 'idle'}
+          disabled={busy}
         >
           <Sparkles size={14} />
           {tr('enhanceAudio')}
         </button>
-        <RecDistanceSeg value={distance} onChange={setDistance} />
         <div className="row" style={{ marginTop: 18, gap: 16 }}>
-          {status !== 'idle' && (
+          {busy && (
             <button className="icon-btn" type="button" onClick={status === 'live' ? pause : resume} aria-label={tr('pause')}>
               {status === 'live' ? <Pause size={18} /> : <Play size={18} />}
             </button>
@@ -587,39 +638,60 @@ export function LiveRecordPage() {
             onClick={status === 'idle' ? start : stopAndPrompt}
             aria-label={status === 'idle' ? tr('record') : tr('stop')}
           >
-            {status === 'idle' ? <Mic size={28} /> : <Square size={22} />}
+            {status === 'idle' ? <Mic size={32} /> : <Square size={26} />}
           </button>
         </div>
-        {error ? <p className="muted" style={{ color: 'var(--danger)' }}>{error}</p> : null}
+        {error ? <p className="text-muted-foreground">{error}</p> : null}
       </div>
-      <label className="label">{tr('folder')}</label>
-      <select
-        className="field"
-        value={folderId ?? ''}
-        onChange={(e) => {
-          if (e.target.value === '__new__') {
-            setFolderOpen(true)
-            return
-          }
-          setFolderId(e.target.value || undefined)
-        }}
+      <RecDistanceSeg value={distance} onChange={setDistance} disabled={busy || distLocked} />
+      <div className="rec-form bg-card border rounded-2xl p-4">
+        <label className="label text-muted-foreground">{tr('name')}</label>
+        <input
+          className="field"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder={tr('recNamePlaceholder')}
+        />
+        <label className="label text-muted-foreground">{tr('description')}</label>
+        <textarea className="field textarea" value={description} onChange={(e) => setDescription(e.target.value)} />
+        <label className="label text-muted-foreground">{tr('tags')}</label>
+        <TagInput value={tags} onChange={setTags} />
+        <label className="label text-muted-foreground">{tr('folder')}</label>
+        <select
+          className="field"
+          value={folderId ?? ''}
+          onChange={(e) => {
+            if (e.target.value === '__new__') {
+              setFolderOpen(true)
+              return
+            }
+            setFolderId(e.target.value || undefined)
+          }}
+        >
+          <option value="">{tr('none')}</option>
+          {folders.map((f) => (
+            <option key={f.id} value={f.id}>
+              {f.name}
+            </option>
+          ))}
+          <option value="__new__">{tr('createNewFolder')}</option>
+        </select>
+        <label className="label text-muted-foreground">{tr('subject')}</label>
+        <SubjectSelect value={subjectId} onChange={setSubjectId} />
+      </div>
+      <button
+        className="btn block rec-save bg-primary text-primary-foreground"
+        type="button"
+        disabled={!hasPending}
+        onClick={() => void confirmSave()}
       >
-        <option value="">{tr('none')}</option>
-        {folders.map((f) => (
-          <option key={f.id} value={f.id}>
-            {f.name}
-          </option>
-        ))}
-        <option value="__new__">{tr('createNewFolder')}</option>
-      </select>
-      <label className="label">{tr('subject')}</label>
-      <SubjectSelect value={subjectId} onChange={setSubjectId} />
+        {tr('save')}
+      </button>
       <Sheet open={folderOpen} onClose={() => setFolderOpen(false)} title={tr('newFolder')}>
         <label className="label">{tr('name')}</label>
         <input className="field" value={folderName} onChange={(e) => setFolderName(e.target.value)} />
         <button
           className="btn block"
-          style={{ marginTop: 12 }}
           type="button"
           onClick={async () => {
             if (!folderName.trim()) return
@@ -631,23 +703,6 @@ export function LiveRecordPage() {
         >
           {tr('create')}
         </button>
-      </Sheet>
-      <Sheet open={nameOpen} onClose={cancelSave} title={tr('recName')}>
-        <label className="label">{tr('recName')}</label>
-        <input
-          className="field"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder={tr('recNamePlaceholder')}
-        />
-        <div className="row" style={{ justifyContent: 'flex-end', gap: 8, marginTop: 14 }}>
-          <button className="btn ghost" type="button" onClick={cancelSave}>
-            {tr('cancel')}
-          </button>
-          <button className="btn accent" type="button" onClick={() => void confirmSave()}>
-            {tr('save')}
-          </button>
-        </div>
       </Sheet>
     </div>
   )
@@ -717,29 +772,37 @@ export function RecordingDetailPage() {
           {tr('back')}
         </button>
       </div>
-      <input className="note-title" value={name} onChange={(e) => setName(e.target.value)} />
-      <div className="muted">
-        {formatDateTime(item.createdAt, lang)} · {formatDuration(item.durationMs)}
+      <div className="card rec-stage bg-card border">
+        <div className="text-muted-foreground">
+          {formatDateTime(item.createdAt, lang)}
+        </div>
+        <div className="rec-time text-5xl font-bold text-foreground">{formatDuration(item.durationMs)}</div>
+        <div className="rec-player-wrap bg-muted/50 rounded-xl p-4 w-full">
+          <AudioPlayer
+            src={url}
+            name={name || item.name}
+            durationMs={item.durationMs}
+            mimeType={item.mimeType}
+            onArchive={async (blob) => {
+              await addDownload(name || item.name, blob, item.mimeType || blob.type)
+              setToast(tr('downloaded'))
+            }}
+          />
+        </div>
       </div>
-      <AudioPlayer
-        src={url}
-        name={name || item.name}
-        durationMs={item.durationMs}
-        mimeType={item.mimeType}
-        onArchive={async (blob) => {
-          await addDownload(name || item.name, blob, item.mimeType || blob.type)
-          setToast(tr('downloaded'))
-        }}
-      />
       <RecDistanceSeg value={distance} onChange={setDistance} />
-      <label className="label">{tr('description')}</label>
-      <textarea className="field textarea" value={description} onChange={(e) => setDescription(e.target.value)} />
-      <label className="label">{tr('tags')}</label>
-      <TagInput value={tags} onChange={setTags} />
-      <label className="label">{tr('subject')}</label>
-      <SubjectSelect value={subjectId} onChange={setSubjectId} />
+      <div className="rec-form bg-card border rounded-2xl p-4">
+        <label className="label text-muted-foreground">{tr('name')}</label>
+        <input className="field" value={name} onChange={(e) => setName(e.target.value)} />
+        <label className="label text-muted-foreground">{tr('description')}</label>
+        <textarea className="field textarea" value={description} onChange={(e) => setDescription(e.target.value)} />
+        <label className="label text-muted-foreground">{tr('tags')}</label>
+        <TagInput value={tags} onChange={setTags} />
+        <label className="label text-muted-foreground">{tr('subject')}</label>
+        <SubjectSelect value={subjectId} onChange={setSubjectId} />
+      </div>
       <div className="spread">
-        <h3 style={{ margin: 0, fontSize: '1rem' }}>{tr('attachedNotes')}</h3>
+        <h3 className="text-foreground" style={{ margin: 0, fontSize: '1rem' }}>{tr('attachedNotes')}</h3>
         <button className="chip" type="button" onClick={() => setNoteOpen(true)}>
           {tr('attachToNote')}
         </button>
@@ -768,7 +831,7 @@ export function RecordingDetailPage() {
       >
         {tr('createNoteFromRec')}
       </button>
-      <button className="btn block" type="button" onClick={() => void persist()}>
+      <button className="btn block rec-save bg-primary text-primary-foreground" type="button" onClick={() => void persist()}>
         {tr('save')}
       </button>
       <Sheet open={noteOpen} onClose={() => setNoteOpen(false)} title={tr('attachToNote')}>
