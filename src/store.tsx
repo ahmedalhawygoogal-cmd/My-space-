@@ -59,6 +59,7 @@ interface StoreApi extends StoreState {
   deleteFolder: (id: string) => Promise<void>
   addRecording: (rec: Omit<Recording, 'id' | 'createdAt' | 'updatedAt' | 'noteIds' | 'tags' | 'description'> & Partial<Recording>, blob: Blob) => Promise<Recording>
   updateRecording: (id: string, p: Partial<Recording>) => Promise<void>
+  replaceAudioBlob: (id: string, blob: Blob, extra?: Partial<Recording>) => Promise<void>
   deleteRecording: (id: string) => Promise<void>
   getAudioBlob: (id: string) => Promise<Blob | undefined>
   addDownload: (name: string, blob: Blob, mimeType?: string) => Promise<DownloadItem>
@@ -599,6 +600,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }))
   }, [])
 
+  const replaceAudioBlob = useCallback(
+    async (id: string, blob: Blob, extra?: Partial<Recording>) => {
+      const cur = state.recordings.find((x) => x.id === id)
+      if (!cur) return
+      const next: Recording = {
+        ...cur,
+        ...extra,
+        mimeType: extra?.mimeType || blob.type || cur.mimeType,
+        sizeBytes: extra?.sizeBytes ?? blob.size,
+        updatedAt: now(),
+      }
+      await db.putOne(STORES.audioBlobs, { id, blob })
+      await db.putOne(STORES.recordings, next)
+      patchList('recordings', id, next)
+    },
+    [state.recordings, patchList],
+  )
+
   const getAudioBlob = useCallback(async (id: string) => {
     const row = await db.getById<{ id: string; blob: Blob }>(STORES.audioBlobs, id)
     return row?.blob
@@ -1098,6 +1117,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       deleteFolder,
       addRecording,
       updateRecording,
+      replaceAudioBlob,
       deleteRecording,
       getAudioBlob,
       addDownload,
@@ -1142,6 +1162,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       deleteFolder,
       addRecording,
       updateRecording,
+      replaceAudioBlob,
       deleteRecording,
       getAudioBlob,
       addDownload,

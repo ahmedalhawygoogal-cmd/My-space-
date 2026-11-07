@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ChevronDown, FolderPlus, Mic, Pause, Pencil, Play, Square, Trash2 } from 'lucide-react'
+import { ChevronDown, FolderPlus, Mic, Pause, Pencil, Play, Sparkles, Square, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
 import { AudioPlayer } from '../AudioPlayer'
 import { Confirm, Empty, Segment, Sheet, SubjectSelect, TagInput, Toast, useT } from '../ui'
@@ -17,6 +17,7 @@ import {
   stopNativeRecording,
   webAudioConstraints,
 } from '../record'
+import { enhanceAudioBlob } from '../enhanceAudio'
 import { formatDateTime, formatDuration, pickMime } from '../utils'
 
 function distLabel(tr: ReturnType<typeof useT>, d?: RecDistance) {
@@ -65,11 +66,13 @@ function RecDistanceSeg({
 function RecListCard({ rec }: { rec: Recording }) {
   const tr = useT()
   const nav = useNavigate()
-  const { subjects, lang, getAudioBlob, deleteRecording, addDownload } = useStore()
+  const { subjects, lang, getAudioBlob, replaceAudioBlob, deleteRecording, addDownload } = useStore()
   const [open, setOpen] = useState(false)
   const [url, setUrl] = useState<string>()
   const [confirm, setConfirm] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [enhancing, setEnhancing] = useState(false)
+  const [playerKey, setPlayerKey] = useState(0)
   const sub = subjects.find((s) => s.id === rec.subjectId)
 
   useEffect(() => {
@@ -85,7 +88,28 @@ function RecListCard({ rec }: { rec: Recording }) {
       alive = false
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [open, rec.id, getAudioBlob])
+  }, [open, rec.id, rec.updatedAt, getAudioBlob])
+
+  async function enhance() {
+    if (enhancing) return
+    setEnhancing(true)
+    try {
+      const src = await getAudioBlob(rec.id)
+      if (!src) throw new Error('missing')
+      const next = await enhanceAudioBlob(src)
+      await replaceAudioBlob(rec.id, next.blob, {
+        mimeType: next.mimeType,
+        durationMs: next.durationMs,
+        sizeBytes: next.blob.size,
+      })
+      setPlayerKey((k) => k + 1)
+      setToast(tr('enhanceAudioDone'))
+    } catch {
+      setToast(tr('enhanceAudioError'))
+    } finally {
+      setEnhancing(false)
+    }
+  }
 
   return (
     <div className="card rec-card bg-card border">
@@ -119,6 +143,7 @@ function RecListCard({ rec }: { rec: Recording }) {
         <div className="rec-card-panel">
           <div className="rec-player-wrap bg-muted/50 rounded-xl p-4">
             <AudioPlayer
+              key={playerKey}
               src={url}
               name={rec.name}
               durationMs={rec.durationMs}
@@ -128,6 +153,16 @@ function RecListCard({ rec }: { rec: Recording }) {
                 setToast(tr('downloaded'))
               }}
             />
+            <button
+              className="btn accent"
+              type="button"
+              onClick={() => void enhance()}
+              disabled={enhancing}
+              style={{ marginTop: 12, width: '100%' }}
+            >
+              <Sparkles size={16} />
+              {enhancing ? tr('enhanceAudioBusy') : tr('enhanceAudio')}
+            </button>
           </div>
           <div className="rec-card-meta">
             <div className="rec-meta-row">

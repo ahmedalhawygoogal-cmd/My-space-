@@ -243,6 +243,10 @@ img { max-width: 100%; }
   font-weight: 700;
   background: var(--brand);
   color: var(--brand-ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 .btn.secondary { background: var(--bg-muted); color: var(--ink); }
 .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
