@@ -4,7 +4,7 @@ import { ChevronDown, FolderPlus, Mic, Pause, Pencil, Play, Sparkles, Square, Tr
 import { useStore } from '../store'
 import { AudioPlayer } from '../AudioPlayer'
 import { Confirm, Empty, Segment, Sheet, SubjectSelect, TagInput, Toast, useT } from '../ui'
-import type { RecDistance, Recording } from '../types'
+import type { Recording } from '../types'
 import {
   cancelNativeRecording,
   closeProcessedRecordingGraph,
@@ -15,53 +15,10 @@ import {
   resumeNativeRecording,
   startNativeRecording,
   stopNativeRecording,
-  webAudioConstraints,
+  WEB_AUDIO_CONSTRAINTS,
 } from '../record'
 import { enhanceAudioBlob } from '../enhanceAudio'
 import { formatDateTime, formatDuration, pickMime } from '../utils'
-
-function distLabel(tr: ReturnType<typeof useT>, d?: RecDistance) {
-  if (d === 'near') return tr('distNear')
-  if (d === 'far') return tr('distFar')
-  return tr('distMedium')
-}
-
-function RecDistanceSeg({
-  value,
-  onChange,
-  disabled,
-}: {
-  value: RecDistance
-  onChange: (v: RecDistance) => void
-  disabled?: boolean
-}) {
-  const tr = useT()
-  const opts: { id: RecDistance; label: string; hint: string }[] = [
-    { id: 'near', label: tr('distNear'), hint: tr('distNearHint') },
-    { id: 'medium', label: tr('distMedium'), hint: tr('distMediumHint') },
-    { id: 'far', label: tr('distFar'), hint: tr('distFarHint') },
-  ]
-  return (
-    <div className={`rec-distance ${disabled ? 'opacity-50 pointer-events-none' : ''}`}>
-      <label className="label text-muted-foreground">{tr('recDistance')}</label>
-      <div className="flex gap-3 rec-dist-grid">
-        {opts.map((o) => (
-          <button
-            key={o.id}
-            type="button"
-            className={`rec-dist-card bg-card border rounded-2xl p-4 ${value === o.id ? 'selected' : ''}`}
-            onClick={() => onChange(o.id)}
-            disabled={disabled}
-            aria-pressed={value === o.id}
-          >
-            <b className="text-foreground">{o.label}</b>
-            <span className="text-muted-foreground">{o.hint}</span>
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
 
 function RecListCard({ rec }: { rec: Recording }) {
   const tr = useT()
@@ -183,10 +140,6 @@ function RecListCard({ rec }: { rec: Recording }) {
                 )}
               </div>
             </div>
-            <div className="rec-meta-row">
-              <div className="rec-meta-label text-muted-foreground">{tr('recDistance')}:</div>
-              <div className="rec-meta-value text-foreground">{distLabel(tr, rec.distance)}</div>
-            </div>
           </div>
         </div>
       ) : null}
@@ -307,11 +260,9 @@ export function LiveRecordPage() {
   const [error, setError] = useState('')
   const [folderOpen, setFolderOpen] = useState(false)
   const [folderName, setFolderName] = useState('')
-  const [distance, setDistance] = useState<RecDistance>('medium')
   const [description, setDescription] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [hasPending, setHasPending] = useState(false)
-  const [distLocked, setDistLocked] = useState(false)
   const recRef = useRef<MediaRecorder | null>(null)
   const nativeRef = useRef(false)
   const chunks = useRef<Blob[]>([])
@@ -430,14 +381,14 @@ export function LiveRecordPage() {
   async function startWeb() {
     let raw: MediaStream
     try {
-      raw = await navigator.mediaDevices.getUserMedia({ audio: webAudioConstraints(distance) })
+      raw = await navigator.mediaDevices.getUserMedia({ audio: WEB_AUDIO_CONSTRAINTS })
     } catch {
       raw = await navigator.mediaDevices.getUserMedia({ audio: true })
     }
     streamRef.current = raw
     let graph
     try {
-      graph = await createProcessedRecordingGraph(raw, { distance })
+      graph = await createProcessedRecordingGraph(raw)
     } catch {
       raw.getTracks().forEach((t) => t.stop())
       streamRef.current = null
@@ -466,12 +417,11 @@ export function LiveRecordPage() {
 
   async function start() {
     if (hasPending) cancelSave()
-    setDistLocked(true)
     setError('')
     try {
       if (isNativePlatform()) {
         nativeRef.current = true
-        await startNativeRecording({ distance })
+        await startNativeRecording()
         ampBuf.current = Array.from({ length: 80 }, () => 0.5)
         beginClock()
         void drawNative()
@@ -481,7 +431,6 @@ export function LiveRecordPage() {
       await startWeb()
     } catch (err) {
       nativeRef.current = false
-      setDistLocked(false)
       const e = err as DOMException
       setError(e.name === 'NotAllowedError' ? tr('micDenied') : tr('micError'))
     }
@@ -581,7 +530,6 @@ export function LiveRecordPage() {
           subjectId,
           description,
           tags,
-          distance,
         },
         data.blob,
       )
@@ -604,7 +552,6 @@ export function LiveRecordPage() {
     setName('')
     setDescription('')
     setTags([])
-    setDistLocked(false)
     saving.current = false
   }
 
@@ -648,7 +595,6 @@ export function LiveRecordPage() {
         </div>
         {error ? <p className="text-muted-foreground">{error}</p> : null}
       </div>
-      <RecDistanceSeg value={distance} onChange={setDistance} disabled={busy || distLocked} />
       <div className="rec-form bg-card border rounded-2xl p-4">
         <label className="label text-muted-foreground">{tr('name')}</label>
         <input
@@ -726,7 +672,6 @@ export function RecordingDetailPage() {
   const [description, setDescription] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [subjectId, setSubjectId] = useState<string | undefined>()
-  const [distance, setDistance] = useState<RecDistance>('medium')
   const loaded = useRef('')
 
   useEffect(() => {
@@ -751,7 +696,6 @@ export function RecordingDetailPage() {
     setDescription(rec.description)
     setTags(rec.tags)
     setSubjectId(rec.subjectId)
-    setDistance(rec.distance || 'medium')
   }, [rec])
 
   if (!rec) return <Empty icon={<Mic />} title={tr('noRecordings')} />
@@ -765,7 +709,6 @@ export function RecordingDetailPage() {
       description,
       tags,
       subjectId,
-      distance,
     })
     nav('/record')
   }
@@ -795,7 +738,6 @@ export function RecordingDetailPage() {
           />
         </div>
       </div>
-      <RecDistanceSeg value={distance} onChange={setDistance} />
       <div className="rec-form bg-card border rounded-2xl p-4">
         <label className="label text-muted-foreground">{tr('name')}</label>
         <input className="field" value={name} onChange={(e) => setName(e.target.value)} />

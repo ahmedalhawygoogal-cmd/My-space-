@@ -78,8 +78,6 @@ export interface Folder {
   updatedAt: number
 }
 
-export type RecDistance = 'near' | 'medium' | 'far'
-
 export interface Recording {
   id: string
   name: string
@@ -91,7 +89,6 @@ export interface Recording {
   description: string
   tags: string[]
   noteIds: string[]
-  distance: RecDistance
   createdAt: number
   updatedAt: number
 }

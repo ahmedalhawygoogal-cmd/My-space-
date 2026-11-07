@@ -20,7 +20,6 @@ import type {
   Link,
   Note,
   Notebook,
-  RecDistance,
   Recording,
   SearchHit,
   Subject,
@@ -213,19 +212,15 @@ function normalizeTask(raw: Task): Task {
   }
 }
 
-function normalizeDistance(raw?: string): RecDistance {
-  if (raw === 'near' || raw === 'far') return raw
-  return 'medium'
-}
-
-function normalizeRecording(raw: Recording): Recording {
+function normalizeRecording(raw: Recording & { distance?: unknown }): Recording {
+  const { distance: _distance, ...rest } = raw
+  void _distance
   return {
-    ...raw,
+    ...rest,
     name: raw.name ?? '',
     description: raw.description ?? '',
     tags: raw.tags ?? [],
     noteIds: raw.noteIds ?? [],
-    distance: normalizeDistance(raw.distance),
   }
 }
 
@@ -356,7 +351,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         db.getAll<DownloadItem>(STORES.downloads),
       ])
     const recordingsN = recordings.map(normalizeRecording)
-    const recWrites = recordingsN.filter((_, idx) => recordings[idx]?.distance === undefined)
+    const recWrites = recordingsN.filter((_, idx) => Object.prototype.hasOwnProperty.call(recordings[idx] ?? {}, 'distance'))
     const cardsN = cards.map(normalizeCard)
     const decksN = decks.map((d) => {
       const n = normalizeDeck(d)
@@ -566,7 +561,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         description: rec.description ?? '',
         tags: rec.tags ?? [],
         noteIds: rec.noteIds ?? [],
-        distance: normalizeDistance(rec.distance),
         createdAt: t,
         updatedAt: t,
       }

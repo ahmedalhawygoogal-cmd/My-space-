@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "build:native": "tsc -b && CAPACITOR=1 vite build",
-    "cap:sync": "npm run build:native && cap sync android",
+    "patch:audio": "node scripts/patch-audio-recorder.mjs",
+    "postinstall": "node scripts/patch-audio-recorder.mjs",
+    "cap:sync": "npm run build:native && node scripts/patch-audio-recorder.mjs && cap sync android && node scripts/patch-audio-recorder.mjs",
     "lint": "oxlint",
     "preview": "vite preview"
   },

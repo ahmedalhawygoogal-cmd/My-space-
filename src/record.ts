@@ -1,69 +1,28 @@
 import { Capacitor } from '@capacitor/core'
 import { CapacitorAudioRecorder as AudioRecorder, type StartRecordingOptions } from '@capgo/capacitor-audio-recorder'
 import { startRecordingKeepAlive, stopRecordingKeepAlive } from './keepAlive'
-import type { RecDistance } from './types'
 import { base64ToBlob } from './utils'
 
 export { AudioRecorder }
 
-export interface DistanceAudioProfile {
-  echoCancellation: boolean
-  noiseSuppression: boolean
-  autoGainControl: boolean
-  gain: number
-  compressorThreshold: number
-  compressorRatio: number
+export const WEB_AUDIO_CONSTRAINTS: MediaTrackConstraints = {
+  channelCount: 1,
+  noiseSuppression: false,
+  echoCancellation: false,
+  autoGainControl: false,
+  sampleRate: 48000,
 }
 
-export const DISTANCE_AUDIO: Record<RecDistance, DistanceAudioProfile> = {
-  near: {
-    echoCancellation: true,
-    noiseSuppression: true,
-    autoGainControl: true,
-    gain: 1.5,
-    compressorThreshold: -24,
-    compressorRatio: 12,
-  },
-  medium: {
-    echoCancellation: true,
-    noiseSuppression: true,
-    autoGainControl: true,
-    gain: 2.5,
-    compressorThreshold: -30,
-    compressorRatio: 8,
-  },
-  far: {
-    echoCancellation: false,
-    noiseSuppression: false,
-    autoGainControl: true,
-    gain: 4,
-    compressorThreshold: -40,
-    compressorRatio: 4,
-  },
-}
-
-export function webAudioConstraints(distance: RecDistance = 'medium'): MediaTrackConstraints {
-  const p = DISTANCE_AUDIO[distance]
-  return {
-    channelCount: 2,
-    noiseSuppression: p.noiseSuppression,
-    echoCancellation: p.echoCancellation,
-    autoGainControl: p.autoGainControl,
-    sampleRate: 48000,
-  }
-}
-
-export const WEB_AUDIO_CONSTRAINTS: MediaTrackConstraints = webAudioConstraints('medium')
-
-export function nativeRecordOpts(_distance: RecDistance = 'medium', _enhance = false) {
+export function nativeRecordOpts() {
   return {
     format: 'm4a' as const,
     sampleRate: 48000,
     bitRate: 256000,
-    numberOfChannels: 2,
-    autoGainControl: true,
-    echoCancellation: true,
-    noiseSuppression: true,
+    numberOfChannels: 1,
+    autoGainControl: false,
+    echoCancellation: false,
+    noiseSuppression: false,
+    audioSource: 'VOICE_RECOGNITION' as const,
   }
 }
 
@@ -88,12 +47,12 @@ export async function ensureMicPermission(): Promise<void> {
   if (next.recordAudio !== 'granted') throw denied()
 }
 
-export async function startNativeRecording(opts?: { distance?: RecDistance; enhance?: boolean }): Promise<void> {
+export async function startNativeRecording(): Promise<void> {
   await ensureMicPermission()
   await startRecordingKeepAlive()
   try {
     await AudioRecorder.startRecording({
-      ...nativeRecordOpts(opts?.distance ?? 'medium', !!opts?.enhance),
+      ...nativeRecordOpts(),
     } as StartRecordingOptions)
   } catch (err) {
     await stopRecordingKeepAlive()
@@ -109,58 +68,16 @@ export interface ProcessedRecordingGraph {
 
 export async function createProcessedRecordingGraph(
   raw: MediaStream,
-  opts?: { enhance?: boolean; distance?: RecDistance },
 ): Promise<ProcessedRecordingGraph> {
-  const distance = opts?.distance ?? 'medium'
-  const enhance = !!opts?.enhance
-  const profile = DISTANCE_AUDIO[distance]
   const context = new AudioContext({ sampleRate: 48000 })
   try {
     if (context.state === 'suspended') await context.resume()
     const source = context.createMediaStreamSource(raw)
-    const compressor = context.createDynamicsCompressor()
-    compressor.threshold.value = profile.compressorThreshold
-    compressor.knee.value = 30
-    compressor.ratio.value = profile.compressorRatio
-    compressor.attack.value = 0.003
-    compressor.release.value = 0.25
-    const gain = context.createGain()
-    gain.gain.value = enhance && distance === 'far' ? profile.gain * 1.35 : profile.gain
     const destination = context.createMediaStreamDestination()
     const analyser = context.createAnalyser()
     analyser.fftSize = 2048
-
-    let node: AudioNode = source
-    if (enhance) {
-      const highpass = context.createBiquadFilter()
-      highpass.type = 'highpass'
-      highpass.frequency.value = distance === 'far' ? 100 : distance === 'medium' ? 90 : 80
-      highpass.Q.value = 0.7
-      node.connect(highpass)
-      node = highpass
-      if (distance === 'medium') {
-        const lowpass = context.createBiquadFilter()
-        lowpass.type = 'lowpass'
-        lowpass.frequency.value = 12000
-        lowpass.Q.value = 0.7
-        node.connect(lowpass)
-        node = lowpass
-      }
-    }
-    node.connect(compressor)
-    compressor.connect(gain)
-    node = gain
-    if (enhance) {
-      const presence = context.createBiquadFilter()
-      presence.type = 'peaking'
-      presence.frequency.value = 3000
-      presence.Q.value = 1
-      presence.gain.value = 4
-      node.connect(presence)
-      node = presence
-    }
-    node.connect(destination)
-    node.connect(analyser)
+    source.connect(destination)
+    source.connect(analyser)
     return { context, stream: destination.stream, analyser }
   } catch (err) {
     await context.close().catch(() => undefined)
