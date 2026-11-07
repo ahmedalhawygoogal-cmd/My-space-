@@ -18,7 +18,10 @@ import {
   WEB_AUDIO_CONSTRAINTS,
 } from '../record'
 
+import { Waveform } from '../components/Waveform'
 import { formatDateTime, formatDuration, pickMime } from '../utils'
+
+const WAVE_BARS = 48
 
 function RecListCard({ rec }: { rec: Recording }) {
   const tr = useT()
@@ -271,12 +274,13 @@ export function LiveRecordPage() {
   const started = useRef(0)
   const pausedAt = useRef(0)
   const acc = useRef(0)
-  const canvas = useRef<HTMLCanvasElement>(null)
   const audioCtx = useRef<AudioContext | null>(null)
   const analyser = useRef<AnalyserNode | null>(null)
   const raf = useRef<number>(0)
   const streamRef = useRef<MediaStream | null>(null)
-  const ampBuf = useRef<number[]>(Array.from({ length: 80 }, () => 0.5))
+  const ampBuf = useRef<number[]>(Array.from({ length: WAVE_BARS }, () => 0))
+  const lastLevelAt = useRef(0)
+  const [levels, setLevels] = useState<number[]>(() => Array.from({ length: WAVE_BARS }, () => 0))
   const saving = useRef(false)
   const pending = useRef<{ blob: Blob; mimeType: string; durationMs: number } | null>(null)
 
@@ -298,6 +302,8 @@ export function LiveRecordPage() {
     streamRef.current = null
     audioCtx.current = null
     analyser.current = null
+    ampBuf.current = Array.from({ length: WAVE_BARS }, () => 0)
+    setLevels(ampBuf.current)
   }
 
   useEffect(() => () => cleanup(), [])
@@ -324,27 +330,15 @@ export function LiveRecordPage() {
     setMs(acc.current + (Date.now() - started.current))
   }
 
-  function paintWave(samples: number[]) {
-    const cv = canvas.current
-    if (!cv) return
-    const ctx = cv.getContext('2d')
-    if (!ctx) return
-    const w = (cv.width = cv.clientWidth * 2)
-    const h = (cv.height = cv.clientHeight * 2)
-    ctx.clearRect(0, 0, w, h)
-    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg-muted') || '#eee'
-    ctx.fillRect(0, 0, w, h)
-    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#0f6e6b'
-    ctx.lineWidth = 3
-    ctx.beginPath()
-    const n = Math.max(1, samples.length)
-    for (let i = 0; i < n; i++) {
-      const x = (i / Math.max(1, n - 1)) * w
-      const y = samples[i] * h
-      if (i === 0) ctx.moveTo(x, y)
-      else ctx.lineTo(x, y)
-    }
-    ctx.stroke()
+  function pushLevel(amp: number, force = false) {
+    const v = Math.max(0, Math.min(1, Number.isFinite(amp) ? amp : 0))
+    const next = ampBuf.current.slice(1)
+    next.push(v)
+    ampBuf.current = next
+    const now = Date.now()
+    if (!force && now - lastLevelAt.current < 50) return
+    lastLevelAt.current = now
+    setLevels(next)
   }
 
   function draw() {
@@ -352,10 +346,12 @@ export function LiveRecordPage() {
     if (!an) return
     const data = new Uint8Array(an.fftSize)
     an.getByteTimeDomainData(data)
-    const step = Math.max(1, Math.floor(data.length / 80))
-    const samples: number[] = []
-    for (let i = 0; i < data.length; i += step) samples.push(data[i] / 256)
-    paintWave(samples)
+    let sum = 0
+    for (let i = 0; i < data.length; i++) {
+      const s = (data[i] - 128) / 128
+      sum += s * s
+    }
+    pushLevel(Math.sqrt(sum / data.length) * 1.8)
     raf.current = requestAnimationFrame(draw)
   }
 
@@ -363,10 +359,7 @@ export function LiveRecordPage() {
     if (!nativeRef.current) return
     const amp = await nativeAmplitude()
     if (!nativeRef.current) return
-    const next = ampBuf.current.slice(1)
-    next.push(0.5 + (amp - 0.5) * 0.9)
-    ampBuf.current = next
-    paintWave(next)
+    pushLevel(amp)
     raf.current = window.setTimeout(() => {
       void drawNative()
     }, 80) as unknown as number
@@ -423,7 +416,8 @@ export function LiveRecordPage() {
       if (isNativePlatform()) {
         nativeRef.current = true
         await startNativeRecording()
-        ampBuf.current = Array.from({ length: 80 }, () => 0.5)
+        ampBuf.current = Array.from({ length: WAVE_BARS }, () => 0)
+        setLevels(ampBuf.current)
         beginClock()
         void drawNative()
         return
@@ -578,7 +572,7 @@ export function LiveRecordPage() {
           {status === 'live' ? tr('recording') : status === 'paused' ? tr('paused') : tr('record')}
         </div>
         <div className="rec-time text-5xl font-bold text-foreground">{formatDuration(ms)}</div>
-        <canvas ref={canvas} className="wave" />
+        <Waveform amplitudes={levels} />
         <div className="row" style={{ marginTop: 18, gap: 16 }}>
           {busy && (
             <button className="icon-btn" type="button" onClick={status === 'live' ? pause : resume} aria-label={tr('pause')}>

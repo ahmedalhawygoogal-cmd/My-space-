@@ -427,6 +427,22 @@ img { max-width: 100%; }
   border-radius: 16px;
   background: var(--bg-muted);
 }
+.waveform {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 10px 12px;
+  overflow: hidden;
+}
+.waveform-bar {
+  flex: 1 1 0;
+  min-width: 2px;
+  max-width: 6px;
+  border-radius: 99px;
+  background: var(--primary-color);
+  opacity: 0.85;
+}
 .rec-btn {
   width: 112px;
   height: 112px;
