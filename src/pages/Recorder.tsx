@@ -15,7 +15,7 @@ import {
   resumeNativeRecording,
   startNativeRecording,
   stopNativeRecording,
-  WEB_AUDIO_CONSTRAINTS,
+  webAudioConstraints,
 } from '../record'
 import { formatDateTime, formatDuration, pickMime } from '../utils'
 
@@ -415,14 +415,14 @@ export function LiveRecordPage() {
   async function startWeb() {
     let raw: MediaStream
     try {
-      raw = await navigator.mediaDevices.getUserMedia({ audio: WEB_AUDIO_CONSTRAINTS })
+      raw = await navigator.mediaDevices.getUserMedia({ audio: webAudioConstraints(distance) })
     } catch {
       raw = await navigator.mediaDevices.getUserMedia({ audio: true })
     }
     streamRef.current = raw
     let graph
     try {
-      graph = await createProcessedRecordingGraph(raw, { enhance })
+      graph = await createProcessedRecordingGraph(raw, { enhance, distance })
     } catch {
       raw.getTracks().forEach((t) => t.stop())
       streamRef.current = null
@@ -456,7 +456,7 @@ export function LiveRecordPage() {
     try {
       if (isNativePlatform()) {
         nativeRef.current = true
-        await startNativeRecording()
+        await startNativeRecording({ distance, enhance })
         ampBuf.current = Array.from({ length: 80 }, () => 0.5)
         beginClock()
         void drawNative()
