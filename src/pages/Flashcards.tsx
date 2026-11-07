@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeftRight, ArrowRight, Ear, Layers, LayoutGrid, Pencil, PenLine, Play, Plus, RefreshCw, Trash2, Volume2 } from 'lucide-react'
 import { useStore } from '../store'
-import { Confirm, Empty, Sheet, Toast, useT } from '../ui'
+import { Button, Confirm, Empty, Sheet, Toast, listItem, listStagger, useT } from '../ui'
+import { AnimatePresence, motion } from 'framer-motion'
 import type { ReactNode } from 'react'
 import type { AppSettings, Card, Deck, DeckType, Lang } from '../types'
 import { DECK_TYPES, LEARN_LANGS, NATIVE_LANG_OPTS, TARGET_LANG_OPTS, isRichDeck, labeled } from '../types'
@@ -100,9 +101,9 @@ const emptyForm: CardFormState = { front: '', back: '', example: '', note: '', i
 
 function BackBtn({ onClick, label }: { onClick: () => void; label: string }) {
   return (
-    <button className="chip" type="button" onClick={onClick}>
+    <motion.button className="chip" type="button" onClick={onClick} whileTap={{ scale: 0.95 }}>
       <ArrowRight size={14} /> {label}
-    </button>
+    </motion.button>
   )
 }
 
@@ -171,9 +172,9 @@ function CardForm({
           {form.imageBlob ? (
             <>
               <img src={form.imageBlob} alt="" className="fc-thumb" />
-              <button className="btn ghost" type="button" onClick={() => setForm({ ...form, imageBlob: '' })}>
+              <Button className="btn ghost" onClick={() => setForm({ ...form, imageBlob: '' })}>
                 {tr('removeImage')}
-              </button>
+              </Button>
             </>
           ) : null}
         </>
@@ -198,7 +199,7 @@ function PlayRing({ due, total, onClick, label }: { due: number; total: number; 
   const c = 2 * Math.PI * r
   const v = total ? Math.max(0, Math.min(100, ((total - due) / total) * 100)) : 0
   return (
-    <button className="fc-play" type="button" onClick={onClick} aria-label={label}>
+    <motion.button className="fc-play" type="button" onClick={onClick} aria-label={label} whileTap={{ scale: 0.95 }}>
       <svg width="52" height="52" viewBox="0 0 52 52">
         <circle cx="26" cy="26" r={r} fill="none" stroke="var(--bg-muted)" strokeWidth="4" />
         <circle
@@ -217,7 +218,7 @@ function PlayRing({ due, total, onClick, label }: { due: number; total: number; 
         <Play size={16} fill="currentColor" />
       </span>
       {due > 0 ? <span className="fc-play-dot" /> : null}
-    </button>
+    </motion.button>
   )
 }
 
@@ -229,9 +230,9 @@ function SessionDone({ deckId }: { deckId: string }) {
       <BackBtn onClick={() => nav(`/cards/${deckId}`)} label={tr('back')} />
       <div className="card game-done">
         <h2>{tr('sessionSuccess')}</h2>
-        <button className="btn block" type="button" onClick={() => nav(`/cards/${deckId}`)}>
+        <Button className="btn block" onClick={() => nav(`/cards/${deckId}`)}>
           {tr('backToDeck')}
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -251,26 +252,43 @@ function EarlyReviewDialog({
   useEffect(() => {
     if (open) setDontShow(false)
   }, [open])
-  if (!open) return null
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
-      <div className="dialog" onClick={(e) => e.stopPropagation()}>
-        <h3 style={{ marginTop: 0 }}>{tr('review')}</h3>
-        <p className="muted">{tr('earlyReviewWarn')}</p>
-        <label className="check-row">
-          <input type="checkbox" checked={dontShow} onChange={(e) => setDontShow(e.target.checked)} />
-          {tr('dontShowAgain')}
-        </label>
-        <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>
-          <button className="btn ghost" type="button" onClick={onClose}>
-            {tr('cancel')}
-          </button>
-          <button className="btn" type="button" onClick={() => onContinue(dontShow)}>
-            {tr('continueReview')}
-          </button>
-        </div>
-      </div>
-    </div>
+    <AnimatePresence>
+      {open ? (
+        <motion.div
+          className="sheet-backdrop backdrop-blur-sm"
+          onClick={onClose}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <motion.div
+            className="dialog"
+            onClick={(e) => e.stopPropagation()}
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+          >
+            <h3 style={{ marginTop: 0 }}>{tr('review')}</h3>
+            <p className="muted">{tr('earlyReviewWarn')}</p>
+            <label className="check-row">
+              <input type="checkbox" checked={dontShow} onChange={(e) => setDontShow(e.target.checked)} />
+              {tr('dontShowAgain')}
+            </label>
+            <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>
+              <Button className="btn ghost" onClick={onClose}>
+                {tr('cancel')}
+              </Button>
+              <Button className="btn" onClick={() => onContinue(dontShow)}>
+                {tr('continueReview')}
+              </Button>
+            </div>
+          </motion.div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
   )
 }
 
@@ -285,26 +303,26 @@ function GamesSheet({ deck, open, onClose }: { deck: Deck | null; open: boolean;
   return (
     <Sheet open={open} onClose={onClose} title={tr('games')}>
       <div className="stack">
-        <button className="list-item pressable" type="button" onClick={() => go(`/cards/${deck.id}/study`)}>
+        <motion.button className="list-item pressable" type="button" onClick={() => go(`/cards/${deck.id}/study`)} whileTap={{ scale: 0.95 }}>
           <RefreshCw size={16} />
           <div className="grow">{tr('review')}</div>
-        </button>
-        <button className="list-item pressable" type="button" onClick={() => go(`/cards/${deck.id}/game/choice`)}>
+        </motion.button>
+        <motion.button className="list-item pressable" type="button" onClick={() => go(`/cards/${deck.id}/game/choice`)} whileTap={{ scale: 0.95 }}>
           <LayoutGrid size={16} />
           <div className="grow">{tr('gameChoice')}</div>
-        </button>
-        <button className="list-item pressable" type="button" onClick={() => go(`/cards/${deck.id}/game/match`)}>
+        </motion.button>
+        <motion.button className="list-item pressable" type="button" onClick={() => go(`/cards/${deck.id}/game/match`)} whileTap={{ scale: 0.95 }}>
           <Layers size={16} />
           <div className="grow">{tr('gameMatch')}</div>
-        </button>
-        <button className="list-item pressable" type="button" onClick={() => go(`/cards/${deck.id}/game/write`)}>
+        </motion.button>
+        <motion.button className="list-item pressable" type="button" onClick={() => go(`/cards/${deck.id}/game/write`)} whileTap={{ scale: 0.95 }}>
           <PenLine size={16} />
           <div className="grow">{tr('gameWrite')}</div>
-        </button>
-        <button className="list-item pressable" type="button" onClick={() => go(`/cards/${deck.id}/game/listen`)}>
+        </motion.button>
+        <motion.button className="list-item pressable" type="button" onClick={() => go(`/cards/${deck.id}/game/listen`)} whileTap={{ scale: 0.95 }}>
           <Ear size={16} />
           <div className="grow">{tr('gameListen')}</div>
-        </button>
+        </motion.button>
       </div>
     </Sheet>
   )
@@ -342,34 +360,36 @@ export default function FlashcardsPage() {
           title={tr('noDecks')}
           hint={tr('noCardsHint')}
           action={
-            <button className="btn" type="button" onClick={() => setOpen(true)}>
+            <Button className="btn" onClick={() => setOpen(true)}>
               {tr('createDeck')}
-            </button>
+            </Button>
           }
         />
       ) : (
-        shown.map((d) => {
-          const dc = cards.filter((c) => c.deckId === d.id)
-          const due = dc.filter((c) => (c.nextReviewDate || c.dueAt) <= Date.now()).length
-          return (
-            <div key={d.id} className="card fc-deck">
-              <button className="fc-deck-body" type="button" onClick={() => nav(`/cards/${d.id}`)}>
-                <div>
-                  <div className="ellipsis" style={{ fontWeight: 700 }}>{d.name}</div>
-                  <div className="meta" style={{ marginTop: 6 }}>
-                    <span className="fc-badge">{typeLabel(d.type || 'vocab', tr)}</span>
-                    {dc.length} {tr('cards')}
+        <motion.div className="stack" variants={listStagger} initial="hidden" animate="show" style={{ gap: 10 }}>
+          {shown.map((d) => {
+            const dc = cards.filter((c) => c.deckId === d.id)
+            const due = dc.filter((c) => (c.nextReviewDate || c.dueAt) <= Date.now()).length
+            return (
+              <motion.div key={d.id} className="card fc-deck" variants={listItem}>
+                <button className="fc-deck-body" type="button" onClick={() => nav(`/cards/${d.id}`)}>
+                  <div>
+                    <div className="ellipsis" style={{ fontWeight: 700 }}>{d.name}</div>
+                    <div className="meta" style={{ marginTop: 6 }}>
+                      <span className="fc-badge">{typeLabel(d.type || 'vocab', tr)}</span>
+                      {dc.length} {tr('cards')}
+                    </div>
                   </div>
-                </div>
-              </button>
-              <PlayRing due={due} total={dc.length} label={tr('playDeck')} onClick={() => tryPlay(d)} />
-            </div>
-          )
-        })
+                </button>
+                <PlayRing due={due} total={dc.length} label={tr('playDeck')} onClick={() => tryPlay(d)} />
+              </motion.div>
+            )
+          })}
+        </motion.div>
       )}
-      <button className="fab" type="button" onClick={() => setOpen(true)} aria-label={tr('newDeck')}>
+      <motion.button className="fab" type="button" onClick={() => setOpen(true)} aria-label={tr('newDeck')} whileTap={{ scale: 0.95 }}>
         <Plus size={22} />
-      </button>
+      </motion.button>
       <Sheet open={open} onClose={() => setOpen(false)} title={tr('newDeck')}>
         <div className="spread" style={{ marginBottom: 8 }}>
           <BackBtn onClick={() => setOpen(false)} label={tr('back')} />
@@ -385,10 +405,9 @@ export default function FlashcardsPage() {
         </select>
         <label className="label">{tr('deckName')}</label>
         <input className="field" value={name} onChange={(e) => setName(e.target.value)} />
-        <button
+        <Button
           className="btn block"
           style={{ marginTop: 12 }}
-          type="button"
           onClick={async () => {
             if (!name.trim()) return
             await addDeck(name.trim(), {
@@ -401,7 +420,7 @@ export default function FlashcardsPage() {
           }}
         >
           {tr('create')}
-        </button>
+        </Button>
       </Sheet>
       <GamesSheet deck={games} open={!!games} onClose={() => setGames(null)} />
       <EarlyReviewDialog
@@ -454,9 +473,8 @@ export function DeckPage() {
     return (
       <Screen title={edit ? tr('editCard') : tr('addCardBtn')} onBack={() => { setOpen(false); setEdit(null) }} backLabel={tr('back')}>
         <CardForm form={form} setForm={setForm} rich={rich} frontLabel={frontLabel} backLabel={backLabel} />
-        <button
+        <Button
           className="btn block"
-          type="button"
           onClick={async () => {
             if (!form.front.trim() || !form.back.trim()) return
             if (edit) await updateCard(edit.id, payload(form))
@@ -467,7 +485,7 @@ export function DeckPage() {
           }}
         >
           {tr('save')}
-        </button>
+        </Button>
       </Screen>
     )
   }
@@ -480,9 +498,8 @@ export function DeckPage() {
           {deck.name}
         </h1>
       </div>
-      <button
+      <Button
         className="btn ghost fc-dir"
-        type="button"
         aria-label={tr('swapSides')}
         onClick={() => void updateDeck(deck.id, { swapped: !swapped })}
       >
@@ -490,53 +507,55 @@ export function DeckPage() {
         <span>{swapped ? backLabel : frontLabel}</span>
         <ArrowLeftRight size={14} />
         <span>{swapped ? frontLabel : backLabel}</span>
-      </button>
-      <button
+      </Button>
+      <Button
         className="btn"
-        type="button"
         onClick={() => {
           setForm(emptyForm)
           setOpen(true)
         }}
       >
         <Plus size={16} /> {tr('addCardBtn')}
-      </button>
+      </Button>
       {dc.length === 0 ? (
         <Empty icon={<Layers size={32} />} title={tr('emptyDeck')} hint={tr('emptyDeckHint')} />
       ) : (
-        dc.map((c) => (
-          <div key={c.id} className="list-item">
-            {cardImage(c) ? <img src={cardImage(c)} alt="" className="fc-mini" /> : <div className="dot" style={{ background: 'var(--brand)' }} />}
-            <div className="grow">
-              <div className="ellipsis">{c.front}</div>
-              <div className="meta ellipsis">{c.back}</div>
-            </div>
-            <button
-              className="icon-btn"
-              type="button"
-              onClick={() => {
-                setEdit(c)
-                setForm({
-                  front: c.front,
-                  back: c.back,
-                  example: c.example ?? '',
-                  note: c.note ?? '',
-                  imageBlob: cardImage(c) ?? '',
-                })
-              }}
-              aria-label={tr('edit')}
-            >
-              <Pencil size={16} />
-            </button>
-            <button className="icon-btn" type="button" onClick={() => void deleteCard(c.id)} aria-label={tr('delete')}>
-              <Trash2 size={16} />
-            </button>
-          </div>
-        ))
+        <motion.div className="stack" variants={listStagger} initial="hidden" animate="show" style={{ gap: 10 }}>
+          {dc.map((c) => (
+            <motion.div key={c.id} className="list-item" variants={listItem}>
+              {cardImage(c) ? <img src={cardImage(c)} alt="" className="fc-mini" /> : <div className="dot" style={{ background: 'var(--brand)' }} />}
+              <div className="grow">
+                <div className="ellipsis">{c.front}</div>
+                <div className="meta ellipsis">{c.back}</div>
+              </div>
+              <motion.button
+                className="icon-btn"
+                type="button"
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setEdit(c)
+                  setForm({
+                    front: c.front,
+                    back: c.back,
+                    example: c.example ?? '',
+                    note: c.note ?? '',
+                    imageBlob: cardImage(c) ?? '',
+                  })
+                }}
+                aria-label={tr('edit')}
+              >
+                <Pencil size={16} />
+              </motion.button>
+              <motion.button className="icon-btn" type="button" onClick={() => void deleteCard(c.id)} aria-label={tr('delete')} whileTap={{ scale: 0.95 }}>
+                <Trash2 size={16} />
+              </motion.button>
+            </motion.div>
+          ))}
+        </motion.div>
       )}
-      <button className="btn danger block" type="button" onClick={() => setConfirm(true)}>
+      <Button className="btn danger block" onClick={() => setConfirm(true)}>
         {tr('delete')}
-      </button>
+      </Button>
       <Confirm
         open={confirm}
         title={tr('deleteDeckConfirm')}
@@ -560,9 +579,9 @@ function NeedCards({ n, deckId }: { n: number; deckId: string }) {
       title={tr('needMoreCards')}
       hint={tr('needCardsForGame', { n })}
       action={
-        <button className="btn" type="button" onClick={() => nav(`/cards/${deckId}`)}>
+        <Button className="btn" onClick={() => nav(`/cards/${deckId}`)}>
           {tr('addFlashcard')}
-        </button>
+        </Button>
       }
     />
   )
@@ -653,23 +672,23 @@ export function ChoiceGamePage() {
         {pack.options.map((o) => {
           const cls = locked ? (o.id === pack.target.id ? 'choice ok' : o.id === picked ? 'choice bad' : 'choice') : 'choice'
           return (
-            <button
+            <motion.button
               key={o.id}
               className={cls}
               type="button"
               disabled={locked}
+              whileTap={{ scale: 0.95 }}
               onClick={() => void settle(o.id === pack.target.id, o.id)}
             >
               {cardImage(o) ? <img src={cardImage(o)} alt="" className="fc-opt" /> : null}
               {answerOf(o, swapped)}
-            </button>
+            </motion.button>
           )
         })}
       </div>
       {locked ? (
-        <button
+        <Button
           className="btn block"
-          type="button"
           onClick={() => {
             if (answered >= total) {
               setFinished(true)
@@ -682,7 +701,7 @@ export function ChoiceGamePage() {
           }}
         >
           {answered >= total ? tr('finish') : tr('next')}
-        </button>
+        </Button>
       ) : null}
     </GameShell>
   )
@@ -732,11 +751,12 @@ export function MatchGamePage() {
       <div className="match-grid">
         <div className="match-col">
           {left.map((c) => (
-            <button
+            <motion.button
               key={`l-${c.id}`}
               className={`match-item ${selL === c.id ? 'sel' : ''} ${done.includes(c.id) ? 'done' : ''}`}
               type="button"
               disabled={done.includes(c.id)}
+              whileTap={{ scale: 0.95 }}
               onClick={() => {
                 setSelL(c.id)
                 void tryMatch(c.id, selR)
@@ -744,30 +764,30 @@ export function MatchGamePage() {
             >
               {cardImage(c) ? <img src={cardImage(c)} alt="" className="fc-opt" /> : null}
               {promptOf(c, swapped)}
-            </button>
+            </motion.button>
           ))}
         </div>
         <div className="match-col">
           {right.map((c) => (
-            <button
+            <motion.button
               key={`r-${c.id}`}
               className={`match-item ${selR === c.id ? 'sel' : ''} ${done.includes(c.id) ? 'done' : ''}`}
               type="button"
               disabled={done.includes(c.id)}
+              whileTap={{ scale: 0.95 }}
               onClick={() => {
                 setSelR(c.id)
                 void tryMatch(selL, c.id)
               }}
             >
               {answerOf(c, swapped)}
-            </button>
+            </motion.button>
           ))}
         </div>
       </div>
       {done.length === pack.length && pack.length > 0 ? (
-        <button
+        <Button
           className="btn block"
-          type="button"
           onClick={() => {
             if (round + 1 >= totalRounds) {
               setFinished(true)
@@ -778,7 +798,7 @@ export function MatchGamePage() {
           }}
         >
           {round + 1 >= totalRounds ? tr('finish') : tr('next')}
-        </button>
+        </Button>
       ) : null}
     </GameShell>
   )
@@ -836,15 +856,14 @@ export function WriteGamePage() {
         }}
       />
       {!result ? (
-        <button className="btn block" type="button" onClick={() => void grade()}>
+        <Button className="btn block" onClick={() => void grade()}>
           {tr('check')}
-        </button>
+        </Button>
       ) : (
         <>
           <div className={result === 'ok' ? 'choice ok' : 'choice bad'}>{result === 'ok' ? tr('correct') : `${tr('wrong')}: ${expected}`}</div>
-          <button
+          <Button
             className="btn block"
-            type="button"
             onClick={() => {
               if (answered >= total) {
                 setFinished(true)
@@ -856,7 +875,7 @@ export function WriteGamePage() {
             }}
           >
             {answered >= total ? tr('finish') : tr('next')}
-          </button>
+          </Button>
         </>
       )}
     </GameShell>
@@ -913,35 +932,31 @@ export function ListenGamePage() {
       <TimerBar show={!locked} token={round} />
       <ListenAuto text={promptText} lang={promptLang} repeats={repeats} round={round} />
       <div className="flash-card">
-        <button
-          className="btn"
-          type="button"
-          onClick={() => speakText(promptText, promptLang, repeats)}
-        >
+        <Button className="btn" onClick={() => speakText(promptText, promptLang, repeats)}>
           <Volume2 size={18} /> {tr('speak')}
-        </button>
+        </Button>
         {typeof window === 'undefined' || !('speechSynthesis' in window) ? <div className="muted">{tr('noSpeech')}</div> : null}
       </div>
       <div className="stack">
         {pack.options.map((o) => {
           const cls = locked ? (o.id === pack.target.id ? 'choice ok' : o.id === picked ? 'choice bad' : 'choice') : 'choice'
           return (
-            <button
+            <motion.button
               key={o.id}
               className={cls}
               type="button"
               disabled={locked}
+              whileTap={{ scale: 0.95 }}
               onClick={() => void settle(o.id === pack.target.id, o.id)}
             >
               {answerOf(o, swapped)}
-            </button>
+            </motion.button>
           )
         })}
       </div>
       {locked ? (
-        <button
+        <Button
           className="btn block"
-          type="button"
           onClick={() => {
             if (answered >= total) {
               setFinished(true)
@@ -954,7 +969,7 @@ export function ListenGamePage() {
           }}
         >
           {answered >= total ? tr('finish') : tr('next')}
-        </button>
+        </Button>
       ) : null}
     </GameShell>
   )
@@ -1014,9 +1029,9 @@ export function StudyPage() {
         icon={<Layers size={36} />}
         title={tr('noDueCards')}
         action={
-          <button className="btn" type="button" onClick={() => nav(`/cards/${deckId}`)}>
+          <Button className="btn" onClick={() => nav(`/cards/${deckId}`)}>
             {tr('backToDeck')}
-          </button>
+          </Button>
         }
       />
     )
@@ -1044,25 +1059,23 @@ export function StudyPage() {
         {flipped && card.note ? <p className="muted">{card.note}</p> : null}
       </div>
       {!flipped ? (
-        <button
+        <Button
           className="btn block"
-          type="button"
           onClick={() => {
             setFlipped(true)
             setAutoForgot(false)
           }}
         >
           {tr('flipCard')}
-        </button>
+        </Button>
       ) : autoForgot ? (
-        <button className="btn block" type="button" onClick={goNext}>
+        <Button className="btn block" onClick={goNext}>
           {tr('next')}
-        </button>
+        </Button>
       ) : (
         <div className="fc-rate">
-          <button
+          <Button
             className="btn forgot"
-            type="button"
             onClick={async () => {
               await markForgot()
               speakTarget(card, deck)
@@ -1071,10 +1084,9 @@ export function StudyPage() {
             }}
           >
             {tr('forgot')}
-          </button>
-          <button
+          </Button>
+          <Button
             className="btn recalled"
-            type="button"
             onClick={async () => {
               await markRecalled()
               speakTarget(card, deck)
@@ -1083,7 +1095,7 @@ export function StudyPage() {
             }}
           >
             {tr('recalled')}
-          </button>
+          </Button>
         </div>
       )}
       <Toast text={toast} onDone={() => setToast(null)} />

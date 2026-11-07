@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Check } from 'lucide-react'
 import { useStore } from '../store'
-import { Toast, useT } from '../ui'
+import { Button, PAGE_TRANSITION, Toast, useT } from '../ui'
 import type { DailyGoal, GoalKind, InputPref, Labeled, Lang, UserLevel } from '../types'
 import {
   DAILY_OPTS,
@@ -46,47 +47,65 @@ export function LanguageSheet({
         })
   }, [q])
 
-  if (!open) return null
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
-      <div className="sheet bg-card border-border text-foreground" onClick={(e) => e.stopPropagation()}>
-        <div className="sheet-handle" />
-        <h3 className="page-title" style={{ margin: '0 0 12px' }}>
-          {title}
-        </h3>
-        <input
-          className="field"
-          value={q}
-          placeholder={tr('searchLang')}
-          onChange={(e) => setQ(e.target.value)}
-          autoFocus
-        />
-        <div className="lang-list">
-          {rows.length ? (
-            rows.map((l) => {
-              const on = selected === l.code
-              return (
-                <button
-                  key={l.code}
-                  type="button"
-                  className={`lang-row${on ? ' active' : ''}`}
-                  onClick={() => {
-                    onPick(l.code)
-                    setQ('')
-                    onClose()
-                  }}
-                >
-                  <span>{labeled(lang, l)}</span>
-                  {on ? <Check size={18} /> : null}
-                </button>
-              )
-            })
-          ) : (
-            <p className="muted">{tr('noLangMatch')}</p>
-          )}
-        </div>
-      </div>
-    </div>
+    <AnimatePresence>
+      {open ? (
+        <motion.div
+          className="sheet-backdrop backdrop-blur-sm"
+          onClick={onClose}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <motion.div
+            className="sheet bg-card border-border text-foreground"
+            onClick={(e) => e.stopPropagation()}
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+          >
+            <div className="sheet-handle" />
+            <h3 className="page-title" style={{ margin: '0 0 12px' }}>
+              {title}
+            </h3>
+            <input
+              className="field"
+              value={q}
+              placeholder={tr('searchLang')}
+              onChange={(e) => setQ(e.target.value)}
+              autoFocus
+            />
+            <div className="lang-list">
+              {rows.length ? (
+                rows.map((l) => {
+                  const on = selected === l.code
+                  return (
+                    <motion.button
+                      key={l.code}
+                      type="button"
+                      className={`lang-row${on ? ' active' : ''}`}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        onPick(l.code)
+                        setQ('')
+                        onClose()
+                      }}
+                    >
+                      <span>{labeled(lang, l)}</span>
+                      {on ? <Check size={18} /> : null}
+                    </motion.button>
+                  )
+                })
+              ) : (
+                <p className="muted">{tr('noLangMatch')}</p>
+              )}
+            </div>
+          </motion.div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
   )
 }
 
@@ -104,14 +123,15 @@ function Chips({
   return (
     <div className="chip-row wrap">
       {items.map((o) => (
-        <button
+        <motion.button
           key={o.id}
           type="button"
           className={`choice-chip${active(o.id) ? ' active' : ''}`}
+          whileTap={{ scale: 0.95 }}
           onClick={() => onPick(o.id)}
         >
           {labeled(lang, o)}
-        </button>
+        </motion.button>
       ))}
     </div>
   )
@@ -126,18 +146,18 @@ export function LanguagePrefs({ onContinue }: { onContinue?: () => void }) {
 
   return (
     <div className="stack">
-      <button className="lang-pick-btn" type="button" onClick={() => setSheet('native')}>
+      <motion.button className="lang-pick-btn" type="button" onClick={() => setSheet('native')} whileTap={{ scale: 0.95 }}>
         <span className="muted">{tr('selectNativeLang')}</span>
         <strong>{native ? langName(native, lang) : tr('pickOne')}</strong>
-      </button>
-      <button className="lang-pick-btn" type="button" onClick={() => setSheet('target')}>
+      </motion.button>
+      <motion.button className="lang-pick-btn" type="button" onClick={() => setSheet('target')} whileTap={{ scale: 0.95 }}>
         <span className="muted">{tr('selectTargetLang')}</span>
         <strong>{target ? langName(target, lang) : tr('pickOne')}</strong>
-      </button>
+      </motion.button>
       {onContinue ? (
-        <button className="btn block" type="button" disabled={!native || !target} onClick={onContinue}>
+        <Button className="btn block" disabled={!native || !target} onClick={onContinue}>
           {tr('next')}
-        </button>
+        </Button>
       ) : null}
       <LanguageSheet
         open={sheet === 'native'}
@@ -205,7 +225,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="onboard bg-background text-foreground">
+    <motion.div className="onboard bg-background text-foreground" {...PAGE_TRANSITION}>
       <div className="onboard-card wizard-card bg-card border-border">
         {phase === 'langs' ? (
           <>
@@ -221,9 +241,9 @@ export default function OnboardingPage() {
               <div className="muted" style={{ fontSize: 13 }}>
                 {step + 1} / {SURVEY_STEPS}
               </div>
-              <button className="chip" type="button" onClick={() => void finish()}>
+              <motion.button className="chip" type="button" onClick={() => void finish()} whileTap={{ scale: 0.95 }}>
                 {tr('skip')}
-              </button>
+              </motion.button>
             </div>
             <div className="wizard-dots">
               {Array.from({ length: SURVEY_STEPS }, (_, i) => (
@@ -285,29 +305,28 @@ export default function OnboardingPage() {
             </div>
             <div className="wizard-actions">
               {step > 0 ? (
-                <button className="btn ghost" type="button" onClick={() => go(step - 1)}>
+                <Button className="btn ghost" onClick={() => go(step - 1)}>
                   {tr('back')}
-                </button>
+                </Button>
               ) : (
-                <button className="btn ghost" type="button" onClick={() => setPhase('langs')}>
+                <Button className="btn ghost" onClick={() => setPhase('langs')}>
                   {tr('back')}
-                </button>
+                </Button>
               )}
-              <button
+              <Button
                 className="btn"
-                type="button"
                 onClick={() => {
                   if (step < SURVEY_STEPS - 1) go(step + 1)
                   else void finish()
                 }}
               >
                 {step < SURVEY_STEPS - 1 ? tr('next') : tr('startApp')}
-              </button>
+              </Button>
             </div>
           </>
         )}
       </div>
       <Toast text={toast} onDone={() => setToast(null)} />
-    </div>
+    </motion.div>
   )
 }

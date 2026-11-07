@@ -363,6 +363,11 @@ img { max-width: 100%; }
 }
 .fab.accent { background: var(--primary-color); color: var(--brand-ink); }
 
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
 .sheet-backdrop {
   position: fixed;
   inset: 0;

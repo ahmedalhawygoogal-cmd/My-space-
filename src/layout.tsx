@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { BookOpen, CheckSquare, Home, Layers, Mic, Search, Settings } from 'lucide-react'
 import { useStore } from './store'
-import { useT } from './ui'
+import { PAGE_TRANSITION, useT } from './ui'
 
 export function Layout() {
   const tr = useT()
@@ -24,16 +25,20 @@ export function Layout() {
           <span>{tr('appName')}</span>
         </div>
         <div className="row">
-          <button className="icon-btn" type="button" aria-label={tr('search')} onClick={() => nav('/search')}>
+          <motion.button className="icon-btn" type="button" aria-label={tr('search')} onClick={() => nav('/search')} whileTap={{ scale: 0.95 }}>
             <Search size={18} />
-          </button>
-          <button className="icon-btn" type="button" aria-label={tr('settings')} onClick={() => nav('/settings')}>
+          </motion.button>
+          <motion.button className="icon-btn" type="button" aria-label={tr('settings')} onClick={() => nav('/settings')} whileTap={{ scale: 0.95 }}>
             <Settings size={18} />
-          </button>
+          </motion.button>
         </div>
       </header>
       <main className="main">
-        <Outlet />
+        <AnimatePresence mode="wait">
+          <motion.div key={loc.pathname} {...PAGE_TRANSITION}>
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </main>
       {!hideNav && (
         <nav className="bottom-nav">
