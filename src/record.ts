@@ -55,21 +55,19 @@ export function webAudioConstraints(distance: RecDistance = 'medium'): MediaTrac
 
 export const WEB_AUDIO_CONSTRAINTS: MediaTrackConstraints = webAudioConstraints('medium')
 
-export function nativeRecordOpts(distance: RecDistance = 'medium', enhance = false) {
-  const p = DISTANCE_AUDIO[distance]
+export function nativeRecordOpts(_distance: RecDistance = 'medium', _enhance = false) {
   return {
     format: 'm4a' as const,
     sampleRate: 48000,
     bitRate: 256000,
     numberOfChannels: 2,
-    autoGainControl: p.autoGainControl,
-    noiseSuppression: p.noiseSuppression,
-    echoCancellation: p.echoCancellation,
-    gain: enhance && distance === 'far' ? p.gain * 1.35 : p.gain,
+    autoGainControl: true,
+    echoCancellation: true,
+    noiseSuppression: true,
   }
 }
 
-export const NATIVE_RECORD_OPTS = nativeRecordOpts('medium')
+export const NATIVE_RECORD_OPTS = nativeRecordOpts()
 
 export const NATIVE_AUDIO_MIME = 'audio/mp4'
 
