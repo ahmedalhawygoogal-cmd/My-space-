@@ -1,3 +1,5 @@
+import type { RecDistance } from './types'
+import { DISTANCE_PRE_GAIN } from './types'
 import { denoisePcm } from './utils/rnnoise'
 
 const RNNOISE_RATE = 48000
@@ -76,6 +78,13 @@ function pcmToBuffer(samples: Float32Array, sampleRate: number): AudioBuffer {
   return buf
 }
 
+function applyPreGain(samples: Float32Array, gain: number): Float32Array {
+  if (gain === 1) return samples
+  const out = new Float32Array(samples.length)
+  for (let i = 0; i < samples.length; i++) out[i] = samples[i] * gain
+  return out
+}
+
 async function applySpeechChain(buffer: AudioBuffer): Promise<AudioBuffer> {
   const offline = new OfflineAudioContext(1, buffer.length, buffer.sampleRate)
   const source = offline.createBufferSource()
@@ -115,14 +124,18 @@ async function applySpeechChain(buffer: AudioBuffer): Promise<AudioBuffer> {
   return offline.startRendering()
 }
 
-export async function enhanceAudioBlob(blob: Blob): Promise<{ blob: Blob; durationMs: number; mimeType: string }> {
+export async function enhanceAudioBlob(
+  blob: Blob,
+  distance: RecDistance = 'near',
+): Promise<{ blob: Blob; durationMs: number; mimeType: string }> {
   const decodeCtx = new AudioContext()
   try {
     const raw = await blob.arrayBuffer()
     const decoded = await decodeCtx.decodeAudioData(raw.slice(0))
     const mono = mixToMono(decoded)
     const at48k = await resampleMono(mono, decoded.sampleRate, RNNOISE_RATE)
-    const denoised = await denoisePcm(at48k)
+    const boosted = applyPreGain(at48k, DISTANCE_PRE_GAIN[distance] ?? 1)
+    const denoised = await denoisePcm(boosted)
     const denoisedBuffer = pcmToBuffer(denoised, RNNOISE_RATE)
     const rendered = await applySpeechChain(denoisedBuffer)
     const wav = audioBufferToWav(rendered)

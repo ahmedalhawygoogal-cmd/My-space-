@@ -78,6 +78,20 @@ export interface Folder {
   updatedAt: number
 }
 
+export type RecDistance = 'near' | 'medium' | 'far'
+
+export const DISTANCE_WAVEFORM_GAIN: Record<RecDistance, number> = {
+  near: 1,
+  medium: 1.5,
+  far: 3,
+}
+
+export const DISTANCE_PRE_GAIN: Record<RecDistance, number> = {
+  near: 1,
+  medium: 2,
+  far: 3.5,
+}
+
 export interface Recording {
   id: string
   name: string
@@ -89,6 +103,7 @@ export interface Recording {
   description: string
   tags: string[]
   noteIds: string[]
+  distance: RecDistance
   enhanced?: boolean
   createdAt: number
   updatedAt: number

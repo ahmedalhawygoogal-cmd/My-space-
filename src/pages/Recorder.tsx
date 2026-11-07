@@ -4,7 +4,7 @@ import { ChevronDown, FolderPlus, Loader2, Mic, Pause, Pencil, Play, Sparkles, S
 import { useStore } from '../store'
 import { AudioPlayer } from '../AudioPlayer'
 import { Confirm, Empty, Segment, Sheet, SubjectSelect, TagInput, Toast, useT } from '../ui'
-import type { Recording } from '../types'
+import type { RecDistance, Recording } from '../types'
 import {
   cancelNativeRecording,
   closeProcessedRecordingGraph,
@@ -22,6 +22,35 @@ import { Waveform } from '../components/Waveform'
 import { formatDateTime, formatDuration, pickMime } from '../utils'
 
 const WAVE_BARS = 48
+
+function RecDistanceSeg({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: RecDistance
+  onChange: (v: RecDistance) => void
+  disabled?: boolean
+}) {
+  const tr = useT()
+  return (
+    <div className="rec-distance">
+      <label className="label text-muted-foreground">{tr('recDistance')}</label>
+      <Segment
+        value={value}
+        onChange={(v) => {
+          if (disabled) return
+          onChange(v as RecDistance)
+        }}
+        options={[
+          { id: 'near', label: tr('distNear') },
+          { id: 'medium', label: tr('distMedium') },
+          { id: 'far', label: tr('distFar') },
+        ]}
+      />
+    </div>
+  )
+}
 
 function RecListCard({ rec }: { rec: Recording }) {
   const tr = useT()
@@ -57,7 +86,7 @@ function RecListCard({ rec }: { rec: Recording }) {
       const src = (await getOriginalAudioBlob(rec.id)) || (await getAudioBlob(rec.id))
       if (!src) throw new Error('missing')
       const { enhanceAudioBlob } = await import('../enhanceAudio')
-      const next = await enhanceAudioBlob(src)
+      const next = await enhanceAudioBlob(src, rec.distance)
       await enhanceRecordingAudio(rec.id, next.blob, {
         mimeType: next.mimeType,
         durationMs: next.durationMs,
@@ -267,6 +296,7 @@ export function LiveRecordPage() {
   const [description, setDescription] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [hasPending, setHasPending] = useState(false)
+  const [distance, setDistance] = useState<RecDistance>('medium')
   const recRef = useRef<MediaRecorder | null>(null)
   const nativeRef = useRef(false)
   const chunks = useRef<Blob[]>([])
@@ -525,6 +555,7 @@ export function LiveRecordPage() {
           subjectId,
           description,
           tags,
+          distance,
         },
         data.blob,
       )
@@ -572,7 +603,8 @@ export function LiveRecordPage() {
           {status === 'live' ? tr('recording') : status === 'paused' ? tr('paused') : tr('record')}
         </div>
         <div className="rec-time text-5xl font-bold text-foreground">{formatDuration(ms)}</div>
-        <Waveform amplitudes={levels} />
+        <Waveform amplitudes={levels} distance={distance} />
+        <RecDistanceSeg value={distance} onChange={setDistance} />
         <div className="row" style={{ marginTop: 18, gap: 16 }}>
           {busy && (
             <button className="icon-btn" type="button" onClick={status === 'live' ? pause : resume} aria-label={tr('pause')}>
@@ -667,6 +699,7 @@ export function RecordingDetailPage() {
   const [description, setDescription] = useState('')
   const [tags, setTags] = useState<string[]>([])
   const [subjectId, setSubjectId] = useState<string | undefined>()
+  const [distance, setDistance] = useState<RecDistance>('medium')
   const loaded = useRef('')
 
   useEffect(() => {
@@ -691,6 +724,7 @@ export function RecordingDetailPage() {
     setDescription(rec.description)
     setTags(rec.tags)
     setSubjectId(rec.subjectId)
+    setDistance(rec.distance || 'medium')
   }, [rec])
 
   if (!rec) return <Empty icon={<Mic />} title={tr('noRecordings')} />
@@ -704,6 +738,7 @@ export function RecordingDetailPage() {
       description,
       tags,
       subjectId,
+      distance,
     })
     nav('/record')
   }
@@ -742,6 +777,7 @@ export function RecordingDetailPage() {
         <TagInput value={tags} onChange={setTags} />
         <label className="label text-muted-foreground">{tr('subject')}</label>
         <SubjectSelect value={subjectId} onChange={setSubjectId} />
+        <RecDistanceSeg value={distance} onChange={setDistance} />
       </div>
       <div className="spread">
         <h3 className="text-foreground" style={{ margin: 0, fontSize: '1rem' }}>{tr('attachedNotes')}</h3>
