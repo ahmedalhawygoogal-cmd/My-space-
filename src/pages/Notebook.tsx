@@ -19,8 +19,7 @@ import {
 } from 'lucide-react'
 import { useStore } from '../store'
 import { AudioPlayer } from '../AudioPlayer'
-import { motion } from 'framer-motion'
-import { Button, Confirm, Empty, Sheet, Toast, listItem, listStagger, useT } from '../ui'
+import { Confirm, Empty, Sheet, Toast, useT } from '../ui'
 import { contrastInk, fileToDataUrl, firstNoteImage, formatDate } from '../utils'
 import { NOTE_COLORS } from '../types'
 import type { Note } from '../types'
@@ -93,12 +92,11 @@ export default function NotebookPage() {
       {list.length === 0 ? (
         <Empty icon={<BookOpen size={36} />} title={tr('noNotes')} hint={tr('noNotesHint')} />
       ) : (
-        <motion.div className="stack" variants={listStagger} initial="hidden" animate="show" style={{ gap: 10 }}>
-        {list.map((n) => {
+        list.map((n) => {
           const rec = recordings.find((r) => r.id === audioOf(n))
           const ink = noteInk(n.color)
           return (
-            <motion.div key={n.id} className="note-card" style={{ background: n.color || 'var(--bg-elev)', color: ink }} variants={listItem}>
+            <div key={n.id} className="note-card" style={{ background: n.color || 'var(--bg-elev)', color: ink }}>
               <div className="grow">
                 <div className="ellipsis" style={{ fontWeight: 800, color: ink }}>
                   {n.title || tr('untitled')}
@@ -109,34 +107,32 @@ export default function NotebookPage() {
               </div>
               <div className="row" style={{ gap: 2 }}>
                 {rec ? (
-                  <motion.button className="icon-btn note-action" type="button" aria-label={tr('play')} onClick={() => void playNote(n)} whileTap={{ scale: 0.95 }}>
+                  <button className="icon-btn note-action" type="button" aria-label={tr('play')} onClick={() => void playNote(n)}>
                     {active === n.id ? <Pause size={16} /> : <Headphones size={16} />}
-                  </motion.button>
+                  </button>
                 ) : null}
-                <motion.button className="icon-btn note-action" type="button" aria-label={tr('readNote')} onClick={() => nav(`/notes/${n.id}`)} whileTap={{ scale: 0.95 }}>
+                <button className="icon-btn note-action" type="button" aria-label={tr('readNote')} onClick={() => nav(`/notes/${n.id}`)}>
                   <Eye size={16} />
-                </motion.button>
-                <motion.button className="icon-btn note-action" type="button" aria-label={tr('edit')} onClick={() => nav(`/notes/${n.id}/edit`)} whileTap={{ scale: 0.95 }}>
+                </button>
+                <button className="icon-btn note-action" type="button" aria-label={tr('edit')} onClick={() => nav(`/notes/${n.id}/edit`)}>
                   <Pencil size={16} />
-                </motion.button>
-                <motion.button
+                </button>
+                <button
                   className="icon-btn note-action"
                   type="button"
                   aria-label={n.pinned ? tr('unpin') : tr('pin')}
-                  whileTap={{ scale: 0.95 }}
                   onClick={() => void updateNote(n.id, { pinned: !n.pinned })}
                 >
                   <Pin size={16} fill={n.pinned ? 'currentColor' : 'none'} />
-                </motion.button>
+                </button>
               </div>
-            </motion.div>
+            </div>
           )
-        })}
-        </motion.div>
+        })
       )}
-      <motion.button className="fab" type="button" onClick={create} aria-label={tr('newNote')} whileTap={{ scale: 0.95 }}>
+      <button className="fab" type="button" onClick={create} aria-label={tr('newNote')}>
         <Plus size={22} />
-      </motion.button>
+      </button>
     </div>
   )
 }
@@ -195,12 +191,12 @@ export function NoteEditorPage() {
   return (
     <div className="stack note-surface" style={{ background: color, color: ink, margin: '-16px', padding: 16, minHeight: '100%' }}>
       <div className="spread">
-        <motion.button className="chip" type="button" onClick={() => nav('/notes')} whileTap={{ scale: 0.95 }}>
+        <button className="chip" type="button" onClick={() => nav('/notes')}>
           {tr('back')}
-        </motion.button>
-        <Button className="btn" onClick={() => void save()}>
+        </button>
+        <button className="btn" type="button" onClick={() => void save()}>
           {tr('save')}
-        </Button>
+        </button>
       </div>
       <input className="note-title" value={title} placeholder={tr('title')} onChange={(e) => setTitle(e.target.value)} style={{ color: ink }} />
       <label className="label">{tr('noteType')}</label>
@@ -283,19 +279,19 @@ export function NoteEditorPage() {
         <div className="list-item">
           <Volume2 size={16} />
           <div className="grow ellipsis">{recordings.find((r) => r.id === audioId)?.name || tr('attachAudio')}</div>
-          <motion.button className="chip" type="button" onClick={() => setAudioId('')} whileTap={{ scale: 0.95 }}>
+          <button className="chip" type="button" onClick={() => setAudioId('')}>
             {tr('removeAudio')}
-          </motion.button>
+          </button>
         </div>
       ) : (
-        <Button className="btn secondary block" onClick={() => setAudioOpen(true)}>
+        <button className="btn secondary block" type="button" onClick={() => setAudioOpen(true)}>
           {tr('pickAudio')}
-        </Button>
+        </button>
       )}
       {noteId ? (
-        <Button className="btn danger block" onClick={() => setConfirm(true)}>
+        <button className="btn danger block" type="button" onClick={() => setConfirm(true)}>
           {tr('delete')}
-        </Button>
+        </button>
       ) : null}
       <Confirm
         open={confirm}
@@ -312,18 +308,17 @@ export function NoteEditorPage() {
           <p className="muted">{tr('noRecordings')}</p>
         ) : (
           recordings.map((r) => (
-            <motion.button
+            <button
               key={r.id}
               className="list-item"
               type="button"
-              whileTap={{ scale: 0.95 }}
               onClick={() => {
                 setAudioId(r.id)
                 setAudioOpen(false)
               }}
             >
               {r.name}
-            </motion.button>
+            </button>
           ))
         )}
       </Sheet>
@@ -346,12 +341,12 @@ export function NoteReadPage() {
   return (
     <div className="stack note-surface" style={{ background: note.color || undefined, color: ink, margin: '-16px', padding: 16, minHeight: '100%' }}>
       <div className="spread">
-        <motion.button className="chip" type="button" onClick={() => nav('/notes')} whileTap={{ scale: 0.95 }}>
+        <button className="chip" type="button" onClick={() => nav('/notes')}>
           {tr('back')}
-        </motion.button>
-        <motion.button className="icon-btn note-action" type="button" aria-label={tr('edit')} onClick={() => nav(`/notes/${note.id}/edit`)} whileTap={{ scale: 0.95 }}>
+        </button>
+        <button className="icon-btn note-action" type="button" aria-label={tr('edit')} onClick={() => nav(`/notes/${note.id}/edit`)}>
           <Pencil size={16} />
-        </motion.button>
+        </button>
       </div>
       <h1 className="page-title" style={{ marginBottom: 0, color: ink }}>
         {note.title || tr('untitled')}

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
 import { Download, Pause, Play, RotateCcw, RotateCw } from 'lucide-react'
 import { useT } from './ui'
 import { audioFileName, downloadBlob, formatDuration } from './utils'
@@ -72,11 +71,10 @@ export function AudioPlayer({
         />
       ) : null}
       <div className="row player-line">
-        <motion.button
+        <button
           className="icon-btn"
           type="button"
           aria-label={tr('play')}
-          whileTap={{ scale: 0.95 }}
           onClick={() => {
             const el = audio.current
             if (!el) return
@@ -85,7 +83,7 @@ export function AudioPlayer({
           }}
         >
           {playing ? <Pause size={18} /> : <Play size={18} />}
-        </motion.button>
+        </button>
         <input
           className="seek"
           type="range"
@@ -103,24 +101,23 @@ export function AudioPlayer({
         </span>
       </div>
       <div className="row player-actions">
-        <motion.button className="icon-btn" type="button" aria-label={tr('rewind')} onClick={() => seek(-10)} whileTap={{ scale: 0.95 }}>
+        <button className="icon-btn" type="button" aria-label={tr('rewind')} onClick={() => seek(-10)}>
           <RotateCcw size={16} />
-        </motion.button>
-        <motion.button className="icon-btn" type="button" aria-label={tr('forward')} onClick={() => seek(10)} whileTap={{ scale: 0.95 }}>
+        </button>
+        <button className="icon-btn" type="button" aria-label={tr('forward')} onClick={() => seek(10)}>
           <RotateCw size={16} />
-        </motion.button>
-        <motion.button
+        </button>
+        <button
           className="chip"
           type="button"
           aria-label={tr('speed')}
-          whileTap={{ scale: 0.95 }}
           onClick={() => setRate((r) => (r === 1 ? 1.5 : r === 1.5 ? 2 : 1))}
         >
           {rate}x
-        </motion.button>
-        <motion.button className="icon-btn" type="button" aria-label={tr('download')} onClick={() => void exportAudio()} disabled={!src} whileTap={{ scale: 0.95 }}>
+        </button>
+        <button className="icon-btn" type="button" aria-label={tr('download')} onClick={() => void exportAudio()} disabled={!src}>
           <Download size={16} />
-        </motion.button>
+        </button>
       </div>
     </div>
   )

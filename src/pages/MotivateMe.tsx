@@ -6,8 +6,7 @@ import { STORES } from '../db'
 import { useStore } from '../store'
 import { uid } from '../utils'
 import { RTL_LANGS, quoteField, type QuoteCharacter } from '../types'
-import { motion } from 'framer-motion'
-import { Button, Empty, Sheet, Toast, listItem, listStagger, useT } from '../ui'
+import { Empty, Sheet, Toast, useT } from '../ui'
 import { DEFAULT_QUOTES } from '../data/defaultQuotes'
 
 export default function MotivateMePage() {
@@ -141,25 +140,25 @@ export default function MotivateMePage() {
     <div className="stack" style={{ gap: 12 }}>
       <div className="spread">
         <h1 className="page-title">{tr('motivateMe')}</h1>
-        <motion.button
+        <button
           className="icon-btn"
           type="button"
           onClick={() => nav(-1)}
           aria-label={tr('back')}
           style={{ transform: isRTL ? 'scaleX(-1)' : undefined }}
-          whileTap={{ scale: 0.95 }}
         >
           <ArrowLeft size={18} />
-        </motion.button>
+        </button>
       </div>
 
       <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-        <Button
+        <button
           className={`btn ${favoritesOnly ? 'accent' : 'secondary'}`}
+          type="button"
           onClick={() => setFavoritesOnly(!favoritesOnly)}
         >
           {favoritesOnly ? tr('all') : tr('favorites')}
-        </Button>
+        </button>
       </div>
 
       {loading ? (
@@ -173,23 +172,17 @@ export default function MotivateMePage() {
           hint={tr('motivateSubtitle')}
         />
       ) : (
-        <motion.div
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}
-          variants={listStagger}
-          initial="hidden"
-          animate="show"
-        >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
           {filtered.map((c) => {
             const name = textOf(c, 'name')
             const quote = textOf(c, 'quote')
             const challenge = textOf(c, 'challenge')
             return (
-              <motion.div
+              <div
                 key={c.id}
                 className="card pressable"
                 style={{ display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer' }}
                 onClick={() => setDetail(c)}
-                variants={listItem}
               >
                 {c.image && (
                   <img
@@ -200,11 +193,10 @@ export default function MotivateMePage() {
                 )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
                   <b style={{ fontSize: 15, overflowWrap: 'break-word' }}>{name}</b>
-                  <motion.button
+                  <button
                     type="button"
                     className="icon-btn"
                     style={{ padding: 2 }}
-                    whileTap={{ scale: 0.95 }}
                     onClick={(e) => {
                       e.stopPropagation()
                       void toggleFavorite(c)
@@ -212,7 +204,7 @@ export default function MotivateMePage() {
                     aria-label={favoriteIds.has(c.id) ? tr('unfavorited') : tr('favorites')}
                   >
                     <Star size={16} style={{ color: favoriteIds.has(c.id) ? 'var(--gold)' : 'var(--ink-soft)' }} />
-                  </motion.button>
+                  </button>
                 </div>
                 <div className="muted" style={{ fontSize: 13, lineHeight: 1.4, overflowWrap: 'break-word' }}>
                   “{quote}”
@@ -222,10 +214,10 @@ export default function MotivateMePage() {
                     {tr('challenge')}: {challenge}
                   </div>
                 ) : null}
-              </motion.div>
+              </div>
             )
           })}
-        </motion.div>
+        </div>
       )}
 
       {toast && <Toast text={toast} onDone={() => setToast(null)} />}
@@ -280,18 +272,18 @@ export default function MotivateMePage() {
           <img src={draft.imageUrl} alt="" style={{ width: 88, height: 88, objectFit: 'cover', borderRadius: 10, marginTop: 8 }} />
         )}
         <div className="row" style={{ justifyContent: 'flex-end', gap: 8, marginTop: 14 }}>
-          <Button className="btn ghost" onClick={() => setAddOpen(false)}>
+          <button className="btn ghost" type="button" onClick={() => setAddOpen(false)}>
             {tr('cancel')}
-          </Button>
-          <Button className="btn accent block" disabled={!draft.name.trim() || !draft.quote.trim()} onClick={saveCharacter}>
+          </button>
+          <button className="btn accent block" type="button" disabled={!draft.name.trim() || !draft.quote.trim()} onClick={saveCharacter}>
             {tr('save')}
-          </Button>
+          </button>
         </div>
       </Sheet>
 
-      <motion.button className="fab" type="button" onClick={() => setAddOpen(true)} aria-label={tr('addCharacter')} whileTap={{ scale: 0.95 }}>
+      <button className="fab" type="button" onClick={() => setAddOpen(true)} aria-label={tr('addCharacter')}>
         <Plus size={22} />
-      </motion.button>
+      </button>
     </div>
   )
 }

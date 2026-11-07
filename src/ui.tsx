@@ -1,36 +1,10 @@
 import { useEffect, useRef, type ReactNode } from 'react'
-import { AnimatePresence, motion, type HTMLMotionProps } from 'framer-motion'
 import { t, type I18nKey } from './i18n'
 import { useStore } from './store'
-
-export const PAGE_TRANSITION = {
-  initial: { opacity: 0, y: 10 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -8 },
-  transition: { duration: 0.2 },
-}
-
-export const listStagger = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.05 } },
-}
-
-export const listItem = {
-  hidden: { opacity: 0, y: 10 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.2 } },
-}
-
-const tap = { scale: 0.95 }
-const fade = { duration: 0.2 }
-const slide = { duration: 0.22, ease: 'easeOut' as const }
 
 export function useT() {
   const { lang } = useStore()
   return (key: I18nKey, vars?: Record<string, string | number>) => t(lang, key, vars)
-}
-
-export function Button({ type = 'button', ...props }: HTMLMotionProps<'button'>) {
-  return <motion.button type={type} whileTap={tap} {...props} />
 }
 
 export function IconBtn({
@@ -43,9 +17,9 @@ export function IconBtn({
   label: string
 }) {
   return (
-    <motion.button className="icon-btn" onClick={onClick} aria-label={label} type="button" whileTap={tap}>
+    <button className="icon-btn" onClick={onClick} aria-label={label} type="button">
       {children}
-    </motion.button>
+    </button>
   )
 }
 
@@ -81,32 +55,15 @@ export function Sheet({
   title?: string
   children: ReactNode
 }) {
+  if (!open) return null
   return (
-    <AnimatePresence>
-      {open ? (
-        <motion.div
-          className="sheet-backdrop backdrop-blur-sm"
-          onClick={onClose}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={fade}
-        >
-          <motion.div
-            className="sheet"
-            onClick={(e) => e.stopPropagation()}
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={slide}
-          >
-            <div className="sheet-handle" />
-            {title ? <h3 style={{ margin: '0 0 12px' }}>{title}</h3> : null}
-            {children}
-          </motion.div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+    <div className="sheet-backdrop" onClick={onClose}>
+      <div className="sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="sheet-handle" />
+        {title ? <h3 style={{ margin: '0 0 12px' }}>{title}</h3> : null}
+        {children}
+      </div>
+    </div>
   )
 }
 
@@ -126,39 +83,22 @@ export function Confirm({
   danger?: boolean
 }) {
   const tr = useT()
+  if (!open) return null
   return (
-    <AnimatePresence>
-      {open ? (
-        <motion.div
-          className="sheet-backdrop backdrop-blur-sm"
-          onClick={onClose}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={fade}
-        >
-          <motion.div
-            className="dialog"
-            onClick={(e) => e.stopPropagation()}
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={slide}
-          >
-            <h3 style={{ marginTop: 0 }}>{title}</h3>
-            {body ? <p className="muted">{body}</p> : null}
-            <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>
-              <Button className="btn ghost" onClick={onClose}>
-                {tr('cancel')}
-              </Button>
-              <Button className={`btn ${danger ? 'danger' : ''}`} onClick={onConfirm}>
-                {tr('confirm')}
-              </Button>
-            </div>
-          </motion.div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+    <div className="sheet-backdrop" onClick={onClose}>
+      <div className="dialog" onClick={(e) => e.stopPropagation()}>
+        <h3 style={{ marginTop: 0 }}>{title}</h3>
+        {body ? <p className="muted">{body}</p> : null}
+        <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>
+          <button className="btn ghost" type="button" onClick={onClose}>
+            {tr('cancel')}
+          </button>
+          <button className={`btn ${danger ? 'danger' : ''}`} type="button" onClick={onConfirm}>
+            {tr('confirm')}
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -174,9 +114,9 @@ export function Segment({
   return (
     <div className="seg">
       {options.map((o) => (
-        <Button key={o.id} className={o.id === value ? 'on' : ''} onClick={() => onChange(o.id)}>
+        <button key={o.id} type="button" className={o.id === value ? 'on' : ''} onClick={() => onChange(o.id)}>
           {o.label}
-        </Button>
+        </button>
       ))}
     </div>
   )
@@ -253,9 +193,9 @@ export function TagInput({ value, onChange }: { value: string[]; onChange: (v: s
     <div>
       <div className="chip-row" style={{ marginBottom: 8 }}>
         {value.map((tg) => (
-          <Button key={tg} className="chip active" onClick={() => onChange(value.filter((x) => x !== tg))}>
+          <button key={tg} type="button" className="chip active" onClick={() => onChange(value.filter((x) => x !== tg))}>
             {tg} ×
-          </Button>
+          </button>
         ))}
       </div>
       <input

@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ChevronDown, FolderPlus, Mic, Pause, Pencil, Play, Sparkles, Square, Trash2 } from 'lucide-react'
-import { motion } from 'framer-motion'
 import { useStore } from '../store'
 import { AudioPlayer } from '../AudioPlayer'
-import { Button, Confirm, Empty, Segment, Sheet, SubjectSelect, TagInput, Toast, listItem, listStagger, useT } from '../ui'
+import { Confirm, Empty, Segment, Sheet, SubjectSelect, TagInput, Toast, useT } from '../ui'
 import type { RecDistance, Recording } from '../types'
 import {
   cancelNativeRecording,
@@ -48,18 +47,17 @@ function RecDistanceSeg({
       <label className="label text-muted-foreground">{tr('recDistance')}</label>
       <div className="flex gap-3 rec-dist-grid">
         {opts.map((o) => (
-          <motion.button
+          <button
             key={o.id}
             type="button"
             className={`rec-dist-card bg-card border rounded-2xl p-4 ${value === o.id ? 'selected' : ''}`}
             onClick={() => onChange(o.id)}
             disabled={disabled}
             aria-pressed={value === o.id}
-            whileTap={{ scale: 0.95 }}
           >
             <b className="text-foreground">{o.label}</b>
             <span className="text-muted-foreground">{o.hint}</span>
-          </motion.button>
+          </button>
         ))}
       </div>
     </div>
@@ -92,7 +90,7 @@ function RecListCard({ rec }: { rec: Recording }) {
   }, [open, rec.id, getAudioBlob])
 
   return (
-    <motion.div className="card rec-card bg-card border" variants={listItem}>
+    <div className="card rec-card bg-card border">
       <div className="rec-card-head">
         <div className="dot" style={{ background: sub?.color ?? 'var(--accent)' }} />
         <div className="rec-card-body grow">
@@ -102,22 +100,21 @@ function RecListCard({ rec }: { rec: Recording }) {
           </div>
         </div>
         <div className="rec-card-actions">
-          <motion.button className="icon-btn" type="button" aria-label={tr('edit')} onClick={() => nav(`/record/${rec.id}`)} whileTap={{ scale: 0.95 }}>
+          <button className="icon-btn" type="button" aria-label={tr('edit')} onClick={() => nav(`/record/${rec.id}`)}>
             <Pencil size={16} />
-          </motion.button>
-          <motion.button className="icon-btn" type="button" aria-label={tr('delete')} onClick={() => setConfirm(true)} whileTap={{ scale: 0.95 }}>
+          </button>
+          <button className="icon-btn" type="button" aria-label={tr('delete')} onClick={() => setConfirm(true)}>
             <Trash2 size={16} />
-          </motion.button>
-          <motion.button
+          </button>
+          <button
             className={`icon-btn chev ${open ? 'open' : ''}`}
             type="button"
             aria-expanded={open}
             aria-label={tr('seeAll')}
-            whileTap={{ scale: 0.95 }}
             onClick={() => setOpen((v) => !v)}
           >
             <ChevronDown size={16} />
-          </motion.button>
+          </button>
         </div>
       </div>
       {open ? (
@@ -170,7 +167,7 @@ function RecListCard({ rec }: { rec: Recording }) {
         }}
       />
       <Toast text={toast} onDone={() => setToast(null)} />
-    </motion.div>
+    </div>
   )
 }
 
@@ -247,21 +244,18 @@ export default function RecorderPage() {
       {list.length === 0 ? (
         <Empty icon={<Mic size={36} />} title={tr('noRecordings')} hint={tr('noRecordingsHint')} />
       ) : (
-        <motion.div className="stack" variants={listStagger} initial="hidden" animate="show" style={{ gap: 10 }}>
-          {list.map((r) => (
-            <RecListCard key={r.id} rec={r} />
-          ))}
-        </motion.div>
+        list.map((r) => <RecListCard key={r.id} rec={r} />)
       )}
-      <motion.button className="fab accent" type="button" onClick={() => nav('/record/live')} aria-label={tr('record')} whileTap={{ scale: 0.95 }}>
+      <button className="fab accent" type="button" onClick={() => nav('/record/live')} aria-label={tr('record')}>
         <Mic size={22} />
-      </motion.button>
+      </button>
       <Sheet open={folderOpen} onClose={() => setFolderOpen(false)} title={tr('newFolder')}>
         <label className="label">{tr('name')}</label>
         <input className="field" value={folderName} onChange={(e) => setFolderName(e.target.value)} />
-        <Button
+        <button
           className="btn block"
           style={{ marginTop: 12 }}
+          type="button"
           onClick={async () => {
             if (!folderName.trim()) return
             await addFolder(folderName.trim(), 'recording')
@@ -270,7 +264,7 @@ export default function RecorderPage() {
           }}
         >
           {tr('create')}
-        </Button>
+        </button>
       </Sheet>
     </div>
   )
@@ -685,18 +679,20 @@ export function LiveRecordPage() {
         <label className="label text-muted-foreground">{tr('subject')}</label>
         <SubjectSelect value={subjectId} onChange={setSubjectId} />
       </div>
-      <Button
+      <button
         className="btn block rec-save bg-primary text-primary-foreground"
+        type="button"
         disabled={!hasPending}
         onClick={() => void confirmSave()}
       >
         {tr('save')}
-      </Button>
+      </button>
       <Sheet open={folderOpen} onClose={() => setFolderOpen(false)} title={tr('newFolder')}>
         <label className="label">{tr('name')}</label>
         <input className="field" value={folderName} onChange={(e) => setFolderName(e.target.value)} />
-        <Button
+        <button
           className="btn block"
+          type="button"
           onClick={async () => {
             if (!folderName.trim()) return
             const folder = await addFolder(folderName.trim(), 'recording')
@@ -706,7 +702,7 @@ export function LiveRecordPage() {
           }}
         >
           {tr('create')}
-        </Button>
+        </button>
       </Sheet>
     </div>
   )
@@ -816,8 +812,9 @@ export function RecordingDetailPage() {
           <div className="grow ellipsis">{n.title || tr('untitled')}</div>
         </Link>
       ))}
-      <Button
+      <button
         className="btn secondary block"
+        type="button"
         onClick={async () => {
           const nb = notebooks[0]
           if (!nb) return
@@ -833,24 +830,23 @@ export function RecordingDetailPage() {
         }}
       >
         {tr('createNoteFromRec')}
-      </Button>
-      <Button className="btn block rec-save bg-primary text-primary-foreground" onClick={() => void persist()}>
+      </button>
+      <button className="btn block rec-save bg-primary text-primary-foreground" type="button" onClick={() => void persist()}>
         {tr('save')}
-      </Button>
+      </button>
       <Sheet open={noteOpen} onClose={() => setNoteOpen(false)} title={tr('attachToNote')}>
         {notes.map((n) => (
-          <motion.button
+          <button
             key={n.id}
             className="list-item"
             type="button"
-            whileTap={{ scale: 0.95 }}
             onClick={async () => {
               await linkEntities('recording', item.id, 'note', n.id)
               setNoteOpen(false)
             }}
           >
             {n.title || tr('untitled')}
-          </motion.button>
+          </button>
         ))}
       </Sheet>
       <Toast text={toast} onDone={() => setToast(null)} />

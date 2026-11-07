@@ -1,8 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { Mic, Play, Sparkles } from 'lucide-react'
 import { useStore } from '../store'
-import { motion } from 'framer-motion'
-import { Ring, listItem, listStagger, useT } from '../ui'
+import { Ring, useT } from '../ui'
 import { endOfDay, formatDate, startOfDay, weekdayLong } from '../utils'
 
 export default function HomePage() {
@@ -55,7 +54,7 @@ export default function HomePage() {
         <Ring value={progress} />
       </div>
 
-      <motion.button className="card pressable spread" type="button" onClick={() => nav('/record/live')} whileTap={{ scale: 0.95 }}>
+      <button className="card pressable spread" type="button" onClick={() => nav('/record/live')}>
         <div className="row">
           <div className="mod-icon rec" style={{ width: 44, height: 44, borderRadius: 14 }}>
             <Mic size={20} />
@@ -68,7 +67,7 @@ export default function HomePage() {
           </div>
         </div>
         <Play size={18} />
-      </motion.button>
+      </button>
 
       <Link className="card pressable block bg-card text-foreground border-border" to="/motivate" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
         <div className="row" style={{ gap: 14, padding: 20 }}>
@@ -80,24 +79,24 @@ export default function HomePage() {
         </div>
       </Link>
 
-      <motion.div className="stat-grid" variants={listStagger} initial="hidden" animate="show">
-        <motion.div className="stat" variants={listItem}>
+      <div className="stat-grid">
+        <div className="stat">
           <b>{recordings.length}</b>
           <span>{tr('recordings')}</span>
-        </motion.div>
-        <motion.div className="stat" variants={listItem}>
+        </div>
+        <div className="stat">
           <b>{dueCards.length}</b>
           <span>{tr('due')}</span>
-        </motion.div>
-        <motion.div className="stat" variants={listItem}>
+        </div>
+        <div className="stat">
           <b>{openToday.length}</b>
           <span>{tr('tasks')}</span>
-        </motion.div>
-        <motion.div className="stat" variants={listItem}>
+        </div>
+        <div className="stat">
           <b>{notes.length}</b>
           <span>{tr('notes')}</span>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   )
 }

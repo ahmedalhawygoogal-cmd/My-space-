@@ -2,8 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Download, Pause, Play, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
-import { motion } from 'framer-motion'
-import { Button, Confirm, Empty, listItem, listStagger, useT } from '../ui'
+import { Confirm, Empty, useT } from '../ui'
 import { AudioPlayer } from '../AudioPlayer'
 import { formatBytes, formatDateTime } from '../utils'
 
@@ -51,32 +50,30 @@ export default function DownloadsPage() {
       {list.length === 0 ? (
         <Empty icon={<Download size={36} />} title={tr('noDownloads')} hint={tr('noDownloadsHint')} />
       ) : (
-        <motion.div className="stack" variants={listStagger} initial="hidden" animate="show" style={{ gap: 10 }}>
-          {visible.map((d) => (
-            <motion.div key={d.id} className="list-item" variants={listItem}>
-              <div className="grow">
-                <div className="ellipsis">{d.name}</div>
-                <div className="meta">
-                  {formatBytes(d.sizeBytes, tr('kb'), tr('mb'))} · {formatDateTime(d.createdAt, lang)}
-                </div>
+        visible.map((d) => (
+          <div key={d.id} className="list-item">
+            <div className="grow">
+              <div className="ellipsis">{d.name}</div>
+              <div className="meta">
+                {formatBytes(d.sizeBytes, tr('kb'), tr('mb'))} · {formatDateTime(d.createdAt, lang)}
               </div>
-              <motion.button className="icon-btn" type="button" aria-label={tr('play')} onClick={() => void play(d.id)} whileTap={{ scale: 0.95 }}>
-                {active === d.id ? <Pause size={16} /> : <Play size={16} />}
-              </motion.button>
-              <motion.button className="icon-btn" type="button" aria-label={tr('delete')} onClick={() => setPending(d.id)} whileTap={{ scale: 0.95 }}>
-                <Trash2 size={16} />
-              </motion.button>
-            </motion.div>
-          ))}
-        </motion.div>
+            </div>
+            <button className="icon-btn" type="button" aria-label={tr('play')} onClick={() => void play(d.id)}>
+              {active === d.id ? <Pause size={16} /> : <Play size={16} />}
+            </button>
+            <button className="icon-btn" type="button" aria-label={tr('delete')} onClick={() => setPending(d.id)}>
+              <Trash2 size={16} />
+            </button>
+          </div>
+        ))
       )}
       {current && src ? (
         <AudioPlayer src={src} name={current.name} mimeType={current.mimeType} durationMs={undefined} />
       ) : null}
       {shown < list.length ? (
-        <Button className="btn secondary block" onClick={() => setShown((n) => n + PAGE)}>
+        <button className="btn secondary block" type="button" onClick={() => setShown((n) => n + PAGE)}>
           {tr('loadMore')}
-        </Button>
+        </button>
       ) : null}
       <Confirm
         open={!!pending}

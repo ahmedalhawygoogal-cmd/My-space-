@@ -2,8 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BookOpen, CheckSquare, Layers, Mic, Search } from 'lucide-react'
 import { useStore } from '../store'
-import { motion } from 'framer-motion'
-import { Empty, Segment, listItem, listStagger, useT } from '../ui'
+import { Empty, Segment, useT } from '../ui'
 import { excerpt } from '../utils'
 import type { EntityType } from '../types'
 
@@ -53,19 +52,15 @@ export default function SearchPage() {
       ) : hits.length === 0 ? (
         <Empty icon={<Search size={36} />} title={tr('noResults')} />
       ) : (
-        <motion.div className="stack" variants={listStagger} initial="hidden" animate="show" style={{ gap: 10 }}>
-          {hits.map((h) => (
-            <motion.div key={`${h.type}-${h.id}`} variants={listItem}>
-              <Link className="list-item" to={to(h.type, h.id)}>
-                {icon(h.type)}
-                <div className="grow">
-                  <div className="ellipsis">{h.title}</div>
-                  <div className="meta ellipsis">{excerpt(h.snippet)}</div>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
-        </motion.div>
+        hits.map((h) => (
+          <Link key={`${h.type}-${h.id}`} className="list-item" to={to(h.type, h.id)}>
+            {icon(h.type)}
+            <div className="grow">
+              <div className="ellipsis">{h.title}</div>
+              <div className="meta ellipsis">{excerpt(h.snippet)}</div>
+            </div>
+          </Link>
+        ))
       )}
     </div>
   )

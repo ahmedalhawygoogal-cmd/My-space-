@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { CheckSquare, ChevronDown, ChevronUp, Eye, EyeOff, Pencil, Plus, Trash2 } from 'lucide-react'
-import { motion } from 'framer-motion'
 import { useStore } from '../store'
-import { Button, Confirm, DateField, Empty, Segment, Sheet, listItem, listStagger, useT } from '../ui'
+import { Confirm, DateField, Empty, Segment, Sheet, useT } from '../ui'
 import { endOfDay, formatDate, startOfDay, uid } from '../utils'
 import type { Priority, Task } from '../types'
 
@@ -108,29 +107,27 @@ export default function TasksPage() {
       {filtered.length === 0 ? (
         <Empty icon={<CheckSquare size={36} />} title={tr('noTasks')} hint={tr('noTasksHint')} />
       ) : (
-        <motion.div className="stack" variants={listStagger} initial="hidden" animate="show" style={{ gap: 10 }}>
-        {filtered.map((tk) => {
+        filtered.map((tk) => {
           const kids = kidsOf(tasks, tk.id)
           const big = kids.length > 0
           const doneN = kids.filter((k) => k.completed).length
           const done = tk.completed || (big && kids.length > 0 && doneN === kids.length)
           return (
-            <motion.div key={tk.id} className={`task-card${done ? ' is-done' : ''}`} variants={listItem}>
+            <div key={tk.id} className={`task-card${done ? ' is-done' : ''}`}>
               <div className="list-item" style={{ border: 0, padding: 0, background: 'transparent' }}>
                 {big ? (
                   <>
                     <span className={`check ${done ? 'on' : ''}`} aria-hidden>
                       {done ? '✓' : ''}
                     </span>
-                    <motion.button
+                    <button
                       className="icon-btn"
                       type="button"
                       aria-label={tr('subtasks')}
-                      whileTap={{ scale: 0.95 }}
                       onClick={() => setOpenKids((s) => ({ ...s, [tk.id]: !s[tk.id] }))}
                     >
                       {openKids[tk.id] ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                    </motion.button>
+                    </button>
                   </>
                 ) : (
                   <Toggle id={tk.id} done={tk.completed} />
@@ -140,18 +137,17 @@ export default function TasksPage() {
                     <div className={`ellipsis ${done ? 'task-done' : ''}`} style={{ fontWeight: 700 }}>
                       {tk.title}
                     </div>
-                    <motion.button
+                    <button
                       className="icon-btn"
                       type="button"
                       aria-label={tr('showDesc')}
-                      whileTap={{ scale: 0.95 }}
                       onClick={() => setOpenDesc((s) => ({ ...s, [tk.id]: !s[tk.id] }))}
                     >
                       {openDesc[tk.id] ? <EyeOff size={15} /> : <Eye size={15} />}
-                    </motion.button>
-                    <motion.button className="icon-btn" type="button" aria-label={tr('edit')} onClick={() => setEdit(tk)} whileTap={{ scale: 0.95 }}>
+                    </button>
+                    <button className="icon-btn" type="button" aria-label={tr('edit')} onClick={() => setEdit(tk)}>
                       <Pencil size={15} />
-                    </motion.button>
+                    </button>
                   </div>
                   <div className="meta">
                     {big ? `${doneN}/${kids.length}` : tk.category || tr('priorityMed')}
@@ -170,38 +166,35 @@ export default function TasksPage() {
                   ))}
                 </div>
               ) : null}
-            </motion.div>
+            </div>
           )
-        })}
-        </motion.div>
+        })
       )}
-      <motion.button className="fab" type="button" onClick={() => setPick(true)} aria-label={tr('newTask')} whileTap={{ scale: 0.95 }}>
+      <button className="fab" type="button" onClick={() => setPick(true)} aria-label={tr('newTask')}>
         <Plus size={22} />
-      </motion.button>
+      </button>
       <Sheet open={pick} onClose={() => setPick(false)} title={tr('newTask')}>
-        <motion.button
+        <button
           className="choice"
           type="button"
-          whileTap={{ scale: 0.95 }}
           onClick={() => {
             setPick(false)
             setKind('normal')
           }}
         >
           {tr('normalTask')}
-        </motion.button>
-        <motion.button
+        </button>
+        <button
           className="choice"
           type="button"
           style={{ marginTop: 8 }}
-          whileTap={{ scale: 0.95 }}
           onClick={() => {
             setPick(false)
             setKind('big')
           }}
         >
           {tr('bigTask')}
-        </motion.button>
+        </button>
       </Sheet>
       <TaskForm
         open={!!kind}
@@ -216,11 +209,10 @@ export default function TasksPage() {
 function Toggle({ id, done, parentId }: { id: string; done: boolean; parentId?: string }) {
   const { toggleTask, tasks, updateTask } = useStore()
   return (
-    <motion.button
+    <button
       className={`check ${done ? 'on' : ''}`}
       type="button"
       aria-label="toggle"
-      whileTap={{ scale: 0.95 }}
       onClick={() => {
         const exists = tasks.some((t) => t.id === id)
         if (exists) {
@@ -236,7 +228,7 @@ function Toggle({ id, done, parentId }: { id: string; done: boolean; parentId?: 
       }}
     >
       {done ? '✓' : ''}
-    </motion.button>
+    </button>
   )
 }
 
@@ -355,21 +347,21 @@ function TaskForm({
                   })
                 }
               />
-              <motion.button
+              <button
                 className="icon-btn"
                 type="button"
                 aria-label={tr('delete')}
-                whileTap={{ scale: 0.95 }}
                 onClick={() => setDraft({ ...draft, children: draft.children.filter((x) => x.id !== c.id) })}
               >
                 <Trash2 size={16} />
-              </motion.button>
+              </button>
             </div>
           ))}
           <div className="row">
             <input className="field" value={child} onChange={(e) => setChild(e.target.value)} placeholder={tr('addSubtask')} />
-            <Button
+            <button
               className="btn secondary"
+              type="button"
               onClick={() => {
                 if (!child.trim()) return
                 setDraft({ ...draft, children: [...draft.children, { id: uid(), title: child.trim() }] })
@@ -377,13 +369,14 @@ function TaskForm({
               }}
             >
               {tr('add')}
-            </Button>
+            </button>
           </div>
         </>
       )}
-      <Button
+      <button
         className="btn block"
         style={{ marginTop: 12 }}
+        type="button"
         onClick={async () => {
           if (!draft.title.trim()) return
           const payload = {
@@ -406,11 +399,11 @@ function TaskForm({
         }}
       >
         {tr('save')}
-      </Button>
+      </button>
       {task ? (
-        <Button className="btn danger block" onClick={() => setConfirm(true)}>
+        <button className="btn danger block" type="button" onClick={() => setConfirm(true)}>
           {tr('deleteTask')}
-        </Button>
+        </button>
       ) : null}
       <Confirm
         open={confirm}

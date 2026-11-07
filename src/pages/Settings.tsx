@@ -1,9 +1,8 @@
 import { useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Download, Languages } from 'lucide-react'
 import { useStore } from '../store'
-import { Button, Confirm, Segment, Toast, useT } from '../ui'
+import { Confirm, Segment, Toast, useT } from '../ui'
 import { downloadBlob, formatDateTime } from '../utils'
 import { exportSnapshot, type Snapshot } from '../db'
 import type { AppFont, AppFontSize, NotifySound, Theme } from '../types'
@@ -35,16 +34,16 @@ export default function SettingsPage() {
   return (
     <div className="stack">
       <h1 className="page-title">{tr('settings')}</h1>
-      <motion.button className="list-item pressable" type="button" onClick={() => nav('/downloads')} whileTap={{ scale: 0.95 }}>
+      <button className="list-item pressable" type="button" onClick={() => nav('/downloads')}>
         <Download size={18} />
         <div className="grow">{tr('downloads')}</div>
-      </motion.button>
+      </button>
       <label className="label">{tr('yourName')}</label>
       <input className="field" value={settings.userName} onChange={(e) => void setSettings({ userName: e.target.value })} />
-      <motion.button className="list-item pressable" type="button" onClick={() => setPrefs(true)} whileTap={{ scale: 0.95 }}>
+      <button className="list-item pressable" type="button" onClick={() => setPrefs(true)}>
         <Languages size={18} />
         <div className="grow">{tr('changeLang')}</div>
-      </motion.button>
+      </button>
       <label className="label">{tr('theme')}</label>
       <Segment
         value={settings.theme}
@@ -84,8 +83,9 @@ export default function SettingsPage() {
         placeholder={tr('colorHint')}
         onChange={(e) => setColorDraft(e.target.value)}
       />
-      <Button
+      <button
         className="btn block"
+        type="button"
         onClick={() => {
           const resolved = resolveColor(colorDraft)
           if (!resolved) {
@@ -96,7 +96,7 @@ export default function SettingsPage() {
         }}
       >
         {tr('applyColor')}
-      </Button>
+      </button>
       <label className="label">{tr('speakRepeats')}</label>
       <Segment
         value={String(settings.speakRepeats ?? 1)}
@@ -148,15 +148,16 @@ export default function SettingsPage() {
         <div key={s.id} className="list-item">
           <div className="dot" style={{ background: s.color }} />
           <div className="grow">{s.name}</div>
-          <motion.button className="chip" type="button" onClick={() => void deleteSubject(s.id)} whileTap={{ scale: 0.95 }}>
+          <button className="chip" type="button" onClick={() => void deleteSubject(s.id)}>
             {tr('delete')}
-          </motion.button>
+          </button>
         </div>
       ))}
       <div className="row">
         <input className="field" value={newSub} onChange={(e) => setNewSub(e.target.value)} placeholder={tr('newSubject')} />
-        <Button
+        <button
           className="btn secondary"
+          type="button"
           onClick={async () => {
             if (!newSub.trim()) return
             await addSubject(newSub.trim())
@@ -164,7 +165,7 @@ export default function SettingsPage() {
           }}
         >
           {tr('add')}
-        </Button>
+        </button>
       </div>
       <div className="card">
         <h3 style={{ marginTop: 0 }}>{tr('backup')}</h3>
@@ -172,13 +173,13 @@ export default function SettingsPage() {
         <p className="muted" style={{ fontSize: 13 }}>
           {tr('lastBackup')}: {settings.lastBackupAt ? formatDateTime(settings.lastBackupAt, lang) : tr('never')}
         </p>
-        <Button className="btn block" onClick={() => void doExport()}>
+        <button className="btn block" type="button" onClick={() => void doExport()}>
           {tr('exportData')}
-        </Button>
+        </button>
         <p className="muted">{tr('restoreHint')}</p>
-        <Button className="btn ghost block" onClick={() => fileRef.current?.click()}>
+        <button className="btn ghost block" type="button" onClick={() => fileRef.current?.click()}>
           {tr('importData')}
-        </Button>
+        </button>
         <input
           ref={fileRef}
           type="file"
@@ -206,33 +207,17 @@ export default function SettingsPage() {
           {tr('version')} 1.0.0 · {tr('offline')}
         </div>
       </div>
-      <AnimatePresence>
-        {prefs ? (
-          <motion.div
-            className="sheet-backdrop backdrop-blur-sm"
-            onClick={() => setPrefs(false)}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <motion.div
-              className="sheet bg-card border-border text-foreground"
-              onClick={(e) => e.stopPropagation()}
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ duration: 0.22, ease: 'easeOut' }}
-            >
-              <div className="sheet-handle" />
-              <h3 className="page-title" style={{ margin: '0 0 12px' }}>
-                {tr('changeLang')}
-              </h3>
-              <LanguagePrefs />
-            </motion.div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+      {prefs ? (
+        <div className="sheet-backdrop" onClick={() => setPrefs(false)}>
+          <div className="sheet bg-card border-border text-foreground" onClick={(e) => e.stopPropagation()}>
+            <div className="sheet-handle" />
+            <h3 className="page-title" style={{ margin: '0 0 12px' }}>
+              {tr('changeLang')}
+            </h3>
+            <LanguagePrefs />
+          </div>
+        </div>
+      ) : null}
       <Confirm
         open={confirm}
         title={tr('restoreConfirm')}
