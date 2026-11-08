@@ -1,8 +1,9 @@
 import type { RecDistance } from './types'
-import { DISTANCE_PRE_GAIN } from './types'
 import { denoisePcm } from './utils/rnnoise'
 
 const RNNOISE_RATE = 48000
+const TARGET_PEAK = 10 ** (-3 / 20)
+const MAKEUP_GAIN = 1.2
 
 function writeStr(view: DataView, offset: number, s: string) {
   for (let i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i))
@@ -78,8 +79,20 @@ function pcmToBuffer(samples: Float32Array, sampleRate: number): AudioBuffer {
   return buf
 }
 
-function applyPreGain(samples: Float32Array, gain: number): Float32Array {
-  if (gain === 1) return samples
+function peakAmplitude(samples: Float32Array): number {
+  let peak = 0
+  for (let i = 0; i < samples.length; i++) {
+    const a = Math.abs(samples[i])
+    if (a > peak) peak = a
+  }
+  return peak
+}
+
+function normalizeToPeak(samples: Float32Array, targetPeak: number): Float32Array {
+  const peak = peakAmplitude(samples)
+  if (peak < 1e-6) return samples
+  const gain = targetPeak / peak
+  if (Math.abs(gain - 1) < 1e-6) return samples
   const out = new Float32Array(samples.length)
   for (let i = 0; i < samples.length; i++) out[i] = samples[i] * gain
   return out
@@ -115,11 +128,15 @@ async function applySpeechChain(buffer: AudioBuffer): Promise<AudioBuffer> {
   limiter.attack.value = 0.001
   limiter.release.value = 0.05
 
+  const makeup = offline.createGain()
+  makeup.gain.value = MAKEUP_GAIN
+
   source.connect(highpass)
   highpass.connect(presence)
   presence.connect(compressor)
   compressor.connect(limiter)
-  limiter.connect(offline.destination)
+  limiter.connect(makeup)
+  makeup.connect(offline.destination)
   source.start(0)
   return offline.startRendering()
 }
@@ -132,12 +149,17 @@ export async function enhanceAudioBlob(
   try {
     const raw = await blob.arrayBuffer()
     const decoded = await decodeCtx.decodeAudioData(raw.slice(0))
-    const mono = mixToMono(decoded)
-    const at48k = await resampleMono(mono, decoded.sampleRate, RNNOISE_RATE)
-    const boosted = applyPreGain(at48k, DISTANCE_PRE_GAIN[distance] ?? 1)
-    const denoised = await denoisePcm(boosted)
-    const denoisedBuffer = pcmToBuffer(denoised, RNNOISE_RATE)
-    const rendered = await applySpeechChain(denoisedBuffer)
+    let pcm = mixToMono(decoded)
+    let sampleRate = decoded.sampleRate
+    if (distance === 'medium' || distance === 'far') {
+      pcm = normalizeToPeak(pcm, TARGET_PEAK)
+    }
+    if (distance === 'near') {
+      pcm = await resampleMono(pcm, sampleRate, RNNOISE_RATE)
+      sampleRate = RNNOISE_RATE
+      pcm = await denoisePcm(pcm)
+    }
+    const rendered = await applySpeechChain(pcmToBuffer(pcm, sampleRate))
     const wav = audioBufferToWav(rendered)
     return {
       blob: wav,

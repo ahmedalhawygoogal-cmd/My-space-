@@ -86,12 +86,6 @@ export const DISTANCE_WAVEFORM_GAIN: Record<RecDistance, number> = {
   far: 3,
 }
 
-export const DISTANCE_PRE_GAIN: Record<RecDistance, number> = {
-  near: 1,
-  medium: 2,
-  far: 3.5,
-}
-
 export interface Recording {
   id: string
   name: string
