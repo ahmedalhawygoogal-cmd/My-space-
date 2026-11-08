@@ -35,6 +35,7 @@ import { removeRemoteCard, syncCardsFromCloud, upsertRemoteCard } from './lib/ca
 import { removeRemoteDeck, syncDecksFromCloud, upsertRemoteDeck } from './lib/deckSync'
 import { removeRemoteNote, syncNotesFromCloud, upsertRemoteNote } from './lib/noteSync'
 import { migrateLocalDataToCloud } from './lib/migrateLocal'
+import { saveProfile, syncProfileFromCloud } from './lib/profileSync'
 import { pushRecordingToCloud, removeRemoteRecording, syncRecordingsFromCloud, upsertRemoteRecording } from './lib/recordingSync'
 import { removeRemoteTask, syncTasksFromCloud, upsertRemoteTask } from './lib/taskSync'
 
@@ -364,7 +365,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ])
       await syncCardsFromCloud()
     }
-    const [settings, subjects, folders, recordings, decks, cards, tasks, notebooks, notes, links, downloads] =
+    const [loadedSettings, subjects, folders, recordings, decks, cards, tasks, notebooks, notes, links, downloads] =
       await Promise.all([
         db.loadSettings(),
         db.getAll<Subject>(STORES.subjects),
@@ -378,6 +379,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         db.getAll<Link>(STORES.links),
         db.getAll<DownloadItem>(STORES.downloads),
       ])
+    const settings = userId ? await syncProfileFromCloud(loadedSettings) : loadedSettings
     const recordingsN = recordings.map(normalizeRecording)
     const recWrites = recordingsN.filter((_, idx) => recordings[idx]?.distance === undefined)
     const cardsN = cards.map(normalizeCard)
@@ -443,6 +445,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       accentColor: settingsN.accentColor,
     })
     if (
+      userId ||
       settings.speakRepeats == null ||
       settings.cardReminders == null ||
       settings.notifySound == null ||
@@ -466,8 +469,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       links,
       downloads,
     })
-    applyLang(settings.language)
-    applyTheme(settings.theme)
+    applyLang(settingsN.language)
+    applyTheme(settingsN.theme)
     applyAppearance({
       fontFamily: settingsN.fontFamily,
       fontSize: settingsN.fontSize,
@@ -522,6 +525,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       fontSize: next.fontSize,
       accentColor: next.accentColor,
     })
+    const profileKeys: (keyof AppSettings)[] = ['onboarded', 'nativeLang', 'targetLangs', 'goal', 'fields', 'fieldOther', 'dailyGoal']
+    if (next.onboarded && profileKeys.some((k) => k in p)) await saveProfile(next)
   }, [state.settings])
 
   const addSubject = useCallback(async (name: string, color?: string) => {
