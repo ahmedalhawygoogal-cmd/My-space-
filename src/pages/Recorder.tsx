@@ -62,6 +62,7 @@ function RecListCard({ rec }: { rec: Recording }) {
   const [toast, setToast] = useState<string | null>(null)
   const [enhancing, setEnhancing] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [cloudStep, setCloudStep] = useState<'upload' | 'process'>('upload')
   const [playerKey, setPlayerKey] = useState(0)
   const sub = subjects.find((s) => s.id === rec.subjectId)
 
@@ -105,17 +106,28 @@ function RecListCard({ rec }: { rec: Recording }) {
   async function uploadCloud() {
     if (uploading || enhancing) return
     setUploading(true)
+    setCloudStep('upload')
     try {
       const src = (await getOriginalAudioBlob(rec.id)) || (await getAudioBlob(rec.id))
       if (!src) throw new Error('missing')
       const { uploadRecordingToCloud } = await import('../utils/cloudUpload')
       const { url: cloudUrl } = await uploadRecordingToCloud(rec.id, src)
       await updateRecording(rec.id, { cloudUrl })
+      setCloudStep('process')
+      const { enhanceAudioWithNVIDIA } = await import('../utils/nvidiaAI')
+      const enhanced = await enhanceAudioWithNVIDIA(src)
+      await enhanceRecordingAudio(rec.id, enhanced, {
+        mimeType: enhanced.type || 'audio/wav',
+        sizeBytes: enhanced.size,
+        cloudUrl,
+      })
+      setPlayerKey((k) => k + 1)
       setToast(tr('cloudEnhanceDone'))
     } catch {
       setToast(tr('cloudEnhanceError'))
     } finally {
       setUploading(false)
+      setCloudStep('upload')
     }
   }
 
@@ -179,7 +191,9 @@ function RecListCard({ rec }: { rec: Recording }) {
               style={{ marginTop: 8, width: '100%' }}
             >
               {uploading ? <Loader2 size={16} className="spin" /> : <CloudUpload size={16} />}
-              {uploading ? tr('cloudEnhanceBusy') : tr('cloudEnhance')}
+              {uploading
+                ? tr(cloudStep === 'process' ? 'cloudEnhanceProcessing' : 'cloudEnhanceBusy')
+                : tr('cloudEnhance')}
             </button>
           </div>
           <div className="rec-card-meta">
