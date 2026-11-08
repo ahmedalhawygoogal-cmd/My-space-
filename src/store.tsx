@@ -34,6 +34,7 @@ import { useAuth } from './auth'
 import { removeRemoteCard, syncCardsFromCloud, upsertRemoteCard } from './lib/cardSync'
 import { removeRemoteDeck, syncDecksFromCloud, upsertRemoteDeck } from './lib/deckSync'
 import { removeRemoteNote, syncNotesFromCloud, upsertRemoteNote } from './lib/noteSync'
+import { migrateLocalDataToCloud } from './lib/migrateLocal'
 import { pushRecordingToCloud, removeRemoteRecording, syncRecordingsFromCloud, upsertRemoteRecording } from './lib/recordingSync'
 import { removeRemoteTask, syncTasksFromCloud, upsertRemoteTask } from './lib/taskSync'
 
@@ -354,6 +355,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const reload = useCallback(async () => {
     await seedIfEmpty()
     if (userId) {
+      await migrateLocalDataToCloud()
       await Promise.all([
         syncNotesFromCloud(),
         syncDecksFromCloud(),
