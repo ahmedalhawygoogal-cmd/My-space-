@@ -30,6 +30,8 @@ import type {
 import { APP_FONTS, DEFAULT_SETTINGS, RTL_LANGS, SUBJECT_COLORS, isUiLang } from './types'
 import type { AppFont, AppFontSize } from './types'
 import { contrastInk, includesText, now, startOfDay, stripHtml, uid } from './utils'
+import { useAuth } from './auth'
+import { removeRemoteTask, syncTasksFromCloud, upsertRemoteTask } from './lib/taskSync'
 
 interface StoreState {
   ready: boolean
@@ -328,6 +330,8 @@ function schedule(card: Card, rating: CardRating): Card {
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {
+  const { user, loading: authLoading } = useAuth()
+  const userId = user?.id
   const [state, setState] = useState<StoreState>({
     ready: false,
     settings: DEFAULT_SETTINGS,
@@ -345,6 +349,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const reload = useCallback(async () => {
     await seedIfEmpty()
+    if (userId) await syncTasksFromCloud()
     const [settings, subjects, folders, recordings, decks, cards, tasks, notebooks, notes, links, downloads] =
       await Promise.all([
         db.loadSettings(),
@@ -454,11 +459,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       fontSize: settingsN.fontSize,
       accentColor: settingsN.accentColor,
     })
-  }, [])
+  }, [userId])
 
   useEffect(() => {
+    if (authLoading) return
     void reload()
-  }, [reload])
+  }, [reload, authLoading])
 
   useEffect(() => {
     if (!state.ready) return
@@ -851,7 +857,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const addTask = useCallback(async (data: Partial<Task> & { title: string }) => {
     const t = now()
     const item: Task = {
-      id: uid(),
+      id: crypto.randomUUID(),
       title: data.title,
       description: data.description ?? '',
       completed: false,
@@ -873,6 +879,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
     await db.putOne(STORES.tasks, item)
     setState((s) => ({ ...s, tasks: [item, ...s.tasks] }))
+    void upsertRemoteTask(item)
     return item
   }, [])
 
@@ -889,6 +896,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const next: Task = { ...parent, completed: done, completedAt: done ? t : undefined, updatedAt: t }
       await db.putOne(STORES.tasks, next)
       patchList('tasks', parentId, next)
+      void upsertRemoteTask(next)
     },
     [patchList],
   )
@@ -905,6 +913,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
     await db.putOne(STORES.tasks, next)
     patchList('tasks', id, next)
+    void upsertRemoteTask(next)
     if (cur.parentId && p.completed !== undefined) {
       const list = state.tasks.map((x) => (x.id === id ? next : x))
       await syncParentCompletion(cur.parentId, list)
@@ -919,6 +928,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const next: Task = { ...cur, completed, completedAt: completed ? t : undefined, updatedAt: t }
     await db.putOne(STORES.tasks, next)
     patchList('tasks', id, next)
+    void upsertRemoteTask(next)
     if (cur.parentId) {
       const list = state.tasks.map((x) => (x.id === id ? next : x))
       await syncParentCompletion(cur.parentId, list)
@@ -950,6 +960,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ...s,
       tasks: s.tasks.filter((x) => x.id !== id && x.parentId !== id),
     }))
+    void removeRemoteTask(id)
+    for (const cid of childIds) void removeRemoteTask(cid)
   }, [state.tasks])
 
   const addNotebook = useCallback(async (name: string, extra?: Partial<Notebook>) => {

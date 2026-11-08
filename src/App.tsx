@@ -129,14 +129,14 @@ function Gate() {
 
 export default function App() {
   return (
-    <StoreProvider>
-      <AuthProvider>
+    <AuthProvider>
+      <StoreProvider>
         <BrowserRouter>
           <NativeBack />
           <CardReminders />
           <Gate />
         </BrowserRouter>
-      </AuthProvider>
-    </StoreProvider>
+      </StoreProvider>
+    </AuthProvider>
   )
 }
