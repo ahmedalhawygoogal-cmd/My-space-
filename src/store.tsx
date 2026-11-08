@@ -31,6 +31,10 @@ import { APP_FONTS, DEFAULT_SETTINGS, RTL_LANGS, SUBJECT_COLORS, isUiLang } from
 import type { AppFont, AppFontSize } from './types'
 import { contrastInk, includesText, now, startOfDay, stripHtml, uid } from './utils'
 import { useAuth } from './auth'
+import { removeRemoteCard, syncCardsFromCloud, upsertRemoteCard } from './lib/cardSync'
+import { removeRemoteDeck, syncDecksFromCloud, upsertRemoteDeck } from './lib/deckSync'
+import { removeRemoteNote, syncNotesFromCloud, upsertRemoteNote } from './lib/noteSync'
+import { pushRecordingToCloud, removeRemoteRecording, syncRecordingsFromCloud, upsertRemoteRecording } from './lib/recordingSync'
 import { removeRemoteTask, syncTasksFromCloud, upsertRemoteTask } from './lib/taskSync'
 
 interface StoreState {
@@ -349,7 +353,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const reload = useCallback(async () => {
     await seedIfEmpty()
-    if (userId) await syncTasksFromCloud()
+    if (userId) {
+      await Promise.all([
+        syncNotesFromCloud(),
+        syncDecksFromCloud(),
+        syncRecordingsFromCloud(),
+        syncTasksFromCloud(),
+      ])
+      await syncCardsFromCloud()
+    }
     const [settings, subjects, folders, recordings, decks, cards, tasks, notebooks, notes, links, downloads] =
       await Promise.all([
         db.loadSettings(),
@@ -566,7 +578,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     ) => {
       const t = now()
       const item: Recording = {
-        id: uid(),
+        id: crypto.randomUUID(),
         name: rec.name,
         durationMs: rec.durationMs,
         mimeType: rec.mimeType,
@@ -584,6 +596,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       await db.putOne(STORES.recordings, item)
       await db.putOne(STORES.audioBlobs, { id: item.id, blob })
       setState((s) => ({ ...s, recordings: [item, ...s.recordings] }))
+      void pushRecordingToCloud(item, blob)
       return item
     },
     [],
@@ -595,6 +608,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const next = { ...cur, ...p, updatedAt: now() }
     await db.putOne(STORES.recordings, next)
     patchList('recordings', id, next)
+    void upsertRemoteRecording(next)
   }, [state.recordings, patchList])
 
   const deleteRecording = useCallback(async (id: string) => {
@@ -610,6 +624,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           : n,
       ),
     }))
+    void removeRemoteRecording(id)
   }, [])
 
   const replaceAudioBlob = useCallback(
@@ -626,6 +641,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       await db.putOne(STORES.audioBlobs, { id, blob })
       await db.putOne(STORES.recordings, next)
       patchList('recordings', id, next)
+      void pushRecordingToCloud(next, blob)
     },
     [state.recordings, patchList],
   )
@@ -650,14 +666,26 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       await db.putOne(STORES.audioBlobs, { id, blob })
       await db.putOne(STORES.recordings, next)
       patchList('recordings', id, next)
+      void pushRecordingToCloud(next, blob)
     },
     [state.recordings, patchList],
   )
 
   const getAudioBlob = useCallback(async (id: string) => {
     const row = await db.getById<{ id: string; blob: Blob }>(STORES.audioBlobs, id)
-    return row?.blob
-  }, [])
+    if (row?.blob) return row.blob
+    const rec = state.recordings.find((x) => x.id === id)
+    if (!rec?.cloudUrl) return undefined
+    try {
+      const res = await fetch(rec.cloudUrl)
+      if (!res.ok) return undefined
+      const blob = await res.blob()
+      await db.putOne(STORES.audioBlobs, { id, blob })
+      return blob
+    } catch {
+      return undefined
+    }
+  }, [state.recordings])
 
   const getOriginalAudioBlob = useCallback(async (id: string) => {
     const row = await db.getById<{ id: string; blob: Blob }>(STORES.originalAudioBlobs, id)
@@ -693,7 +721,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const addDeck = useCallback(async (name: string, extra?: Partial<Deck>) => {
     const t = now()
     const item: Deck = {
-      id: uid(),
+      id: crypto.randomUUID(),
       name,
       type: normalizeDeckType(extra?.type),
       cardCount: extra?.cardCount ?? 0,
@@ -709,6 +737,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
     await db.putOne(STORES.decks, item)
     setState((s) => ({ ...s, decks: [...s.decks, item] }))
+    void upsertRemoteDeck(item)
     return item
   }, [])
 
@@ -718,6 +747,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const next = { ...cur, ...p, updatedAt: now() }
     await db.putOne(STORES.decks, next)
     patchList('decks', id, next)
+    void upsertRemoteDeck(next)
   }, [state.decks, patchList])
 
   const deleteDeck = useCallback(async (id: string) => {
@@ -729,6 +759,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       decks: s.decks.filter((d) => d.id !== id),
       cards: s.cards.filter((c) => c.deckId !== id),
     }))
+    void removeRemoteDeck(id)
+    for (const cid of cardIds) void removeRemoteCard(cid)
   }, [state.cards])
 
   const bumpDeckCount = useCallback(async (deckId: string, delta: number) => {
@@ -737,13 +769,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const next = { ...cur, cardCount: Math.max(0, (cur.cardCount || 0) + delta), updatedAt: now() }
     await db.putOne(STORES.decks, next)
     patchList('decks', deckId, next)
+    void upsertRemoteDeck(next)
   }, [state.decks, patchList])
 
   const addCard = useCallback(async (deckId: string, data: Partial<Card> & { front: string; back: string }) => {
     const t = now()
     const image = data.imageBlob || data.imageDataUrl
     const item: Card = {
-      id: uid(),
+      id: crypto.randomUUID(),
       deckId,
       front: data.front,
       back: data.back,
@@ -771,6 +804,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     await db.putOne(STORES.cards, item)
     setState((s) => ({ ...s, cards: [...s.cards, item] }))
     await bumpDeckCount(deckId, 1)
+    void upsertRemoteCard(item)
     return item
   }, [bumpDeckCount])
 
@@ -780,6 +814,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const next = { ...cur, ...p, updatedAt: now() }
     await db.putOne(STORES.cards, next)
     patchList('cards', id, next)
+    void upsertRemoteCard(next)
   }, [state.cards, patchList])
 
   const deleteCard = useCallback(async (id: string) => {
@@ -787,6 +822,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     await db.deleteById(STORES.cards, id)
     setState((s) => ({ ...s, cards: s.cards.filter((c) => c.id !== id) }))
     if (cur) await bumpDeckCount(cur.deckId, -1)
+    void removeRemoteCard(id)
   }, [state.cards, bumpDeckCount])
 
   const duplicateCard = useCallback(async (id: string) => {
@@ -812,6 +848,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const next = applyAnswer(cur, correct)
     await db.putOne(STORES.cards, next)
     patchList('cards', id, next)
+    void upsertRemoteCard(next)
   }, [state.cards, patchList])
 
   const pickCards = useCallback(
@@ -833,6 +870,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const next = schedule(cur, rating)
     await db.putOne(STORES.cards, next)
     patchList('cards', id, next)
+    void upsertRemoteCard(next)
     const key = 'myspace-streak'
     const raw = localStorage.getItem(key)
     const today = startOfDay()
@@ -996,12 +1034,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       notebooks: s.notebooks.filter((n) => n.id !== id),
       notes: s.notes.filter((n) => n.notebookId !== id),
     }))
+    for (const nid of noteIds) void removeRemoteNote(nid)
   }, [state.notes])
 
   const addNote = useCallback(async (notebookId: string, extra?: Partial<Note>) => {
     const t = now()
     const item: Note = {
-      id: uid(),
+      id: crypto.randomUUID(),
       notebookId,
       folderId: extra?.folderId,
       title: extra?.title ?? '',
@@ -1020,6 +1059,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
     await db.putOne(STORES.notes, item)
     setState((s) => ({ ...s, notes: [item, ...s.notes] }))
+    void upsertRemoteNote(item)
     return item
   }, [])
 
@@ -1029,11 +1069,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const next = { ...cur, ...p, updatedAt: now() }
     await db.putOne(STORES.notes, next)
     patchList('notes', id, next)
+    void upsertRemoteNote(next)
   }, [state.notes, patchList])
 
   const deleteNote = useCallback(async (id: string) => {
     await db.deleteById(STORES.notes, id)
     setState((s) => ({ ...s, notes: s.notes.filter((n) => n.id !== id) }))
+    void removeRemoteNote(id)
   }, [])
 
   const linkEntities = useCallback(
