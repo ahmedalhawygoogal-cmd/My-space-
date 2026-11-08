@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Download, Languages } from 'lucide-react'
 import { useStore } from '../store'
+import { useAuth } from '../auth'
 import { Confirm, Segment, Toast, useT } from '../ui'
 import { downloadBlob, formatDateTime } from '../utils'
 import { exportSnapshot, type Snapshot } from '../db'
@@ -15,6 +16,7 @@ export default function SettingsPage() {
   const tr = useT()
   const nav = useNavigate()
   const { settings, setSettings, subjects, addSubject, deleteSubject, importData, markBackup, lang } = useStore()
+  const { signOut } = useAuth()
   const [toast, setToast] = useState<string | null>(null)
   const [confirm, setConfirm] = useState(false)
   const [pending, setPending] = useState<Snapshot | null>(null)
@@ -200,6 +202,9 @@ export default function SettingsPage() {
           }}
         />
       </div>
+      <button className="btn ghost block" type="button" onClick={() => void signOut()}>
+        {tr('logout')}
+      </button>
       <div className="card-quiet">
         <h3 style={{ marginTop: 0 }}>{tr('about')}</h3>
         <p className="muted">{tr('aboutText')}</p>

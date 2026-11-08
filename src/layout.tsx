@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { BookOpen, CheckSquare, Home, Layers, Mic, Search, Settings } from 'lucide-react'
-import { useStore } from './store'
 import { useT } from './ui'
 
 export function Layout() {
@@ -58,8 +57,6 @@ function Item({ to, icon, label }: { to: string; icon: ReactNode; label: string 
 }
 
 export function Splash() {
-  const { ready } = useStore()
-  if (ready) return null
   return (
     <div className="splash">
       <div className="splash-mark">M</div>

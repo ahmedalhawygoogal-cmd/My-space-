@@ -390,6 +390,19 @@ const ar = {
   quote: 'الاقتباس',
   uploadImage: 'رفع صورة',
   noCharacters: 'لا توجد شخصيات',
+  login: 'تسجيل الدخول',
+  signup: 'إنشاء حساب',
+  logout: 'تسجيل خروج',
+  email: 'البريد الإلكتروني',
+  password: 'كلمة المرور',
+  fullName: 'الاسم الكامل',
+  authWelcome: 'مرحباً بك',
+  authHint: 'سجّل الدخول لمزامنة مساحتك على السحابة.',
+  emailRequired: 'أدخل البريد الإلكتروني',
+  passwordRequired: 'أدخل كلمة المرور',
+  invalidCredentials: 'بيانات الدخول غير صحيحة',
+  confirmEmail: 'تحقق من بريدك لتأكيد الحساب',
+  authMissing: 'إعدادات السحابة غير مكتملة',
 }
 
 const en: Record<keyof typeof ar, string> = {
@@ -782,6 +795,19 @@ const en: Record<keyof typeof ar, string> = {
   quote: 'Quote',
   uploadImage: 'Upload Image',
   noCharacters: 'No characters',
+  login: 'Log in',
+  signup: 'Sign up',
+  logout: 'Log out',
+  email: 'Email',
+  password: 'Password',
+  fullName: 'Full name',
+  authWelcome: 'Welcome',
+  authHint: 'Sign in to sync your space to the cloud.',
+  emailRequired: 'Enter your email',
+  passwordRequired: 'Enter your password',
+  invalidCredentials: 'Invalid email or password',
+  confirmEmail: 'Check your email to confirm your account',
+  authMissing: 'Cloud settings are missing',
 }
 
 const fr: Record<keyof typeof ar, string> = {
@@ -1174,6 +1200,19 @@ const fr: Record<keyof typeof ar, string> = {
   quote: 'Quote',
   uploadImage: 'Upload Image',
   noCharacters: 'No characters',
+  login: 'Log in',
+  signup: 'Sign up',
+  logout: 'Log out',
+  email: 'Email',
+  password: 'Password',
+  fullName: 'Full name',
+  authWelcome: 'Welcome',
+  authHint: 'Sign in to sync your space to the cloud.',
+  emailRequired: 'Enter your email',
+  passwordRequired: 'Enter your password',
+  invalidCredentials: 'Invalid email or password',
+  confirmEmail: 'Check your email to confirm your account',
+  authMissing: 'Cloud settings are missing',
 }
 
 const de: Record<keyof typeof ar, string> = {
@@ -1566,6 +1605,19 @@ const de: Record<keyof typeof ar, string> = {
   quote: 'Quote',
   uploadImage: 'Upload Image',
   noCharacters: 'No characters',
+  login: 'Log in',
+  signup: 'Sign up',
+  logout: 'Log out',
+  email: 'Email',
+  password: 'Password',
+  fullName: 'Full name',
+  authWelcome: 'Welcome',
+  authHint: 'Sign in to sync your space to the cloud.',
+  emailRequired: 'Enter your email',
+  passwordRequired: 'Enter your password',
+  invalidCredentials: 'Invalid email or password',
+  confirmEmail: 'Check your email to confirm your account',
+  authMissing: 'Cloud settings are missing',
 }
 
 const es: Record<keyof typeof ar, string> = {
@@ -1958,6 +2010,19 @@ const es: Record<keyof typeof ar, string> = {
   quote: 'Quote',
   uploadImage: 'Upload Image',
   noCharacters: 'No characters',
+  login: 'Log in',
+  signup: 'Sign up',
+  logout: 'Log out',
+  email: 'Email',
+  password: 'Password',
+  fullName: 'Full name',
+  authWelcome: 'Welcome',
+  authHint: 'Sign in to sync your space to the cloud.',
+  emailRequired: 'Enter your email',
+  passwordRequired: 'Enter your password',
+  invalidCredentials: 'Invalid email or password',
+  confirmEmail: 'Check your email to confirm your account',
+  authMissing: 'Cloud settings are missing',
 }
 
 const tr: Record<keyof typeof ar, string> = {
@@ -2350,6 +2415,19 @@ const tr: Record<keyof typeof ar, string> = {
   quote: 'Quote',
   uploadImage: 'Upload Image',
   noCharacters: 'No characters',
+  login: 'Log in',
+  signup: 'Sign up',
+  logout: 'Log out',
+  email: 'Email',
+  password: 'Password',
+  fullName: 'Full name',
+  authWelcome: 'Welcome',
+  authHint: 'Sign in to sync your space to the cloud.',
+  emailRequired: 'Enter your email',
+  passwordRequired: 'Enter your password',
+  invalidCredentials: 'Invalid email or password',
+  confirmEmail: 'Check your email to confirm your account',
+  authMissing: 'Cloud settings are missing',
 }
 
 const it: Record<keyof typeof ar, string> = {
@@ -2742,6 +2820,19 @@ const it: Record<keyof typeof ar, string> = {
   quote: 'Quote',
   uploadImage: 'Upload Image',
   noCharacters: 'No characters',
+  login: 'Log in',
+  signup: 'Sign up',
+  logout: 'Log out',
+  email: 'Email',
+  password: 'Password',
+  fullName: 'Full name',
+  authWelcome: 'Welcome',
+  authHint: 'Sign in to sync your space to the cloud.',
+  emailRequired: 'Enter your email',
+  passwordRequired: 'Enter your password',
+  invalidCredentials: 'Invalid email or password',
+  confirmEmail: 'Check your email to confirm your account',
+  authMissing: 'Cloud settings are missing',
 }
 
 const ru: Record<keyof typeof ar, string> = {
@@ -3134,6 +3225,19 @@ const ru: Record<keyof typeof ar, string> = {
   quote: 'Quote',
   uploadImage: 'Upload Image',
   noCharacters: 'No characters',
+  login: 'Log in',
+  signup: 'Sign up',
+  logout: 'Log out',
+  email: 'Email',
+  password: 'Password',
+  fullName: 'Full name',
+  authWelcome: 'Welcome',
+  authHint: 'Sign in to sync your space to the cloud.',
+  emailRequired: 'Enter your email',
+  passwordRequired: 'Enter your password',
+  invalidCredentials: 'Invalid email or password',
+  confirmEmail: 'Check your email to confirm your account',
+  authMissing: 'Cloud settings are missing',
 }
 
 const zh: Record<keyof typeof ar, string> = {
@@ -3526,6 +3630,19 @@ const zh: Record<keyof typeof ar, string> = {
   quote: 'Quote',
   uploadImage: 'Upload Image',
   noCharacters: 'No characters',
+  login: 'Log in',
+  signup: 'Sign up',
+  logout: 'Log out',
+  email: 'Email',
+  password: 'Password',
+  fullName: 'Full name',
+  authWelcome: 'Welcome',
+  authHint: 'Sign in to sync your space to the cloud.',
+  emailRequired: 'Enter your email',
+  passwordRequired: 'Enter your password',
+  invalidCredentials: 'Invalid email or password',
+  confirmEmail: 'Check your email to confirm your account',
+  authMissing: 'Cloud settings are missing',
 }
 
 const ja: Record<keyof typeof ar, string> = {
@@ -3918,6 +4035,19 @@ const ja: Record<keyof typeof ar, string> = {
   quote: 'Quote',
   uploadImage: 'Upload Image',
   noCharacters: 'No characters',
+  login: 'Log in',
+  signup: 'Sign up',
+  logout: 'Log out',
+  email: 'Email',
+  password: 'Password',
+  fullName: 'Full name',
+  authWelcome: 'Welcome',
+  authHint: 'Sign in to sync your space to the cloud.',
+  emailRequired: 'Enter your email',
+  passwordRequired: 'Enter your password',
+  invalidCredentials: 'Invalid email or password',
+  confirmEmail: 'Check your email to confirm your account',
+  authMissing: 'Cloud settings are missing',
 }
 
 const ko: Record<keyof typeof ar, string> = {
@@ -4310,6 +4440,19 @@ const ko: Record<keyof typeof ar, string> = {
   quote: 'Quote',
   uploadImage: 'Upload Image',
   noCharacters: 'No characters',
+  login: 'Log in',
+  signup: 'Sign up',
+  logout: 'Log out',
+  email: 'Email',
+  password: 'Password',
+  fullName: 'Full name',
+  authWelcome: 'Welcome',
+  authHint: 'Sign in to sync your space to the cloud.',
+  emailRequired: 'Enter your email',
+  passwordRequired: 'Enter your password',
+  invalidCredentials: 'Invalid email or password',
+  confirmEmail: 'Check your email to confirm your account',
+  authMissing: 'Cloud settings are missing',
 }
 
 const pt: Record<keyof typeof ar, string> = {
@@ -4702,6 +4845,19 @@ const pt: Record<keyof typeof ar, string> = {
   quote: 'Quote',
   uploadImage: 'Upload Image',
   noCharacters: 'No characters',
+  login: 'Log in',
+  signup: 'Sign up',
+  logout: 'Log out',
+  email: 'Email',
+  password: 'Password',
+  fullName: 'Full name',
+  authWelcome: 'Welcome',
+  authHint: 'Sign in to sync your space to the cloud.',
+  emailRequired: 'Enter your email',
+  passwordRequired: 'Enter your password',
+  invalidCredentials: 'Invalid email or password',
+  confirmEmail: 'Check your email to confirm your account',
+  authMissing: 'Cloud settings are missing',
 }
 
 const hi: Record<keyof typeof ar, string> = {
@@ -5094,6 +5250,19 @@ const hi: Record<keyof typeof ar, string> = {
   quote: 'Quote',
   uploadImage: 'Upload Image',
   noCharacters: 'No characters',
+  login: 'Log in',
+  signup: 'Sign up',
+  logout: 'Log out',
+  email: 'Email',
+  password: 'Password',
+  fullName: 'Full name',
+  authWelcome: 'Welcome',
+  authHint: 'Sign in to sync your space to the cloud.',
+  emailRequired: 'Enter your email',
+  passwordRequired: 'Enter your password',
+  invalidCredentials: 'Invalid email or password',
+  confirmEmail: 'Check your email to confirm your account',
+  authMissing: 'Cloud settings are missing',
 }
 
 const ur: Record<keyof typeof ar, string> = {
@@ -5486,6 +5655,19 @@ const ur: Record<keyof typeof ar, string> = {
   quote: 'Quote',
   uploadImage: 'Upload Image',
   noCharacters: 'No characters',
+  login: 'Log in',
+  signup: 'Sign up',
+  logout: 'Log out',
+  email: 'Email',
+  password: 'Password',
+  fullName: 'Full name',
+  authWelcome: 'Welcome',
+  authHint: 'Sign in to sync your space to the cloud.',
+  emailRequired: 'Enter your email',
+  passwordRequired: 'Enter your password',
+  invalidCredentials: 'Invalid email or password',
+  confirmEmail: 'Check your email to confirm your account',
+  authMissing: 'Cloud settings are missing',
 }
 
 const fa: Record<keyof typeof ar, string> = {
@@ -5878,6 +6060,19 @@ const fa: Record<keyof typeof ar, string> = {
   quote: 'Quote',
   uploadImage: 'Upload Image',
   noCharacters: 'No characters',
+  login: 'Log in',
+  signup: 'Sign up',
+  logout: 'Log out',
+  email: 'Email',
+  password: 'Password',
+  fullName: 'Full name',
+  authWelcome: 'Welcome',
+  authHint: 'Sign in to sync your space to the cloud.',
+  emailRequired: 'Enter your email',
+  passwordRequired: 'Enter your password',
+  invalidCredentials: 'Invalid email or password',
+  confirmEmail: 'Check your email to confirm your account',
+  authMissing: 'Cloud settings are missing',
 }
 
 const nl: Record<keyof typeof ar, string> = {
@@ -6270,6 +6465,19 @@ const nl: Record<keyof typeof ar, string> = {
   quote: 'Quote',
   uploadImage: 'Upload Image',
   noCharacters: 'No characters',
+  login: 'Log in',
+  signup: 'Sign up',
+  logout: 'Log out',
+  email: 'Email',
+  password: 'Password',
+  fullName: 'Full name',
+  authWelcome: 'Welcome',
+  authHint: 'Sign in to sync your space to the cloud.',
+  emailRequired: 'Enter your email',
+  passwordRequired: 'Enter your password',
+  invalidCredentials: 'Invalid email or password',
+  confirmEmail: 'Check your email to confirm your account',
+  authMissing: 'Cloud settings are missing',
 }
 
 const pl: Record<keyof typeof ar, string> = {
@@ -6662,6 +6870,19 @@ const pl: Record<keyof typeof ar, string> = {
   quote: 'Quote',
   uploadImage: 'Upload Image',
   noCharacters: 'No characters',
+  login: 'Log in',
+  signup: 'Sign up',
+  logout: 'Log out',
+  email: 'Email',
+  password: 'Password',
+  fullName: 'Full name',
+  authWelcome: 'Welcome',
+  authHint: 'Sign in to sync your space to the cloud.',
+  emailRequired: 'Enter your email',
+  passwordRequired: 'Enter your password',
+  invalidCredentials: 'Invalid email or password',
+  confirmEmail: 'Check your email to confirm your account',
+  authMissing: 'Cloud settings are missing',
 }
 
 const id: Record<keyof typeof ar, string> = {
@@ -7054,6 +7275,19 @@ const id: Record<keyof typeof ar, string> = {
   quote: 'Quote',
   uploadImage: 'Upload Image',
   noCharacters: 'No characters',
+  login: 'Log in',
+  signup: 'Sign up',
+  logout: 'Log out',
+  email: 'Email',
+  password: 'Password',
+  fullName: 'Full name',
+  authWelcome: 'Welcome',
+  authHint: 'Sign in to sync your space to the cloud.',
+  emailRequired: 'Enter your email',
+  passwordRequired: 'Enter your password',
+  invalidCredentials: 'Invalid email or password',
+  confirmEmail: 'Check your email to confirm your account',
+  authMissing: 'Cloud settings are missing',
 }
 
 export type I18nKey = keyof typeof ar

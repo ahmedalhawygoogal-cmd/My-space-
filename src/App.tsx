@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { Layout, Splash } from './layout'
 import { StoreProvider, useStore } from './store'
+import { AuthProvider, useAuth } from './auth'
 import HomePage from './pages/Home'
 import RecorderPage, { LiveRecordPage, RecordingDetailPage } from './pages/Recorder'
 import FlashcardsPage, {
@@ -20,6 +21,7 @@ import SettingsPage from './pages/Settings'
 import DownloadsPage from './pages/Downloads'
 import OnboardingPage from './pages/Onboarding'
 import MotivateMePage from './pages/MotivateMe'
+import AuthPage from './pages/Auth'
 import { getNative } from './native'
 import { t } from './i18n'
 
@@ -85,7 +87,14 @@ function CardReminders() {
 
 function Gate() {
   const { ready, settings } = useStore()
-  if (!ready) return <Splash />
+  const { user, loading } = useAuth()
+  const loc = useLocation()
+  if (!ready || loading) return <Splash />
+  if (!user) {
+    if (loc.pathname !== '/auth') return <Navigate to="/auth" replace />
+    return <AuthPage />
+  }
+  if (loc.pathname === '/auth') return <Navigate to="/" replace />
   if (!settings.onboarded) return <OnboardingPage />
   return (
     <Routes>
@@ -121,11 +130,13 @@ function Gate() {
 export default function App() {
   return (
     <StoreProvider>
-      <BrowserRouter>
-        <NativeBack />
-        <CardReminders />
-        <Gate />
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <NativeBack />
+          <CardReminders />
+          <Gate />
+        </BrowserRouter>
+      </AuthProvider>
     </StoreProvider>
   )
 }
