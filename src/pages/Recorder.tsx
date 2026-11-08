@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ChevronDown, FolderPlus, Loader2, Mic, Pause, Pencil, Play, Sparkles, Square, Trash2 } from 'lucide-react'
+import { ChevronDown, CloudUpload, FolderPlus, Loader2, Mic, Pause, Pencil, Play, Sparkles, Square, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
 import { AudioPlayer } from '../AudioPlayer'
 import { Confirm, Empty, Segment, Sheet, SubjectSelect, TagInput, Toast, useT } from '../ui'
@@ -55,12 +55,13 @@ function RecDistanceSeg({
 function RecListCard({ rec }: { rec: Recording }) {
   const tr = useT()
   const nav = useNavigate()
-  const { subjects, lang, getAudioBlob, getOriginalAudioBlob, enhanceRecordingAudio, deleteRecording, addDownload } = useStore()
+  const { subjects, lang, getAudioBlob, getOriginalAudioBlob, enhanceRecordingAudio, updateRecording, deleteRecording, addDownload } = useStore()
   const [open, setOpen] = useState(false)
   const [url, setUrl] = useState<string>()
   const [confirm, setConfirm] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [enhancing, setEnhancing] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [playerKey, setPlayerKey] = useState(0)
   const sub = subjects.find((s) => s.id === rec.subjectId)
 
@@ -98,6 +99,23 @@ function RecListCard({ rec }: { rec: Recording }) {
       setToast(tr('enhanceAudioError'))
     } finally {
       setEnhancing(false)
+    }
+  }
+
+  async function uploadCloud() {
+    if (uploading || enhancing) return
+    setUploading(true)
+    try {
+      const src = (await getOriginalAudioBlob(rec.id)) || (await getAudioBlob(rec.id))
+      if (!src) throw new Error('missing')
+      const { uploadRecordingToCloud } = await import('../utils/cloudUpload')
+      const { url: cloudUrl } = await uploadRecordingToCloud(rec.id, src)
+      await updateRecording(rec.id, { cloudUrl })
+      setToast(tr('cloudEnhanceDone'))
+    } catch {
+      setToast(tr('cloudEnhanceError'))
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -147,11 +165,21 @@ function RecListCard({ rec }: { rec: Recording }) {
               className="btn accent"
               type="button"
               onClick={() => void enhance()}
-              disabled={enhancing}
+              disabled={enhancing || uploading}
               style={{ marginTop: 12, width: '100%' }}
             >
               {enhancing ? <Loader2 size={16} className="spin" /> : <Sparkles size={16} />}
               {enhancing ? tr('enhanceAudioBusy') : tr('enhanceAudio')}
+            </button>
+            <button
+              className="btn secondary"
+              type="button"
+              onClick={() => void uploadCloud()}
+              disabled={enhancing || uploading}
+              style={{ marginTop: 8, width: '100%' }}
+            >
+              {uploading ? <Loader2 size={16} className="spin" /> : <CloudUpload size={16} />}
+              {uploading ? tr('cloudEnhanceBusy') : tr('cloudEnhance')}
             </button>
           </div>
           <div className="rec-card-meta">

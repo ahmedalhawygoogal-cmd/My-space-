@@ -229,6 +229,7 @@ function normalizeRecording(raw: Recording): Recording {
     noteIds: raw.noteIds ?? [],
     distance: normalizeDistance(raw.distance),
     enhanced: !!raw.enhanced,
+    cloudUrl: raw.cloudUrl,
   }
 }
 
@@ -570,6 +571,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         tags: rec.tags ?? [],
         noteIds: rec.noteIds ?? [],
         distance: normalizeDistance(rec.distance),
+        cloudUrl: rec.cloudUrl,
         createdAt: t,
         updatedAt: t,
       }

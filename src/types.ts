@@ -99,6 +99,7 @@ export interface Recording {
   noteIds: string[]
   distance: RecDistance
   enhanced?: boolean
+  cloudUrl?: string
   createdAt: number
   updatedAt: number
 }
