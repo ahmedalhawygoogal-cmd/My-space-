@@ -23,6 +23,11 @@ jobs:
 
       - run: npm ci
 
+      - name: Create .env file
+        run: |
+          echo "VITE_SUPABASE_URL=https://bkawseezxnggrfwczvgs.supabase.co" >> .env
+          echo "VITE_SUPABASE_ANON_KEY=sb_publishable_18Fn9zbrDAV6YyXo5b1MSA_zw4MiVr5" >> .env
+
       - run: npm run cap:sync
 
       - name: Assemble debug APK
