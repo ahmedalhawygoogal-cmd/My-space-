@@ -247,8 +247,8 @@ export default function SettingsPage() {
         </div>
       ) : null}
       {consent ? (
-        <div className="sheet-backdrop" onClick={() => !uploading && setConsent(false)}>
-          <div className="dialog" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-backdrop" onClick={() => !uploading && setConsent(false)}>
+          <div className="dialog modal-panel" onClick={(e) => e.stopPropagation()}>
             <h3 style={{ marginTop: 0 }}>{tr('cloudConsentTitle')}</h3>
             <p className="muted">{tr('cloudConsentBody')}</p>
             <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16, flexWrap: 'wrap', gap: 8 }}>
@@ -264,9 +264,9 @@ export default function SettingsPage() {
                     setUploading(true)
                     try {
                       await uploadLocalDataToCloud()
-                      setToast(tr('saved'))
+                      setToast(tr('cloudUploadDone'))
                     } catch {
-                      setToast(tr('error'))
+                      setToast(tr('cloudUploadError'))
                     } finally {
                       setUploading(false)
                       setConsent(false)

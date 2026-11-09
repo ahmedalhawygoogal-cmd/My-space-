@@ -3,7 +3,7 @@ import * as db from '../db'
 import { STORES } from '../db'
 import { now } from '../utils'
 import { isCloudSyncEnabled } from './cloudPref'
-import { supabase } from './supabase'
+import { assertOnline, supabase, throwIfError } from './supabase'
 import { isUuid } from './taskSync'
 
 const BUCKET = 'recordings'
@@ -134,9 +134,25 @@ export async function removeRemoteRecording(id: string): Promise<void> {
 }
 
 export async function pushLocalRecordings(recordings: Recording[]): Promise<void> {
+  assertOnline()
+  const uid = await userId()
+  if (!supabase || !uid) throw new Error('not signed in')
   for (const rec of recordings) {
     if (!isUuid(rec.id)) continue
-    await pushRecordingToCloud(rec)
+    let next = rec
+    const file = (await db.getById<{ id: string; blob: Blob }>(STORES.audioBlobs, rec.id))?.blob
+    if (file) {
+      const path = objectPath(uid, rec.id)
+      throwIfError(
+        await supabase.storage.from(BUCKET).upload(path, file, {
+          upsert: true,
+          contentType: file.type || 'audio/mp4',
+        }),
+      )
+      const { data } = supabase.storage.from(BUCKET).getPublicUrl(path)
+      if (data.publicUrl) next = await persistCloudUrl(rec, data.publicUrl)
+    }
+    throwIfError(await supabase.from(BUCKET).upsert(localToRemote(next, uid), { onConflict: 'id' }))
   }
 }
 

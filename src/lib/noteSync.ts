@@ -3,7 +3,7 @@ import * as db from '../db'
 import { STORES } from '../db'
 import { now } from '../utils'
 import { isCloudSyncEnabled } from './cloudPref'
-import { supabase } from './supabase'
+import { assertOnline, supabase, throwIfError } from './supabase'
 import { isUuid } from './taskSync'
 
 type RemoteNote = {
@@ -85,15 +85,12 @@ export async function removeRemoteNote(id: string): Promise<void> {
 }
 
 export async function pushLocalNotes(notes: Note[]): Promise<void> {
+  assertOnline()
   const uid = await userId()
-  if (!supabase || !uid) return
+  if (!supabase || !uid) throw new Error('not signed in')
   const rows = notes.filter((n) => isUuid(n.id)).map((n) => localToRemote(n, uid))
   if (!rows.length) return
-  try {
-    await supabase.from('notes').upsert(rows, { onConflict: 'id' })
-  } catch {
-    return
-  }
+  throwIfError(await supabase.from('notes').upsert(rows, { onConflict: 'id' }))
 }
 
 export async function syncNotesFromCloud(): Promise<boolean> {

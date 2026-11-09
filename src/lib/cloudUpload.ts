@@ -7,10 +7,15 @@ import { pushLocalDecks } from './deckSync'
 import { migrateLocalDataToCloud } from './migrateLocal'
 import { pushLocalNotes } from './noteSync'
 import { pushLocalRecordings } from './recordingSync'
+import { assertOnline, supabase, throwIfError } from './supabase'
 import { pushLocalTasks } from './taskSync'
 
 export async function uploadLocalDataToCloud(): Promise<void> {
-  if (!isCloudSyncEnabled()) return
+  assertOnline()
+  if (!isCloudSyncEnabled()) throw new Error('cloud disabled')
+  if (!supabase) throw new Error('missing supabase')
+  const session = throwIfError(await supabase.auth.getSession())
+  if (!session.data.session?.user.id) throw new Error('not signed in')
   await migrateLocalDataToCloud()
   const [tasks, notes, decks, cards, recordings] = await Promise.all([
     db.getAll<Task>(STORES.tasks),

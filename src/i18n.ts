@@ -409,6 +409,8 @@ const ar = {
   cloudConsentBody: 'هل تريد رفع بياناتك المحلية إلى السحابة لتتمكن من فتحها من أي جهاز آخر؟',
   cloudConsentYes: 'نعم، ارفع البيانات',
   cloudConsentLater: 'ليس الآن',
+  cloudUploadDone: 'تم الرفع',
+  cloudUploadError: 'فشل الرفع. تأكد من اتصالك بالإنترنت.',
 }
 
 const en: Record<keyof typeof ar, string> = {
@@ -820,6 +822,8 @@ const en: Record<keyof typeof ar, string> = {
   cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
   cloudConsentYes: 'Yes, upload data',
   cloudConsentLater: 'Not now',
+  cloudUploadDone: 'Uploaded',
+  cloudUploadError: 'Upload failed. Check your internet connection.',
 }
 
 const fr: Record<keyof typeof ar, string> = {
@@ -1231,6 +1235,8 @@ const fr: Record<keyof typeof ar, string> = {
   cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
   cloudConsentYes: 'Yes, upload data',
   cloudConsentLater: 'Not now',
+  cloudUploadDone: 'Uploaded',
+  cloudUploadError: 'Upload failed. Check your internet connection.',
 }
 
 const de: Record<keyof typeof ar, string> = {
@@ -1642,6 +1648,8 @@ const de: Record<keyof typeof ar, string> = {
   cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
   cloudConsentYes: 'Yes, upload data',
   cloudConsentLater: 'Not now',
+  cloudUploadDone: 'Uploaded',
+  cloudUploadError: 'Upload failed. Check your internet connection.',
 }
 
 const es: Record<keyof typeof ar, string> = {
@@ -2053,6 +2061,8 @@ const es: Record<keyof typeof ar, string> = {
   cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
   cloudConsentYes: 'Yes, upload data',
   cloudConsentLater: 'Not now',
+  cloudUploadDone: 'Uploaded',
+  cloudUploadError: 'Upload failed. Check your internet connection.',
 }
 
 const tr: Record<keyof typeof ar, string> = {
@@ -2464,6 +2474,8 @@ const tr: Record<keyof typeof ar, string> = {
   cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
   cloudConsentYes: 'Yes, upload data',
   cloudConsentLater: 'Not now',
+  cloudUploadDone: 'Uploaded',
+  cloudUploadError: 'Upload failed. Check your internet connection.',
 }
 
 const it: Record<keyof typeof ar, string> = {
@@ -2875,6 +2887,8 @@ const it: Record<keyof typeof ar, string> = {
   cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
   cloudConsentYes: 'Yes, upload data',
   cloudConsentLater: 'Not now',
+  cloudUploadDone: 'Uploaded',
+  cloudUploadError: 'Upload failed. Check your internet connection.',
 }
 
 const ru: Record<keyof typeof ar, string> = {
@@ -3286,6 +3300,8 @@ const ru: Record<keyof typeof ar, string> = {
   cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
   cloudConsentYes: 'Yes, upload data',
   cloudConsentLater: 'Not now',
+  cloudUploadDone: 'Uploaded',
+  cloudUploadError: 'Upload failed. Check your internet connection.',
 }
 
 const zh: Record<keyof typeof ar, string> = {
@@ -3697,6 +3713,8 @@ const zh: Record<keyof typeof ar, string> = {
   cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
   cloudConsentYes: 'Yes, upload data',
   cloudConsentLater: 'Not now',
+  cloudUploadDone: 'Uploaded',
+  cloudUploadError: 'Upload failed. Check your internet connection.',
 }
 
 const ja: Record<keyof typeof ar, string> = {
@@ -4108,6 +4126,8 @@ const ja: Record<keyof typeof ar, string> = {
   cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
   cloudConsentYes: 'Yes, upload data',
   cloudConsentLater: 'Not now',
+  cloudUploadDone: 'Uploaded',
+  cloudUploadError: 'Upload failed. Check your internet connection.',
 }
 
 const ko: Record<keyof typeof ar, string> = {
@@ -4519,6 +4539,8 @@ const ko: Record<keyof typeof ar, string> = {
   cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
   cloudConsentYes: 'Yes, upload data',
   cloudConsentLater: 'Not now',
+  cloudUploadDone: 'Uploaded',
+  cloudUploadError: 'Upload failed. Check your internet connection.',
 }
 
 const pt: Record<keyof typeof ar, string> = {
@@ -4930,6 +4952,8 @@ const pt: Record<keyof typeof ar, string> = {
   cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
   cloudConsentYes: 'Yes, upload data',
   cloudConsentLater: 'Not now',
+  cloudUploadDone: 'Uploaded',
+  cloudUploadError: 'Upload failed. Check your internet connection.',
 }
 
 const hi: Record<keyof typeof ar, string> = {
@@ -5341,6 +5365,8 @@ const hi: Record<keyof typeof ar, string> = {
   cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
   cloudConsentYes: 'Yes, upload data',
   cloudConsentLater: 'Not now',
+  cloudUploadDone: 'Uploaded',
+  cloudUploadError: 'Upload failed. Check your internet connection.',
 }
 
 const ur: Record<keyof typeof ar, string> = {
@@ -5752,6 +5778,8 @@ const ur: Record<keyof typeof ar, string> = {
   cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
   cloudConsentYes: 'Yes, upload data',
   cloudConsentLater: 'Not now',
+  cloudUploadDone: 'Uploaded',
+  cloudUploadError: 'Upload failed. Check your internet connection.',
 }
 
 const fa: Record<keyof typeof ar, string> = {
@@ -6163,6 +6191,8 @@ const fa: Record<keyof typeof ar, string> = {
   cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
   cloudConsentYes: 'Yes, upload data',
   cloudConsentLater: 'Not now',
+  cloudUploadDone: 'Uploaded',
+  cloudUploadError: 'Upload failed. Check your internet connection.',
 }
 
 const nl: Record<keyof typeof ar, string> = {
@@ -6574,6 +6604,8 @@ const nl: Record<keyof typeof ar, string> = {
   cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
   cloudConsentYes: 'Yes, upload data',
   cloudConsentLater: 'Not now',
+  cloudUploadDone: 'Uploaded',
+  cloudUploadError: 'Upload failed. Check your internet connection.',
 }
 
 const pl: Record<keyof typeof ar, string> = {
@@ -6985,6 +7017,8 @@ const pl: Record<keyof typeof ar, string> = {
   cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
   cloudConsentYes: 'Yes, upload data',
   cloudConsentLater: 'Not now',
+  cloudUploadDone: 'Uploaded',
+  cloudUploadError: 'Upload failed. Check your internet connection.',
 }
 
 const id: Record<keyof typeof ar, string> = {
@@ -7396,6 +7430,8 @@ const id: Record<keyof typeof ar, string> = {
   cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
   cloudConsentYes: 'Yes, upload data',
   cloudConsentLater: 'Not now',
+  cloudUploadDone: 'Uploaded',
+  cloudUploadError: 'Upload failed. Check your internet connection.',
 }
 
 export type I18nKey = keyof typeof ar

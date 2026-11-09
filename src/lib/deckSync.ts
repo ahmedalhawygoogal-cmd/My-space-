@@ -3,7 +3,7 @@ import * as db from '../db'
 import { STORES } from '../db'
 import { now } from '../utils'
 import { isCloudSyncEnabled } from './cloudPref'
-import { supabase } from './supabase'
+import { assertOnline, supabase, throwIfError } from './supabase'
 import { isUuid } from './taskSync'
 
 type RemoteDeck = {
@@ -81,15 +81,12 @@ export async function removeRemoteDeck(id: string): Promise<void> {
 }
 
 export async function pushLocalDecks(decks: Deck[]): Promise<void> {
+  assertOnline()
   const uid = await userId()
-  if (!supabase || !uid) return
+  if (!supabase || !uid) throw new Error('not signed in')
   const rows = decks.filter((d) => isUuid(d.id)).map((d) => localToRemote(d, uid))
   if (!rows.length) return
-  try {
-    await supabase.from('decks').upsert(rows, { onConflict: 'id' })
-  } catch {
-    return
-  }
+  throwIfError(await supabase.from('decks').upsert(rows, { onConflict: 'id' }))
 }
 
 export async function syncDecksFromCloud(): Promise<boolean> {

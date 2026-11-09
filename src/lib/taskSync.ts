@@ -3,7 +3,7 @@ import * as db from '../db'
 import { STORES } from '../db'
 import { now } from '../utils'
 import { isCloudSyncEnabled } from './cloudPref'
-import { supabase } from './supabase'
+import { assertOnline, supabase, throwIfError } from './supabase'
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -121,17 +121,14 @@ export async function removeRemoteTask(id: string): Promise<void> {
 }
 
 export async function pushLocalTasks(tasks: Task[]): Promise<void> {
+  assertOnline()
   const uid = await userId()
-  if (!supabase || !uid) return
+  if (!supabase || !uid) throw new Error('not signed in')
   const rows = sortForUpsert(tasks)
     .filter((t) => isUuid(t.id))
     .map((t) => localToRemote(t, uid))
   if (!rows.length) return
-  try {
-    await supabase.from('tasks').upsert(rows, { onConflict: 'id' })
-  } catch {
-    return
-  }
+  throwIfError(await supabase.from('tasks').upsert(rows, { onConflict: 'id' }))
 }
 
 export async function syncTasksFromCloud(): Promise<boolean> {
