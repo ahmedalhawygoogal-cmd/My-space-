@@ -416,6 +416,7 @@ const ar = {
   logoutConfirmBody: 'هل أنت متأكد من تسجيل الخروج؟ بياناتك المحفوظة في السحابة آمنة، ولكن ستحتاج لتسجيل الدخول مرة أخرى.',
   logoutConfirmYes: 'نعم، تسجيل الخروج',
   cloudOfflineHint: 'لا يوجد اتصال بالإنترنت حالياً',
+  share: 'مشاركة',
 }
 
 const en: Record<keyof typeof ar, string> = {
@@ -834,6 +835,7 @@ const en: Record<keyof typeof ar, string> = {
   logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
+  share: 'Share',
 }
 
 const fr: Record<keyof typeof ar, string> = {
@@ -1252,6 +1254,7 @@ const fr: Record<keyof typeof ar, string> = {
   logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
+  share: 'Share',
 }
 
 const de: Record<keyof typeof ar, string> = {
@@ -1670,6 +1673,7 @@ const de: Record<keyof typeof ar, string> = {
   logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
+  share: 'Share',
 }
 
 const es: Record<keyof typeof ar, string> = {
@@ -2088,6 +2092,7 @@ const es: Record<keyof typeof ar, string> = {
   logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
+  share: 'Share',
 }
 
 const tr: Record<keyof typeof ar, string> = {
@@ -2506,6 +2511,7 @@ const tr: Record<keyof typeof ar, string> = {
   logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
+  share: 'Share',
 }
 
 const it: Record<keyof typeof ar, string> = {
@@ -2924,6 +2930,7 @@ const it: Record<keyof typeof ar, string> = {
   logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
+  share: 'Share',
 }
 
 const ru: Record<keyof typeof ar, string> = {
@@ -3342,6 +3349,7 @@ const ru: Record<keyof typeof ar, string> = {
   logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
+  share: 'Share',
 }
 
 const zh: Record<keyof typeof ar, string> = {
@@ -3760,6 +3768,7 @@ const zh: Record<keyof typeof ar, string> = {
   logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
+  share: 'Share',
 }
 
 const ja: Record<keyof typeof ar, string> = {
@@ -4178,6 +4187,7 @@ const ja: Record<keyof typeof ar, string> = {
   logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
+  share: 'Share',
 }
 
 const ko: Record<keyof typeof ar, string> = {
@@ -4596,6 +4606,7 @@ const ko: Record<keyof typeof ar, string> = {
   logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
+  share: 'Share',
 }
 
 const pt: Record<keyof typeof ar, string> = {
@@ -5014,6 +5025,7 @@ const pt: Record<keyof typeof ar, string> = {
   logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
+  share: 'Share',
 }
 
 const hi: Record<keyof typeof ar, string> = {
@@ -5432,6 +5444,7 @@ const hi: Record<keyof typeof ar, string> = {
   logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
+  share: 'Share',
 }
 
 const ur: Record<keyof typeof ar, string> = {
@@ -5850,6 +5863,7 @@ const ur: Record<keyof typeof ar, string> = {
   logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
+  share: 'Share',
 }
 
 const fa: Record<keyof typeof ar, string> = {
@@ -6268,6 +6282,7 @@ const fa: Record<keyof typeof ar, string> = {
   logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
+  share: 'Share',
 }
 
 const nl: Record<keyof typeof ar, string> = {
@@ -6686,6 +6701,7 @@ const nl: Record<keyof typeof ar, string> = {
   logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
+  share: 'Share',
 }
 
 const pl: Record<keyof typeof ar, string> = {
@@ -7104,6 +7120,7 @@ const pl: Record<keyof typeof ar, string> = {
   logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
+  share: 'Share',
 }
 
 const id: Record<keyof typeof ar, string> = {
@@ -7522,6 +7539,7 @@ const id: Record<keyof typeof ar, string> = {
   logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
+  share: 'Share',
 }
 
 export type I18nKey = keyof typeof ar

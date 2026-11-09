@@ -26,28 +26,53 @@ export default function SettingsPage() {
   const [newSub, setNewSub] = useState('')
   const [colorDraft, setColorDraft] = useState(settings.accentColor || '')
   const [prefs, setPrefs] = useState(false)
-  const [cloudOn, setCloudOn] = useState(() => isCloudSyncEnabled())
+  const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine))
+  const [cloudOn, setCloudOn] = useState(() => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return false
+    return isCloudSyncEnabled()
+  })
   const [consent, setConsent] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [logoutOpen, setLogoutOpen] = useState(false)
-  const [online, setOnline] = useState(() => (typeof navigator !== 'undefined' ? navigator.onLine : true))
+  const [exportOpen, setExportOpen] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const on = () => setOnline(true)
-    const off = () => setOnline(false)
-    window.addEventListener('online', on)
-    window.addEventListener('offline', off)
+    function forceCloudOff() {
+      setOnline(false)
+      setCloudOn(false)
+      setCloudSyncEnabled(false)
+      setConsent(false)
+    }
+    function onOnline() {
+      setOnline(true)
+    }
+    if (typeof navigator !== 'undefined' && !navigator.onLine) forceCloudOff()
+    window.addEventListener('online', onOnline)
+    window.addEventListener('offline', forceCloudOff)
     return () => {
-      window.removeEventListener('online', on)
-      window.removeEventListener('offline', off)
+      window.removeEventListener('online', onOnline)
+      window.removeEventListener('offline', forceCloudOff)
     }
   }, [])
 
-  async function doExport() {
+  async function backupFile() {
     const snap = await exportSnapshot()
     const blob = new Blob([JSON.stringify(snap)], { type: 'application/json' })
     const file = new File([blob], 'myspace-backup.json', { type: 'application/json' })
+    return { blob, file }
+  }
+
+  async function exportDownload() {
+    const { blob } = await backupFile()
+    downloadBlob(blob, 'myspace-backup.json')
+    await markBackup()
+    setExportOpen(false)
+    setToast(tr('downloadedToDownloads'))
+  }
+
+  async function exportShare() {
+    const { blob, file } = await backupFile()
     const canShare =
       typeof navigator !== 'undefined' &&
       typeof navigator.share === 'function' &&
@@ -56,6 +81,7 @@ export default function SettingsPage() {
       try {
         await navigator.share({ files: [file], title: 'MySpace Backup' })
         await markBackup()
+        setExportOpen(false)
         setToast(tr('exported'))
         return
       } catch (err) {
@@ -64,6 +90,7 @@ export default function SettingsPage() {
     }
     downloadBlob(blob, 'myspace-backup.json')
     await markBackup()
+    setExportOpen(false)
     setToast(tr('downloadedToDownloads'))
   }
 
@@ -80,10 +107,10 @@ export default function SettingsPage() {
         <Languages size={18} />
         <div className="grow">{tr('changeLang')}</div>
       </button>
-      <label className="label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <h3 style={{ marginTop: 0, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
         {tr('cloudSync')}
         <InfoTooltip text={tr('cloudSyncHint')} />
-      </label>
+      </h3>
       <Segment
         value={cloudOn ? 'on' : 'off'}
         disabled={!online}
@@ -236,7 +263,7 @@ export default function SettingsPage() {
         <p className="muted" style={{ fontSize: 13 }}>
           {tr('lastBackup')}: {settings.lastBackupAt ? formatDateTime(settings.lastBackupAt, lang) : tr('never')}
         </p>
-        <button className="btn block" type="button" onClick={() => void doExport()}>
+        <button className="btn block" type="button" onClick={() => setExportOpen(true)}>
           {tr('exportData')}
         </button>
         <p className="muted">{tr('restoreHint')}</p>
@@ -281,6 +308,24 @@ export default function SettingsPage() {
               {tr('changeLang')}
             </h3>
             <LanguagePrefs />
+          </div>
+        </div>
+      ) : null}
+      {exportOpen ? (
+        <div className="modal-backdrop" onClick={() => setExportOpen(false)}>
+          <div className="dialog modal-panel" onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginTop: 0 }}>{tr('exportData')}</h3>
+            <div className="stack" style={{ gap: 8, marginTop: 8 }}>
+              <button className="btn block" type="button" onClick={() => void exportDownload()}>
+                {tr('download')}
+              </button>
+              <button className="btn ghost block" type="button" onClick={() => void exportShare()}>
+                {tr('share')}
+              </button>
+              <button className="btn ghost block" type="button" onClick={() => setExportOpen(false)}>
+                {tr('cancel')}
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
