@@ -411,6 +411,11 @@ const ar = {
   cloudConsentLater: 'ليس الآن',
   cloudUploadDone: 'تم الرفع',
   cloudUploadError: 'فشل الرفع. تأكد من اتصالك بالإنترنت.',
+  backupShareHint: 'احفظ نسخة من بياناتك على جهازك أو شاركها (واتساب/درايف) لتتمكن من استعادتها في أي وقت.',
+  downloadedToDownloads: 'تم التحميل في مجلد التنزيلات',
+  logoutConfirmBody: 'هل أنت متأكد من تسجيل الخروج؟ بياناتك المحفوظة في السحابة آمنة، ولكن ستحتاج لتسجيل الدخول مرة أخرى.',
+  logoutConfirmYes: 'نعم، تسجيل الخروج',
+  cloudOfflineHint: 'لا يوجد اتصال بالإنترنت حالياً',
 }
 
 const en: Record<keyof typeof ar, string> = {
@@ -824,6 +829,11 @@ const en: Record<keyof typeof ar, string> = {
   cloudConsentLater: 'Not now',
   cloudUploadDone: 'Uploaded',
   cloudUploadError: 'Upload failed. Check your internet connection.',
+  backupShareHint: 'Save a copy of your data on this device or share it (WhatsApp/Drive) so you can restore it anytime.',
+  downloadedToDownloads: 'Saved to the Downloads folder',
+  logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
+  logoutConfirmYes: 'Yes, log out',
+  cloudOfflineHint: 'No internet connection right now',
 }
 
 const fr: Record<keyof typeof ar, string> = {
@@ -1237,6 +1247,11 @@ const fr: Record<keyof typeof ar, string> = {
   cloudConsentLater: 'Not now',
   cloudUploadDone: 'Uploaded',
   cloudUploadError: 'Upload failed. Check your internet connection.',
+  backupShareHint: 'Save a copy of your data on this device or share it (WhatsApp/Drive) so you can restore it anytime.',
+  downloadedToDownloads: 'Saved to the Downloads folder',
+  logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
+  logoutConfirmYes: 'Yes, log out',
+  cloudOfflineHint: 'No internet connection right now',
 }
 
 const de: Record<keyof typeof ar, string> = {
@@ -1650,6 +1665,11 @@ const de: Record<keyof typeof ar, string> = {
   cloudConsentLater: 'Not now',
   cloudUploadDone: 'Uploaded',
   cloudUploadError: 'Upload failed. Check your internet connection.',
+  backupShareHint: 'Save a copy of your data on this device or share it (WhatsApp/Drive) so you can restore it anytime.',
+  downloadedToDownloads: 'Saved to the Downloads folder',
+  logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
+  logoutConfirmYes: 'Yes, log out',
+  cloudOfflineHint: 'No internet connection right now',
 }
 
 const es: Record<keyof typeof ar, string> = {
@@ -2063,6 +2083,11 @@ const es: Record<keyof typeof ar, string> = {
   cloudConsentLater: 'Not now',
   cloudUploadDone: 'Uploaded',
   cloudUploadError: 'Upload failed. Check your internet connection.',
+  backupShareHint: 'Save a copy of your data on this device or share it (WhatsApp/Drive) so you can restore it anytime.',
+  downloadedToDownloads: 'Saved to the Downloads folder',
+  logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
+  logoutConfirmYes: 'Yes, log out',
+  cloudOfflineHint: 'No internet connection right now',
 }
 
 const tr: Record<keyof typeof ar, string> = {
@@ -2476,6 +2501,11 @@ const tr: Record<keyof typeof ar, string> = {
   cloudConsentLater: 'Not now',
   cloudUploadDone: 'Uploaded',
   cloudUploadError: 'Upload failed. Check your internet connection.',
+  backupShareHint: 'Save a copy of your data on this device or share it (WhatsApp/Drive) so you can restore it anytime.',
+  downloadedToDownloads: 'Saved to the Downloads folder',
+  logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
+  logoutConfirmYes: 'Yes, log out',
+  cloudOfflineHint: 'No internet connection right now',
 }
 
 const it: Record<keyof typeof ar, string> = {
@@ -2889,6 +2919,11 @@ const it: Record<keyof typeof ar, string> = {
   cloudConsentLater: 'Not now',
   cloudUploadDone: 'Uploaded',
   cloudUploadError: 'Upload failed. Check your internet connection.',
+  backupShareHint: 'Save a copy of your data on this device or share it (WhatsApp/Drive) so you can restore it anytime.',
+  downloadedToDownloads: 'Saved to the Downloads folder',
+  logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
+  logoutConfirmYes: 'Yes, log out',
+  cloudOfflineHint: 'No internet connection right now',
 }
 
 const ru: Record<keyof typeof ar, string> = {
@@ -3302,6 +3337,11 @@ const ru: Record<keyof typeof ar, string> = {
   cloudConsentLater: 'Not now',
   cloudUploadDone: 'Uploaded',
   cloudUploadError: 'Upload failed. Check your internet connection.',
+  backupShareHint: 'Save a copy of your data on this device or share it (WhatsApp/Drive) so you can restore it anytime.',
+  downloadedToDownloads: 'Saved to the Downloads folder',
+  logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
+  logoutConfirmYes: 'Yes, log out',
+  cloudOfflineHint: 'No internet connection right now',
 }
 
 const zh: Record<keyof typeof ar, string> = {
@@ -3715,6 +3755,11 @@ const zh: Record<keyof typeof ar, string> = {
   cloudConsentLater: 'Not now',
   cloudUploadDone: 'Uploaded',
   cloudUploadError: 'Upload failed. Check your internet connection.',
+  backupShareHint: 'Save a copy of your data on this device or share it (WhatsApp/Drive) so you can restore it anytime.',
+  downloadedToDownloads: 'Saved to the Downloads folder',
+  logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
+  logoutConfirmYes: 'Yes, log out',
+  cloudOfflineHint: 'No internet connection right now',
 }
 
 const ja: Record<keyof typeof ar, string> = {
@@ -4128,6 +4173,11 @@ const ja: Record<keyof typeof ar, string> = {
   cloudConsentLater: 'Not now',
   cloudUploadDone: 'Uploaded',
   cloudUploadError: 'Upload failed. Check your internet connection.',
+  backupShareHint: 'Save a copy of your data on this device or share it (WhatsApp/Drive) so you can restore it anytime.',
+  downloadedToDownloads: 'Saved to the Downloads folder',
+  logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
+  logoutConfirmYes: 'Yes, log out',
+  cloudOfflineHint: 'No internet connection right now',
 }
 
 const ko: Record<keyof typeof ar, string> = {
@@ -4541,6 +4591,11 @@ const ko: Record<keyof typeof ar, string> = {
   cloudConsentLater: 'Not now',
   cloudUploadDone: 'Uploaded',
   cloudUploadError: 'Upload failed. Check your internet connection.',
+  backupShareHint: 'Save a copy of your data on this device or share it (WhatsApp/Drive) so you can restore it anytime.',
+  downloadedToDownloads: 'Saved to the Downloads folder',
+  logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
+  logoutConfirmYes: 'Yes, log out',
+  cloudOfflineHint: 'No internet connection right now',
 }
 
 const pt: Record<keyof typeof ar, string> = {
@@ -4954,6 +5009,11 @@ const pt: Record<keyof typeof ar, string> = {
   cloudConsentLater: 'Not now',
   cloudUploadDone: 'Uploaded',
   cloudUploadError: 'Upload failed. Check your internet connection.',
+  backupShareHint: 'Save a copy of your data on this device or share it (WhatsApp/Drive) so you can restore it anytime.',
+  downloadedToDownloads: 'Saved to the Downloads folder',
+  logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
+  logoutConfirmYes: 'Yes, log out',
+  cloudOfflineHint: 'No internet connection right now',
 }
 
 const hi: Record<keyof typeof ar, string> = {
@@ -5367,6 +5427,11 @@ const hi: Record<keyof typeof ar, string> = {
   cloudConsentLater: 'Not now',
   cloudUploadDone: 'Uploaded',
   cloudUploadError: 'Upload failed. Check your internet connection.',
+  backupShareHint: 'Save a copy of your data on this device or share it (WhatsApp/Drive) so you can restore it anytime.',
+  downloadedToDownloads: 'Saved to the Downloads folder',
+  logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
+  logoutConfirmYes: 'Yes, log out',
+  cloudOfflineHint: 'No internet connection right now',
 }
 
 const ur: Record<keyof typeof ar, string> = {
@@ -5780,6 +5845,11 @@ const ur: Record<keyof typeof ar, string> = {
   cloudConsentLater: 'Not now',
   cloudUploadDone: 'Uploaded',
   cloudUploadError: 'Upload failed. Check your internet connection.',
+  backupShareHint: 'Save a copy of your data on this device or share it (WhatsApp/Drive) so you can restore it anytime.',
+  downloadedToDownloads: 'Saved to the Downloads folder',
+  logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
+  logoutConfirmYes: 'Yes, log out',
+  cloudOfflineHint: 'No internet connection right now',
 }
 
 const fa: Record<keyof typeof ar, string> = {
@@ -6193,6 +6263,11 @@ const fa: Record<keyof typeof ar, string> = {
   cloudConsentLater: 'Not now',
   cloudUploadDone: 'Uploaded',
   cloudUploadError: 'Upload failed. Check your internet connection.',
+  backupShareHint: 'Save a copy of your data on this device or share it (WhatsApp/Drive) so you can restore it anytime.',
+  downloadedToDownloads: 'Saved to the Downloads folder',
+  logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
+  logoutConfirmYes: 'Yes, log out',
+  cloudOfflineHint: 'No internet connection right now',
 }
 
 const nl: Record<keyof typeof ar, string> = {
@@ -6606,6 +6681,11 @@ const nl: Record<keyof typeof ar, string> = {
   cloudConsentLater: 'Not now',
   cloudUploadDone: 'Uploaded',
   cloudUploadError: 'Upload failed. Check your internet connection.',
+  backupShareHint: 'Save a copy of your data on this device or share it (WhatsApp/Drive) so you can restore it anytime.',
+  downloadedToDownloads: 'Saved to the Downloads folder',
+  logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
+  logoutConfirmYes: 'Yes, log out',
+  cloudOfflineHint: 'No internet connection right now',
 }
 
 const pl: Record<keyof typeof ar, string> = {
@@ -7019,6 +7099,11 @@ const pl: Record<keyof typeof ar, string> = {
   cloudConsentLater: 'Not now',
   cloudUploadDone: 'Uploaded',
   cloudUploadError: 'Upload failed. Check your internet connection.',
+  backupShareHint: 'Save a copy of your data on this device or share it (WhatsApp/Drive) so you can restore it anytime.',
+  downloadedToDownloads: 'Saved to the Downloads folder',
+  logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
+  logoutConfirmYes: 'Yes, log out',
+  cloudOfflineHint: 'No internet connection right now',
 }
 
 const id: Record<keyof typeof ar, string> = {
@@ -7432,6 +7517,11 @@ const id: Record<keyof typeof ar, string> = {
   cloudConsentLater: 'Not now',
   cloudUploadDone: 'Uploaded',
   cloudUploadError: 'Upload failed. Check your internet connection.',
+  backupShareHint: 'Save a copy of your data on this device or share it (WhatsApp/Drive) so you can restore it anytime.',
+  downloadedToDownloads: 'Saved to the Downloads folder',
+  logoutConfirmBody: 'Are you sure you want to log out? Your cloud data is safe, but you will need to sign in again.',
+  logoutConfirmYes: 'Yes, log out',
+  cloudOfflineHint: 'No internet connection right now',
 }
 
 export type I18nKey = keyof typeof ar

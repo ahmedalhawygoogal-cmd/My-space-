@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Download, Languages } from 'lucide-react'
 import { useStore } from '../store'
@@ -29,14 +29,42 @@ export default function SettingsPage() {
   const [cloudOn, setCloudOn] = useState(() => isCloudSyncEnabled())
   const [consent, setConsent] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [logoutOpen, setLogoutOpen] = useState(false)
+  const [online, setOnline] = useState(() => (typeof navigator !== 'undefined' ? navigator.onLine : true))
   const fileRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const on = () => setOnline(true)
+    const off = () => setOnline(false)
+    window.addEventListener('online', on)
+    window.addEventListener('offline', off)
+    return () => {
+      window.removeEventListener('online', on)
+      window.removeEventListener('offline', off)
+    }
+  }, [])
 
   async function doExport() {
     const snap = await exportSnapshot()
     const blob = new Blob([JSON.stringify(snap)], { type: 'application/json' })
-    downloadBlob(blob, `myspace-backup-${new Date().toISOString().slice(0, 10)}.json`)
+    const file = new File([blob], 'myspace-backup.json', { type: 'application/json' })
+    const canShare =
+      typeof navigator !== 'undefined' &&
+      typeof navigator.share === 'function' &&
+      (typeof navigator.canShare !== 'function' || navigator.canShare({ files: [file] }))
+    if (canShare) {
+      try {
+        await navigator.share({ files: [file], title: 'MySpace Backup' })
+        await markBackup()
+        setToast(tr('exported'))
+        return
+      } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') return
+      }
+    }
+    downloadBlob(blob, 'myspace-backup.json')
     await markBackup()
-    setToast(tr('exported'))
+    setToast(tr('downloadedToDownloads'))
   }
 
   return (
@@ -58,7 +86,9 @@ export default function SettingsPage() {
       </label>
       <Segment
         value={cloudOn ? 'on' : 'off'}
+        disabled={!online}
         onChange={(v) => {
+          if (!online) return
           const on = v === 'on'
           setCloudOn(on)
           setCloudSyncEnabled(on)
@@ -69,6 +99,11 @@ export default function SettingsPage() {
           { id: 'off', label: tr('off') },
         ]}
       />
+      {!online ? (
+        <p className="muted" style={{ fontSize: 13, marginTop: 4 }}>
+          {tr('cloudOfflineHint')}
+        </p>
+      ) : null}
       <label className="label">{tr('theme')}</label>
       <Segment
         value={settings.theme}
@@ -193,7 +228,10 @@ export default function SettingsPage() {
         </button>
       </div>
       <div className="card">
-        <h3 style={{ marginTop: 0 }}>{tr('backup')}</h3>
+        <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+          {tr('backup')}
+          <InfoTooltip text={tr('backupShareHint')} />
+        </h3>
         <p className="muted">{tr('backupHint')}</p>
         <p className="muted" style={{ fontSize: 13 }}>
           {tr('lastBackup')}: {settings.lastBackupAt ? formatDateTime(settings.lastBackupAt, lang) : tr('never')}
@@ -225,7 +263,7 @@ export default function SettingsPage() {
           }}
         />
       </div>
-      <button className="btn ghost block" type="button" onClick={() => void signOut()}>
+      <button className="btn ghost block" type="button" onClick={() => setLogoutOpen(true)}>
         {tr('logout')}
       </button>
       <div className="card-quiet">
@@ -243,6 +281,30 @@ export default function SettingsPage() {
               {tr('changeLang')}
             </h3>
             <LanguagePrefs />
+          </div>
+        </div>
+      ) : null}
+      {logoutOpen ? (
+        <div className="modal-backdrop" onClick={() => setLogoutOpen(false)}>
+          <div className="dialog modal-panel" onClick={(e) => e.stopPropagation()}>
+            <p className="muted" style={{ marginTop: 0 }}>
+              {tr('logoutConfirmBody')}
+            </p>
+            <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16, flexWrap: 'wrap', gap: 8 }}>
+              <button className="btn ghost" type="button" onClick={() => setLogoutOpen(false)}>
+                {tr('cancel')}
+              </button>
+              <button
+                className="btn danger"
+                type="button"
+                onClick={() => {
+                  setLogoutOpen(false)
+                  void signOut()
+                }}
+              >
+                {tr('logoutConfirmYes')}
+              </button>
+            </div>
           </div>
         </div>
       ) : null}

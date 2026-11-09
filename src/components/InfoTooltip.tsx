@@ -25,12 +25,7 @@ export function InfoTooltip({ text }: { text: string }) {
   }, [open])
 
   return (
-    <span
-      className="info-tip"
-      ref={wrap}
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-    >
+    <span className="info-tip" ref={wrap}>
       <button
         type="button"
         className="info-tip-btn"

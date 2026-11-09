@@ -106,15 +106,25 @@ export function Segment({
   value,
   options,
   onChange,
+  disabled,
 }: {
   value: string
   options: { id: string; label: string }[]
   onChange: (id: string) => void
+  disabled?: boolean
 }) {
   return (
-    <div className="seg">
+    <div className={`seg${disabled ? ' disabled' : ''}`}>
       {options.map((o) => (
-        <button key={o.id} type="button" className={o.id === value ? 'on' : ''} onClick={() => onChange(o.id)}>
+        <button
+          key={o.id}
+          type="button"
+          className={o.id === value ? 'on' : ''}
+          disabled={disabled}
+          onClick={() => {
+            if (!disabled) onChange(o.id)
+          }}
+        >
           {o.label}
         </button>
       ))}

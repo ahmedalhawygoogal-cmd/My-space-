@@ -763,6 +763,8 @@ img { max-width: 100%; }
   white-space: nowrap;
 }
 .seg button.on { background: var(--primary-color); color: var(--brand-ink); box-shadow: var(--shadow); }
+.seg.disabled { opacity: 0.5; pointer-events: none; }
+.seg button:disabled { cursor: not-allowed; }
 
 .splash {
   height: 100%;
@@ -803,6 +805,7 @@ img { max-width: 100%; }
   display: inline-flex;
   align-items: center;
   vertical-align: middle;
+  pointer-events: none;
 }
 .info-tip-btn {
   border: 0;
@@ -811,10 +814,12 @@ img { max-width: 100%; }
   color: var(--ink-soft);
   display: inline-flex;
   border-radius: 99px;
+  pointer-events: auto;
 }
 .info-tip-btn:hover { color: var(--brand); }
 .info-tip-overlay {
   z-index: 50;
+  pointer-events: auto;
 }
 .info-tip-pop {
   width: 90%;
