@@ -14,6 +14,7 @@ import { LanguagePrefs } from './Onboarding'
 import { InfoTooltip } from '../components/InfoTooltip'
 import { isCloudSyncEnabled, setCloudSyncEnabled } from '../lib/cloudPref'
 import { uploadLocalDataToCloud } from '../lib/cloudUpload'
+import { version } from '../../package.json'
 
 export default function SettingsPage() {
   const tr = useT()
@@ -35,6 +36,8 @@ export default function SettingsPage() {
   const [uploading, setUploading] = useState(false)
   const [logoutOpen, setLogoutOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
+  const [exportBusy, setExportBusy] = useState(false)
+  const backupRef = useRef<{ blob: Blob; file: File } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -56,42 +59,68 @@ export default function SettingsPage() {
     }
   }, [])
 
-  async function backupFile() {
+  async function prepareBackup() {
+    if (backupRef.current) return backupRef.current
     const snap = await exportSnapshot()
     const blob = new Blob([JSON.stringify(snap)], { type: 'application/json' })
     const file = new File([blob], 'myspace-backup.json', { type: 'application/json' })
-    return { blob, file }
+    backupRef.current = { blob, file }
+    return backupRef.current
+  }
+
+  async function openExport() {
+    setExportBusy(true)
+    try {
+      await prepareBackup()
+      setExportOpen(true)
+    } catch {
+      setToast(tr('error'))
+    } finally {
+      setExportBusy(false)
+    }
   }
 
   async function exportDownload() {
-    const { blob } = await backupFile()
-    downloadBlob(blob, 'myspace-backup.json')
-    await markBackup()
-    setExportOpen(false)
-    setToast(tr('downloadedToDownloads'))
+    try {
+      const { blob } = await prepareBackup()
+      downloadBlob(blob, 'myspace-backup.json')
+      await markBackup()
+      setExportOpen(false)
+      backupRef.current = null
+      setToast(tr('downloadedToDownloads'))
+    } catch {
+      setToast(tr('error'))
+    }
   }
 
   async function exportShare() {
-    const { blob, file } = await backupFile()
-    const canShare =
-      typeof navigator !== 'undefined' &&
-      typeof navigator.share === 'function' &&
-      (typeof navigator.canShare !== 'function' || navigator.canShare({ files: [file] }))
-    if (canShare) {
-      try {
-        await navigator.share({ files: [file], title: 'MySpace Backup' })
-        await markBackup()
-        setExportOpen(false)
-        setToast(tr('exported'))
-        return
-      } catch (err) {
-        if (err instanceof DOMException && err.name === 'AbortError') return
+    try {
+      const { blob, file } = await prepareBackup()
+      const shareData: ShareData = { files: [file], title: 'MySpace Backup' }
+      const canShareFiles =
+        typeof navigator !== 'undefined' &&
+        typeof navigator.share === 'function' &&
+        (typeof navigator.canShare !== 'function' || navigator.canShare(shareData))
+      if (canShareFiles) {
+        try {
+          await navigator.share(shareData)
+          await markBackup()
+          setExportOpen(false)
+          backupRef.current = null
+          setToast(tr('exported'))
+          return
+        } catch (err) {
+          if (err instanceof DOMException && err.name === 'AbortError') return
+        }
       }
+      setToast(tr('shareUnsupported'))
+      downloadBlob(blob, 'myspace-backup.json')
+      await markBackup()
+      setExportOpen(false)
+      backupRef.current = null
+    } catch {
+      setToast(tr('error'))
     }
-    downloadBlob(blob, 'myspace-backup.json')
-    await markBackup()
-    setExportOpen(false)
-    setToast(tr('downloadedToDownloads'))
   }
 
   return (
@@ -263,7 +292,7 @@ export default function SettingsPage() {
         <p className="muted" style={{ fontSize: 13 }}>
           {tr('lastBackup')}: {settings.lastBackupAt ? formatDateTime(settings.lastBackupAt, lang) : tr('never')}
         </p>
-        <button className="btn block" type="button" onClick={() => setExportOpen(true)}>
+        <button className="btn block" type="button" disabled={exportBusy} onClick={() => void openExport()}>
           {tr('exportData')}
         </button>
         <p className="muted">{tr('restoreHint')}</p>
@@ -297,7 +326,7 @@ export default function SettingsPage() {
         <h3 style={{ marginTop: 0 }}>{tr('about')}</h3>
         <p className="muted">{tr('aboutText')}</p>
         <div className="muted">
-          {tr('version')} 1.0.0 · {tr('offline')}
+          {tr('version')} {version}
         </div>
       </div>
       {prefs ? (
@@ -312,7 +341,13 @@ export default function SettingsPage() {
         </div>
       ) : null}
       {exportOpen ? (
-        <div className="modal-backdrop" onClick={() => setExportOpen(false)}>
+        <div
+          className="modal-backdrop"
+          onClick={() => {
+            setExportOpen(false)
+            backupRef.current = null
+          }}
+        >
           <div className="dialog modal-panel" onClick={(e) => e.stopPropagation()}>
             <h3 style={{ marginTop: 0 }}>{tr('exportData')}</h3>
             <div className="stack" style={{ gap: 8, marginTop: 8 }}>
@@ -322,7 +357,14 @@ export default function SettingsPage() {
               <button className="btn ghost block" type="button" onClick={() => void exportShare()}>
                 {tr('share')}
               </button>
-              <button className="btn ghost block" type="button" onClick={() => setExportOpen(false)}>
+              <button
+                className="btn ghost block"
+                type="button"
+                onClick={() => {
+                  setExportOpen(false)
+                  backupRef.current = null
+                }}
+              >
                 {tr('cancel')}
               </button>
             </div>

@@ -79,7 +79,7 @@ const ar = {
   lastBackup: 'آخر نسخة',
   never: 'لم يتم بعد',
   about: 'حول',
-  aboutText: 'مساحتي تجمع المسجل والبطاقات والمهام والمفكرة في مساحة واحدة مترابطة.',
+  aboutText: 'مساحتي هي رفيقك الدراسي وتطبيقك المفضل لتنظيم حياتك. يجمع المسجل، البطاقات، المهام، والمفكرة في مساحة واحدة مترابطة تعمل بكفاءة مع أو بدون إنترنت.',
   version: 'الإصدار',
   record: 'تسجيل',
   pause: 'إيقاف مؤقت',
@@ -417,6 +417,7 @@ const ar = {
   logoutConfirmYes: 'نعم، تسجيل الخروج',
   cloudOfflineHint: 'لا يوجد اتصال بالإنترنت حالياً',
   share: 'مشاركة',
+  shareUnsupported: 'المشاركة غير مدعومة في هذا المتصفح، جاري التحميل...',
 }
 
 const en: Record<keyof typeof ar, string> = {
@@ -836,6 +837,7 @@ const en: Record<keyof typeof ar, string> = {
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
+  shareUnsupported: 'Sharing is not supported in this browser, downloading...',
 }
 
 const fr: Record<keyof typeof ar, string> = {
@@ -1255,6 +1257,7 @@ const fr: Record<keyof typeof ar, string> = {
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
+  shareUnsupported: 'Sharing is not supported in this browser, downloading...',
 }
 
 const de: Record<keyof typeof ar, string> = {
@@ -1674,6 +1677,7 @@ const de: Record<keyof typeof ar, string> = {
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
+  shareUnsupported: 'Sharing is not supported in this browser, downloading...',
 }
 
 const es: Record<keyof typeof ar, string> = {
@@ -2093,6 +2097,7 @@ const es: Record<keyof typeof ar, string> = {
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
+  shareUnsupported: 'Sharing is not supported in this browser, downloading...',
 }
 
 const tr: Record<keyof typeof ar, string> = {
@@ -2512,6 +2517,7 @@ const tr: Record<keyof typeof ar, string> = {
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
+  shareUnsupported: 'Sharing is not supported in this browser, downloading...',
 }
 
 const it: Record<keyof typeof ar, string> = {
@@ -2931,6 +2937,7 @@ const it: Record<keyof typeof ar, string> = {
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
+  shareUnsupported: 'Sharing is not supported in this browser, downloading...',
 }
 
 const ru: Record<keyof typeof ar, string> = {
@@ -3350,6 +3357,7 @@ const ru: Record<keyof typeof ar, string> = {
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
+  shareUnsupported: 'Sharing is not supported in this browser, downloading...',
 }
 
 const zh: Record<keyof typeof ar, string> = {
@@ -3769,6 +3777,7 @@ const zh: Record<keyof typeof ar, string> = {
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
+  shareUnsupported: 'Sharing is not supported in this browser, downloading...',
 }
 
 const ja: Record<keyof typeof ar, string> = {
@@ -4188,6 +4197,7 @@ const ja: Record<keyof typeof ar, string> = {
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
+  shareUnsupported: 'Sharing is not supported in this browser, downloading...',
 }
 
 const ko: Record<keyof typeof ar, string> = {
@@ -4607,6 +4617,7 @@ const ko: Record<keyof typeof ar, string> = {
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
+  shareUnsupported: 'Sharing is not supported in this browser, downloading...',
 }
 
 const pt: Record<keyof typeof ar, string> = {
@@ -5026,6 +5037,7 @@ const pt: Record<keyof typeof ar, string> = {
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
+  shareUnsupported: 'Sharing is not supported in this browser, downloading...',
 }
 
 const hi: Record<keyof typeof ar, string> = {
@@ -5445,6 +5457,7 @@ const hi: Record<keyof typeof ar, string> = {
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
+  shareUnsupported: 'Sharing is not supported in this browser, downloading...',
 }
 
 const ur: Record<keyof typeof ar, string> = {
@@ -5864,6 +5877,7 @@ const ur: Record<keyof typeof ar, string> = {
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
+  shareUnsupported: 'Sharing is not supported in this browser, downloading...',
 }
 
 const fa: Record<keyof typeof ar, string> = {
@@ -6283,6 +6297,7 @@ const fa: Record<keyof typeof ar, string> = {
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
+  shareUnsupported: 'Sharing is not supported in this browser, downloading...',
 }
 
 const nl: Record<keyof typeof ar, string> = {
@@ -6702,6 +6717,7 @@ const nl: Record<keyof typeof ar, string> = {
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
+  shareUnsupported: 'Sharing is not supported in this browser, downloading...',
 }
 
 const pl: Record<keyof typeof ar, string> = {
@@ -7121,6 +7137,7 @@ const pl: Record<keyof typeof ar, string> = {
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
+  shareUnsupported: 'Sharing is not supported in this browser, downloading...',
 }
 
 const id: Record<keyof typeof ar, string> = {
@@ -7540,6 +7557,7 @@ const id: Record<keyof typeof ar, string> = {
   logoutConfirmYes: 'Yes, log out',
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
+  shareUnsupported: 'Sharing is not supported in this browser, downloading...',
 }
 
 export type I18nKey = keyof typeof ar
