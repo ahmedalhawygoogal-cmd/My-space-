@@ -2,6 +2,7 @@ import type { Card } from '../types'
 import * as db from '../db'
 import { STORES } from '../db'
 import { now } from '../utils'
+import { isCloudSyncEnabled } from './cloudPref'
 import { supabase } from './supabase'
 import { isUuid } from './taskSync'
 
@@ -86,7 +87,7 @@ function localToRemote(card: Card, userId: string): RemoteCard {
 }
 
 async function userId(): Promise<string | null> {
-  if (!supabase) return null
+  if (!supabase || !isCloudSyncEnabled()) return null
   try {
     const { data } = await supabase.auth.getSession()
     return data.session?.user.id ?? null

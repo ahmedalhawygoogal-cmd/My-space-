@@ -403,6 +403,12 @@ const ar = {
   invalidCredentials: 'بيانات الدخول غير صحيحة',
   confirmEmail: 'تحقق من بريدك لتأكيد الحساب',
   authMissing: 'إعدادات السحابة غير مكتملة',
+  cloudSync: 'تفعيل الاتصال بالسحابة',
+  cloudSyncHint: 'عند إيقاف هذا الخيار يعمل التطبيق بالكامل دون اتصال ولن تُرفع بياناتك.',
+  cloudConsentTitle: 'رفع البيانات إلى السحابة',
+  cloudConsentBody: 'هل تريد رفع بياناتك المحلية إلى السحابة لتتمكن من فتحها من أي جهاز آخر؟',
+  cloudConsentYes: 'نعم، ارفع البيانات',
+  cloudConsentLater: 'ليس الآن',
 }
 
 const en: Record<keyof typeof ar, string> = {
@@ -808,6 +814,12 @@ const en: Record<keyof typeof ar, string> = {
   invalidCredentials: 'Invalid email or password',
   confirmEmail: 'Check your email to confirm your account',
   authMissing: 'Cloud settings are missing',
+  cloudSync: 'Enable Cloud Sync',
+  cloudSyncHint: 'Turning this off makes the app 100% offline. Your data will not be uploaded.',
+  cloudConsentTitle: 'Upload to the cloud',
+  cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
+  cloudConsentYes: 'Yes, upload data',
+  cloudConsentLater: 'Not now',
 }
 
 const fr: Record<keyof typeof ar, string> = {
@@ -1213,6 +1225,12 @@ const fr: Record<keyof typeof ar, string> = {
   invalidCredentials: 'Invalid email or password',
   confirmEmail: 'Check your email to confirm your account',
   authMissing: 'Cloud settings are missing',
+  cloudSync: 'Enable Cloud Sync',
+  cloudSyncHint: 'Turning this off makes the app 100% offline. Your data will not be uploaded.',
+  cloudConsentTitle: 'Upload to the cloud',
+  cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
+  cloudConsentYes: 'Yes, upload data',
+  cloudConsentLater: 'Not now',
 }
 
 const de: Record<keyof typeof ar, string> = {
@@ -1618,6 +1636,12 @@ const de: Record<keyof typeof ar, string> = {
   invalidCredentials: 'Invalid email or password',
   confirmEmail: 'Check your email to confirm your account',
   authMissing: 'Cloud settings are missing',
+  cloudSync: 'Enable Cloud Sync',
+  cloudSyncHint: 'Turning this off makes the app 100% offline. Your data will not be uploaded.',
+  cloudConsentTitle: 'Upload to the cloud',
+  cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
+  cloudConsentYes: 'Yes, upload data',
+  cloudConsentLater: 'Not now',
 }
 
 const es: Record<keyof typeof ar, string> = {
@@ -2023,6 +2047,12 @@ const es: Record<keyof typeof ar, string> = {
   invalidCredentials: 'Invalid email or password',
   confirmEmail: 'Check your email to confirm your account',
   authMissing: 'Cloud settings are missing',
+  cloudSync: 'Enable Cloud Sync',
+  cloudSyncHint: 'Turning this off makes the app 100% offline. Your data will not be uploaded.',
+  cloudConsentTitle: 'Upload to the cloud',
+  cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
+  cloudConsentYes: 'Yes, upload data',
+  cloudConsentLater: 'Not now',
 }
 
 const tr: Record<keyof typeof ar, string> = {
@@ -2428,6 +2458,12 @@ const tr: Record<keyof typeof ar, string> = {
   invalidCredentials: 'Invalid email or password',
   confirmEmail: 'Check your email to confirm your account',
   authMissing: 'Cloud settings are missing',
+  cloudSync: 'Enable Cloud Sync',
+  cloudSyncHint: 'Turning this off makes the app 100% offline. Your data will not be uploaded.',
+  cloudConsentTitle: 'Upload to the cloud',
+  cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
+  cloudConsentYes: 'Yes, upload data',
+  cloudConsentLater: 'Not now',
 }
 
 const it: Record<keyof typeof ar, string> = {
@@ -2833,6 +2869,12 @@ const it: Record<keyof typeof ar, string> = {
   invalidCredentials: 'Invalid email or password',
   confirmEmail: 'Check your email to confirm your account',
   authMissing: 'Cloud settings are missing',
+  cloudSync: 'Enable Cloud Sync',
+  cloudSyncHint: 'Turning this off makes the app 100% offline. Your data will not be uploaded.',
+  cloudConsentTitle: 'Upload to the cloud',
+  cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
+  cloudConsentYes: 'Yes, upload data',
+  cloudConsentLater: 'Not now',
 }
 
 const ru: Record<keyof typeof ar, string> = {
@@ -3238,6 +3280,12 @@ const ru: Record<keyof typeof ar, string> = {
   invalidCredentials: 'Invalid email or password',
   confirmEmail: 'Check your email to confirm your account',
   authMissing: 'Cloud settings are missing',
+  cloudSync: 'Enable Cloud Sync',
+  cloudSyncHint: 'Turning this off makes the app 100% offline. Your data will not be uploaded.',
+  cloudConsentTitle: 'Upload to the cloud',
+  cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
+  cloudConsentYes: 'Yes, upload data',
+  cloudConsentLater: 'Not now',
 }
 
 const zh: Record<keyof typeof ar, string> = {
@@ -3643,6 +3691,12 @@ const zh: Record<keyof typeof ar, string> = {
   invalidCredentials: 'Invalid email or password',
   confirmEmail: 'Check your email to confirm your account',
   authMissing: 'Cloud settings are missing',
+  cloudSync: 'Enable Cloud Sync',
+  cloudSyncHint: 'Turning this off makes the app 100% offline. Your data will not be uploaded.',
+  cloudConsentTitle: 'Upload to the cloud',
+  cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
+  cloudConsentYes: 'Yes, upload data',
+  cloudConsentLater: 'Not now',
 }
 
 const ja: Record<keyof typeof ar, string> = {
@@ -4048,6 +4102,12 @@ const ja: Record<keyof typeof ar, string> = {
   invalidCredentials: 'Invalid email or password',
   confirmEmail: 'Check your email to confirm your account',
   authMissing: 'Cloud settings are missing',
+  cloudSync: 'Enable Cloud Sync',
+  cloudSyncHint: 'Turning this off makes the app 100% offline. Your data will not be uploaded.',
+  cloudConsentTitle: 'Upload to the cloud',
+  cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
+  cloudConsentYes: 'Yes, upload data',
+  cloudConsentLater: 'Not now',
 }
 
 const ko: Record<keyof typeof ar, string> = {
@@ -4453,6 +4513,12 @@ const ko: Record<keyof typeof ar, string> = {
   invalidCredentials: 'Invalid email or password',
   confirmEmail: 'Check your email to confirm your account',
   authMissing: 'Cloud settings are missing',
+  cloudSync: 'Enable Cloud Sync',
+  cloudSyncHint: 'Turning this off makes the app 100% offline. Your data will not be uploaded.',
+  cloudConsentTitle: 'Upload to the cloud',
+  cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
+  cloudConsentYes: 'Yes, upload data',
+  cloudConsentLater: 'Not now',
 }
 
 const pt: Record<keyof typeof ar, string> = {
@@ -4858,6 +4924,12 @@ const pt: Record<keyof typeof ar, string> = {
   invalidCredentials: 'Invalid email or password',
   confirmEmail: 'Check your email to confirm your account',
   authMissing: 'Cloud settings are missing',
+  cloudSync: 'Enable Cloud Sync',
+  cloudSyncHint: 'Turning this off makes the app 100% offline. Your data will not be uploaded.',
+  cloudConsentTitle: 'Upload to the cloud',
+  cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
+  cloudConsentYes: 'Yes, upload data',
+  cloudConsentLater: 'Not now',
 }
 
 const hi: Record<keyof typeof ar, string> = {
@@ -5263,6 +5335,12 @@ const hi: Record<keyof typeof ar, string> = {
   invalidCredentials: 'Invalid email or password',
   confirmEmail: 'Check your email to confirm your account',
   authMissing: 'Cloud settings are missing',
+  cloudSync: 'Enable Cloud Sync',
+  cloudSyncHint: 'Turning this off makes the app 100% offline. Your data will not be uploaded.',
+  cloudConsentTitle: 'Upload to the cloud',
+  cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
+  cloudConsentYes: 'Yes, upload data',
+  cloudConsentLater: 'Not now',
 }
 
 const ur: Record<keyof typeof ar, string> = {
@@ -5668,6 +5746,12 @@ const ur: Record<keyof typeof ar, string> = {
   invalidCredentials: 'Invalid email or password',
   confirmEmail: 'Check your email to confirm your account',
   authMissing: 'Cloud settings are missing',
+  cloudSync: 'Enable Cloud Sync',
+  cloudSyncHint: 'Turning this off makes the app 100% offline. Your data will not be uploaded.',
+  cloudConsentTitle: 'Upload to the cloud',
+  cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
+  cloudConsentYes: 'Yes, upload data',
+  cloudConsentLater: 'Not now',
 }
 
 const fa: Record<keyof typeof ar, string> = {
@@ -6073,6 +6157,12 @@ const fa: Record<keyof typeof ar, string> = {
   invalidCredentials: 'Invalid email or password',
   confirmEmail: 'Check your email to confirm your account',
   authMissing: 'Cloud settings are missing',
+  cloudSync: 'Enable Cloud Sync',
+  cloudSyncHint: 'Turning this off makes the app 100% offline. Your data will not be uploaded.',
+  cloudConsentTitle: 'Upload to the cloud',
+  cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
+  cloudConsentYes: 'Yes, upload data',
+  cloudConsentLater: 'Not now',
 }
 
 const nl: Record<keyof typeof ar, string> = {
@@ -6478,6 +6568,12 @@ const nl: Record<keyof typeof ar, string> = {
   invalidCredentials: 'Invalid email or password',
   confirmEmail: 'Check your email to confirm your account',
   authMissing: 'Cloud settings are missing',
+  cloudSync: 'Enable Cloud Sync',
+  cloudSyncHint: 'Turning this off makes the app 100% offline. Your data will not be uploaded.',
+  cloudConsentTitle: 'Upload to the cloud',
+  cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
+  cloudConsentYes: 'Yes, upload data',
+  cloudConsentLater: 'Not now',
 }
 
 const pl: Record<keyof typeof ar, string> = {
@@ -6883,6 +6979,12 @@ const pl: Record<keyof typeof ar, string> = {
   invalidCredentials: 'Invalid email or password',
   confirmEmail: 'Check your email to confirm your account',
   authMissing: 'Cloud settings are missing',
+  cloudSync: 'Enable Cloud Sync',
+  cloudSyncHint: 'Turning this off makes the app 100% offline. Your data will not be uploaded.',
+  cloudConsentTitle: 'Upload to the cloud',
+  cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
+  cloudConsentYes: 'Yes, upload data',
+  cloudConsentLater: 'Not now',
 }
 
 const id: Record<keyof typeof ar, string> = {
@@ -7288,6 +7390,12 @@ const id: Record<keyof typeof ar, string> = {
   invalidCredentials: 'Invalid email or password',
   confirmEmail: 'Check your email to confirm your account',
   authMissing: 'Cloud settings are missing',
+  cloudSync: 'Enable Cloud Sync',
+  cloudSyncHint: 'Turning this off makes the app 100% offline. Your data will not be uploaded.',
+  cloudConsentTitle: 'Upload to the cloud',
+  cloudConsentBody: 'Do you want to upload your local data to the cloud so you can open it from any other device?',
+  cloudConsentYes: 'Yes, upload data',
+  cloudConsentLater: 'Not now',
 }
 
 export type I18nKey = keyof typeof ar

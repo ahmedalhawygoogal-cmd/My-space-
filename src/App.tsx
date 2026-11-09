@@ -1,8 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { Layout, Splash } from './layout'
 import { StoreProvider, useStore } from './store'
 import { AuthProvider, useAuth } from './auth'
+import { supabase } from './lib/supabase'
+import { fetchProfile } from './lib/profileSync'
 import HomePage from './pages/Home'
 import RecorderPage, { LiveRecordPage, RecordingDetailPage } from './pages/Recorder'
 import FlashcardsPage, {
@@ -89,13 +91,42 @@ function Gate() {
   const { ready, settings } = useStore()
   const { user, loading } = useAuth()
   const loc = useLocation()
-  if (!ready || loading) return <Splash />
+  const [isAppLoading, setIsAppLoading] = useState(true)
+  const [cloudOnboarded, setCloudOnboarded] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    setIsAppLoading(true)
+    void (async () => {
+      try {
+        if (!supabase) {
+          if (alive) setCloudOnboarded(null)
+          return
+        }
+        const { data } = await supabase.auth.getSession()
+        if (!data.session) {
+          if (alive) setCloudOnboarded(null)
+          return
+        }
+        const row = await fetchProfile()
+        if (!alive) return
+        setCloudOnboarded(!!row?.onboarding_completed)
+      } finally {
+        if (alive) setIsAppLoading(false)
+      }
+    })()
+    return () => {
+      alive = false
+    }
+  }, [user?.id])
+
+  if (isAppLoading || !ready || loading) return <Splash />
   if (!user) {
     if (loc.pathname !== '/auth') return <Navigate to="/auth" replace />
     return <AuthPage />
   }
   if (loc.pathname === '/auth') return <Navigate to="/" replace />
-  if (!settings.onboarded) return <OnboardingPage />
+  if (!(cloudOnboarded || settings.onboarded)) return <OnboardingPage />
   return (
     <Routes>
       <Route element={<Layout />}>

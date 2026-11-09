@@ -11,6 +11,9 @@ import { APP_FONTS, NOTIFY_SOUNDS, labeled } from '../types'
 import { resolveColor } from '../utils'
 import { getNative } from '../native'
 import { LanguagePrefs } from './Onboarding'
+import { InfoTooltip } from '../components/InfoTooltip'
+import { isCloudSyncEnabled, setCloudSyncEnabled } from '../lib/cloudPref'
+import { uploadLocalDataToCloud } from '../lib/cloudUpload'
 
 export default function SettingsPage() {
   const tr = useT()
@@ -23,6 +26,9 @@ export default function SettingsPage() {
   const [newSub, setNewSub] = useState('')
   const [colorDraft, setColorDraft] = useState(settings.accentColor || '')
   const [prefs, setPrefs] = useState(false)
+  const [cloudOn, setCloudOn] = useState(() => isCloudSyncEnabled())
+  const [consent, setConsent] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   async function doExport() {
@@ -46,6 +52,23 @@ export default function SettingsPage() {
         <Languages size={18} />
         <div className="grow">{tr('changeLang')}</div>
       </button>
+      <label className="label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        {tr('cloudSync')}
+        <InfoTooltip text={tr('cloudSyncHint')} />
+      </label>
+      <Segment
+        value={cloudOn ? 'on' : 'off'}
+        onChange={(v) => {
+          const on = v === 'on'
+          setCloudOn(on)
+          setCloudSyncEnabled(on)
+          if (on) setConsent(true)
+        }}
+        options={[
+          { id: 'on', label: tr('on') },
+          { id: 'off', label: tr('off') },
+        ]}
+      />
       <label className="label">{tr('theme')}</label>
       <Segment
         value={settings.theme}
@@ -220,6 +243,40 @@ export default function SettingsPage() {
               {tr('changeLang')}
             </h3>
             <LanguagePrefs />
+          </div>
+        </div>
+      ) : null}
+      {consent ? (
+        <div className="sheet-backdrop" onClick={() => !uploading && setConsent(false)}>
+          <div className="dialog" onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginTop: 0 }}>{tr('cloudConsentTitle')}</h3>
+            <p className="muted">{tr('cloudConsentBody')}</p>
+            <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16, flexWrap: 'wrap', gap: 8 }}>
+              <button className="btn ghost" type="button" disabled={uploading} onClick={() => setConsent(false)}>
+                {tr('cloudConsentLater')}
+              </button>
+              <button
+                className="btn"
+                type="button"
+                disabled={uploading}
+                onClick={() => {
+                  void (async () => {
+                    setUploading(true)
+                    try {
+                      await uploadLocalDataToCloud()
+                      setToast(tr('saved'))
+                    } catch {
+                      setToast(tr('error'))
+                    } finally {
+                      setUploading(false)
+                      setConsent(false)
+                    }
+                  })()
+                }}
+              >
+                {tr('cloudConsentYes')}
+              </button>
+            </div>
           </div>
         </div>
       ) : null}

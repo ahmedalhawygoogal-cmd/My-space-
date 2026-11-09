@@ -1,6 +1,7 @@
 import type { Card, Deck, Link, Note, Recording, Task } from '../types'
 import * as db from '../db'
 import { STORES } from '../db'
+import { isCloudSyncEnabled } from './cloudPref'
 import { supabase } from './supabase'
 import { upsertRemoteCard } from './cardSync'
 import { upsertRemoteDeck } from './deckSync'
@@ -28,7 +29,7 @@ function saveMap(map: IdMap): void {
 }
 
 async function sessionUserId(): Promise<string | null> {
-  if (!supabase) return null
+  if (!supabase || !isCloudSyncEnabled()) return null
   try {
     const { data } = await supabase.auth.getSession()
     return data.session?.user.id ?? null

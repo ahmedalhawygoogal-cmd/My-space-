@@ -2,6 +2,7 @@ import type { Priority, Task } from '../types'
 import * as db from '../db'
 import { STORES } from '../db'
 import { now } from '../utils'
+import { isCloudSyncEnabled } from './cloudPref'
 import { supabase } from './supabase'
 
 const UUID_RE =
@@ -88,7 +89,7 @@ function sortForUpsert(tasks: Task[]): Task[] {
 }
 
 async function userId(): Promise<string | null> {
-  if (!supabase) return null
+  if (!supabase || !isCloudSyncEnabled()) return null
   try {
     const { data } = await supabase.auth.getSession()
     return data.session?.user.id ?? null

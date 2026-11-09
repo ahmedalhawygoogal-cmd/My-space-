@@ -59,7 +59,10 @@ function Item({ to, icon, label }: { to: string; icon: ReactNode; label: string 
 export function Splash() {
   return (
     <div className="splash">
-      <div className="splash-mark">M</div>
+      <div className="splash-inner">
+        <div className="splash-mark">M</div>
+        <div className="splash-spin" aria-hidden="true" />
+      </div>
     </div>
   )
 }

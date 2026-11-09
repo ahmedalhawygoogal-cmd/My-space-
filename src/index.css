@@ -748,6 +748,11 @@ img { max-width: 100%; }
   place-items: center;
   background: var(--bg);
 }
+.splash-inner {
+  display: grid;
+  place-items: center;
+  gap: 18px;
+}
 .splash-mark {
   width: 72px;
   height: 72px;
@@ -758,6 +763,47 @@ img { max-width: 100%; }
   place-items: center;
   font-size: 2rem;
   font-weight: 800;
+  box-shadow: var(--shadow);
+}
+.splash-spin {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--bg-muted);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: splash-spin 0.8s linear infinite;
+}
+@keyframes splash-spin {
+  to { transform: rotate(360deg); }
+}
+.info-tip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+.info-tip-btn {
+  border: 0;
+  background: transparent;
+  padding: 2px;
+  color: var(--ink-soft);
+  display: inline-flex;
+  border-radius: 99px;
+}
+.info-tip-btn:hover { color: var(--brand); }
+.info-tip-pop {
+  position: absolute;
+  z-index: 50;
+  inset-inline-start: 0;
+  top: calc(100% + 6px);
+  width: min(260px, 70vw);
+  background: var(--bg-elev);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  line-height: 1.45;
   box-shadow: var(--shadow);
 }
 
