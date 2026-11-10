@@ -9,6 +9,55 @@ import { RTL_LANGS, quoteField, type QuoteCharacter } from '../types'
 import { Empty, Sheet, Toast, useT } from '../ui'
 import { DEFAULT_QUOTES } from '../data/defaultQuotes'
 
+function firstLetter(name: string): string {
+  const ch = [...name.trim()][0]
+  return (ch || '?').toUpperCase()
+}
+
+function CharacterAvatar({
+  src,
+  name,
+  size,
+}: {
+  src: string | null
+  name: string
+  size: number
+}) {
+  const [broken, setBroken] = useState(false)
+  useEffect(() => {
+    setBroken(false)
+  }, [src])
+  const showImg = !!src && !broken
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        borderRadius: '50%',
+        overflow: 'hidden',
+        flexShrink: 0,
+        background: 'var(--muted, #e8eeed)',
+        display: 'grid',
+        placeItems: 'center',
+        fontWeight: 700,
+        fontSize: Math.max(14, size * 0.36),
+        color: 'var(--ink-soft, #5b6b6a)',
+      }}
+    >
+      {showImg ? (
+        <img
+          src={src}
+          alt=""
+          onError={() => setBroken(true)}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        />
+      ) : (
+        <span>{firstLetter(name)}</span>
+      )}
+    </div>
+  )
+}
+
 export default function MotivateMePage() {
   const tr = useT()
   const nav = useNavigate()
@@ -74,6 +123,7 @@ export default function MotivateMePage() {
   }, [draft.imageUrl])
 
   function imageUrl(c: QuoteCharacter): string | null {
+    if (c.imageUrl) return c.imageUrl
     if (!c.image) return null
     if (typeof c.image === 'string') return c.image
     let url = urlRef.current.get(c.id)
@@ -184,15 +234,11 @@ export default function MotivateMePage() {
                 style={{ display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer' }}
                 onClick={() => setDetail(c)}
               >
-                {c.image && (
-                  <img
-                    src={imageUrl(c)!}
-                    alt=""
-                    style={{ width: '100%', height: 110, objectFit: 'cover', borderRadius: 10, display: 'block' }}
-                  />
-                )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8 }}>
-                  <b style={{ fontSize: 15, overflowWrap: 'break-word' }}>{name}</b>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                    <CharacterAvatar src={imageUrl(c)} name={name} size={40} />
+                    <b style={{ fontSize: 15, overflowWrap: 'break-word' }}>{name}</b>
+                  </div>
                   <button
                     type="button"
                     className="icon-btn"
@@ -223,29 +269,27 @@ export default function MotivateMePage() {
       {toast && <Toast text={toast} onDone={() => setToast(null)} />}
 
       <Sheet open={!!detail} onClose={() => setDetail(null)} title={detailName}>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-          {detail?.image && (
-            <img src={imageUrl(detail)!} alt="" style={{ width: 88, height: 88, objectFit: 'cover', borderRadius: 12, flexShrink: 0 }} />
-          )}
-          <div className="grow">
+        {detail ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+            <CharacterAvatar src={imageUrl(detail)} name={detailName || ''} size={120} />
             {detailQuote ? (
-              <div className="card-quiet" style={{ marginBottom: 12, fontSize: 15, lineHeight: 1.6, overflowWrap: 'break-word' }}>
+              <div className="card-quiet" style={{ width: '100%', fontSize: 15, lineHeight: 1.6, overflowWrap: 'break-word' }}>
                 “{detailQuote}”
               </div>
             ) : null}
             {detailStory ? (
-              <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 10, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+              <div style={{ width: '100%', fontSize: 15, fontWeight: 600, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
                 <div className="muted" style={{ fontSize: 12, fontWeight: 700, marginBottom: 4 }}>{tr('story')}</div>
                 {detailStory}
               </div>
             ) : null}
             {detailChallenge ? (
-              <div className="muted" style={{ fontSize: 13, lineHeight: 1.5 }}>
+              <div className="muted" style={{ width: '100%', fontSize: 13, lineHeight: 1.5 }}>
                 <b>{tr('challenge')}:</b> {detailChallenge}
               </div>
             ) : null}
           </div>
-        </div>
+        ) : null}
       </Sheet>
 
       <Sheet open={addOpen} onClose={() => setAddOpen(false)} title={tr('addCharacter')}>

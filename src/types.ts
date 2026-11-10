@@ -133,6 +133,7 @@ export interface QuoteCharacter {
   challenge: QuoteField
   quote: QuoteField
   image?: string | Blob
+  imageUrl?: string
   createdAt?: number
 }
 
