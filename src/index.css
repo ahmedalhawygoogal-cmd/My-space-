@@ -1341,58 +1341,126 @@ img { max-width: 100%; }
   opacity: 0.55;
   cursor: default;
 }
-.home-widget {
+.home-edit-block {
+  position: fixed;
+  z-index: 45;
+  background: color-mix(in srgb, var(--bg) 50%, transparent);
+  backdrop-filter: blur(6px);
+}
+.home-edit-block-header {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--top-h) + var(--safe-t));
+}
+.home-edit-block-nav {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--nav-h) + var(--safe-b) + 12px);
+}
+.home-edit-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+.home-edit-save {
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+.home-grid-stage {
   position: relative;
-  touch-action: pan-y;
+  z-index: 12;
 }
-.home-widget-edit {
-  outline: 1px dashed color-mix(in srgb, var(--brand) 45%, transparent);
-  outline-offset: 4px;
-  border-radius: var(--radius);
+.home-grid-stage.is-editing {
+  padding-bottom: 24px;
 }
-.home-widget-edit .home-widget-body {
-  padding-top: 42px;
+.home-grid-widget {
+  height: 100%;
+  position: relative;
 }
-.home-widget.dragging {
-  box-shadow: var(--shadow);
+.home-grid-widget.is-hidden {
+  opacity: 0.45;
 }
-.home-widget-tools {
+.home-grid-widget.is-editing .home-grid-widget-body {
+  height: 100%;
+  pointer-events: none;
+  padding-top: 36px;
+}
+.home-grid-widget-body,
+.home-fill {
+  height: 100%;
+  width: 100%;
+}
+.home-fill.card {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+.home-fill.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+.home-header-widget {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.home-drag-handle,
+.home-hide-btn {
   position: absolute;
   top: 8px;
-  inset-inline-end: 8px;
-  z-index: 2;
-  display: flex;
-  gap: 6px;
-}
-.home-widget-tools .icon-btn {
+  z-index: 3;
   width: 32px;
   height: 32px;
+  border: 0;
   border-radius: 10px;
+  background: var(--bg-elev);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow);
 }
 .home-drag-handle {
+  inset-inline-end: 8px;
   cursor: grab;
   touch-action: none;
 }
 .home-drag-handle:active { cursor: grabbing; }
-.home-edit-bar {
-  position: fixed;
-  left: 12px;
-  right: 12px;
-  bottom: calc(var(--nav-h) + var(--safe-b) + 8px);
-  z-index: 16;
-  display: flex;
-  gap: 8px;
-  padding: 10px;
-  background: color-mix(in srgb, var(--bg-elev) 92%, transparent);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  box-shadow: var(--shadow);
+.home-hide-btn {
+  inset-inline-start: 8px;
 }
-.home-edit-bar .btn {
-  flex: 1;
-  padding: 10px 8px;
-  font-size: 0.82rem;
+.home-grid-stage .react-grid-item {
+  transition: transform 160ms ease, width 160ms ease, height 160ms ease;
+}
+.home-grid-stage .react-grid-item.react-draggable-dragging,
+.home-grid-stage .react-grid-item.resizing {
+  transition: none;
+  z-index: 4;
+}
+.home-grid-stage .react-grid-placeholder {
+  background: color-mix(in srgb, var(--brand) 28%, transparent);
+  border-radius: var(--radius);
+  opacity: 1;
+}
+.home-grid-stage .react-grid-item > .react-resizable-handle {
+  opacity: 1;
+  width: 22px;
+  height: 22px;
+}
+.home-grid-stage .react-grid-item > .react-resizable-handle::after {
+  border-color: var(--brand);
+}
+.page-layout.home-page-editing {
+  padding-bottom: calc(var(--nav-h) + var(--safe-b) + 24px);
 }
 
 @media (min-width: 860px) {
@@ -1402,8 +1470,9 @@ img { max-width: 100%; }
     left: max(0px, calc(50% - 240px));
     right: max(0px, calc(50% - 240px));
   }
-  .home-edit-bar {
-    left: max(12px, calc(50% - 240px + 12px));
-    right: max(12px, calc(50% - 240px + 12px));
+  .home-edit-block-header,
+  .home-edit-block-nav {
+    left: max(0px, calc(50% - 240px));
+    right: max(0px, calc(50% - 240px));
   }
 }

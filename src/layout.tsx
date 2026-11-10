@@ -117,7 +117,7 @@ export function Layout() {
           </button>
         </div>
       </Sheet>
-      <main className="main">
+      <main className={`main${isEditingHome ? ' is-editing-home' : ''}`}>
         <Outlet context={{ isEditingHome, setIsEditingHome } satisfies LayoutOutlet} />
       </main>
       {!hideNav && (
@@ -129,6 +129,12 @@ export function Layout() {
           <Item to="/notes" icon={<BookOpen />} label={tr('notebook')} />
         </nav>
       )}
+      {isEditingHome ? (
+        <>
+          <div className="home-edit-block home-edit-block-header" aria-hidden />
+          <div className="home-edit-block home-edit-block-nav" aria-hidden />
+        </>
+      ) : null}
     </div>
   )
 }
