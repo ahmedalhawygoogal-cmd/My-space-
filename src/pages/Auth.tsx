@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { LogIn } from 'lucide-react'
 import { Segment, Toast, useT } from '../ui'
-import { PAGE_BG, PageBg } from '../components/PageBg'
+import { PageLayout } from '../components/PageLayout'
 
 type Tab = 'login' | 'signup'
 
@@ -61,7 +62,7 @@ export default function AuthPage() {
   }
 
   return (
-    <PageBg src={PAGE_BG.auth} fill className="onboard text-foreground">
+    <PageLayout icon={LogIn} fill className="onboard">
       <div className="onboard-card">
         <div className="brand" style={{ marginBottom: 18 }}>
           <div className="brand-mark">M</div>
@@ -119,6 +120,6 @@ export default function AuthPage() {
         </div>
       </div>
       <Toast text={toast} onDone={() => setToast(null)} />
-    </PageBg>
+    </PageLayout>
   )
 }

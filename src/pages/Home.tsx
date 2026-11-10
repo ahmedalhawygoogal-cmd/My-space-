@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom'
-import { Mic, Play } from 'lucide-react'
+import { Home, Mic, Play } from 'lucide-react'
 import { useStore } from '../store'
 import { Ring, useT } from '../ui'
-import { PAGE_BG, PageBg } from '../components/PageBg'
+import { PageLayout } from '../components/PageLayout'
 import { endOfDay, formatDate, startOfDay, weekdayLong } from '../utils'
 
 export default function HomePage() {
@@ -32,7 +32,7 @@ export default function HomePage() {
   const weekTotal = Math.max(1, mains.filter((t) => (taskDay(t) ?? t.createdAt) >= weekStart).length)
 
   return (
-    <PageBg src={PAGE_BG.home}>
+    <PageLayout icon={Home}>
     <div className="stack" style={{ gap: 14 }}>
       <div>
         <p className="hero-date">
@@ -90,6 +90,6 @@ export default function HomePage() {
         </div>
       </div>
     </div>
-    </PageBg>
+    </PageLayout>
   )
 }

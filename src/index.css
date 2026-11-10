@@ -160,39 +160,70 @@ img { max-width: 100%; }
   -webkit-overflow-scrolling: touch;
 }
 
-.page-bg {
+.min-h-screen { min-height: 100%; }
+.relative { position: relative; }
+.absolute { position: absolute; }
+.top-0 { top: 0; }
+.bottom-0 { bottom: 0; }
+.w-full { width: 100%; }
+.overflow-x-hidden { overflow-x: hidden; }
+.pb-24 { padding-bottom: 6rem; }
+.px-4 { padding-inline: 1rem; }
+.-mt-16 { margin-top: -4rem; }
+.z-10 { z-index: 10; }
+.opacity-20 { opacity: 0.2; }
+
+.page-layout {
   position: relative;
+  isolation: isolate;
   min-height: 100%;
-  margin: -4px -16px;
-  padding: 4px 16px 0;
-  background-color: var(--bg);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  margin: -4px -16px calc(-1 * (var(--nav-h) + var(--safe-b) + 28px));
+  padding-bottom: calc(var(--nav-h) + var(--safe-b) + 48px);
+  background: var(--bg);
+  color: var(--ink);
 }
-.page-bg-fill {
+.page-layout-fill {
   margin: 0;
-  padding: 0;
+  min-height: 100%;
   height: 100%;
-  min-height: 100%;
+  padding-bottom: 6rem;
+  overflow-y: auto;
 }
-.page-bg-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
+.page-wave {
   pointer-events: none;
-  background: color-mix(in srgb, var(--bg) 86%, transparent);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  overflow: hidden;
+  z-index: 0;
+  color: var(--primary-color);
 }
-[data-theme='dark'] .page-bg-overlay {
-  background: color-mix(in srgb, var(--bg) 72%, #000 28%);
-}
-.page-bg-content {
-  position: relative;
+.page-wave-top { height: 200px; }
+.page-wave-bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 168px;
   z-index: 1;
-  min-height: 100%;
+}
+.page-wave-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.page-wave-icon {
+  position: absolute;
+  top: 28px;
+  inset-inline-start: 12px;
+  pointer-events: none;
+}
+.page-wave-spacer { height: 180px; }
+.page-layout-content { min-height: 0; }
+.page-layout-content > .stack > .page-title:first-child,
+.page-layout-content > .stack > .spread:first-child .page-title {
+  color: var(--primary-ink);
+}
+.page-layout-content .hero-hi { color: var(--primary-ink); }
+.page-layout-content .hero-date {
+  color: color-mix(in srgb, var(--primary-ink) 82%, transparent);
 }
 
 .bottom-nav {
@@ -1028,14 +1059,7 @@ img { max-width: 100%; }
 .match-item.done { opacity: 0.45; }
 
 .onboard {
-  height: 100%;
-  min-height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 24px 16px 96px;
-  -webkit-overflow-scrolling: touch;
   color: var(--ink);
-  background-color: transparent;
 }
 .onboard-card {
   max-width: 520px;
@@ -1312,4 +1336,8 @@ img { max-width: 100%; }
 @media (min-width: 860px) {
   .app-shell { max-width: 480px; margin: 0 auto; border-inline: 1px solid var(--line); }
   .bottom-nav { left: max(12px, calc(50% - 240px + 12px)); right: max(12px, calc(50% - 240px + 12px)); }
+  .page-wave-bottom {
+    left: max(0px, calc(50% - 240px));
+    right: max(0px, calc(50% - 240px));
+  }
 }

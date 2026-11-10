@@ -4,7 +4,7 @@ import { ChevronDown, CloudUpload, FolderPlus, Loader2, Mic, Pause, Pencil, Play
 import { useStore } from '../store'
 import { AudioPlayer } from '../AudioPlayer'
 import { Confirm, Empty, Segment, Sheet, SubjectSelect, TagInput, Toast, useT } from '../ui'
-import { PAGE_BG, PageBg } from '../components/PageBg'
+import { PageLayout } from '../components/PageLayout'
 import type { RecDistance, Recording } from '../types'
 import {
   cancelNativeRecording,
@@ -262,7 +262,7 @@ export default function RecorderPage() {
   }, [recordings, folderId, q, sort])
 
   return (
-    <PageBg src={PAGE_BG.recorder}>
+    <PageLayout icon={Mic}>
     <div className="stack rec-list">
       <div className="spread">
         <button className="chip" type="button" onClick={() => nav('/')}>
@@ -321,7 +321,7 @@ export default function RecorderPage() {
         </button>
       </Sheet>
     </div>
-    </PageBg>
+    </PageLayout>
   )
 }
 
@@ -628,7 +628,7 @@ export function LiveRecordPage() {
   const busy = status !== 'idle'
 
   return (
-    <PageBg src={PAGE_BG.recorder}>
+    <PageLayout icon={Mic}>
     <div className="stack">
       <div className="spread">
         <button
@@ -728,7 +728,7 @@ export function LiveRecordPage() {
         </button>
       </Sheet>
     </div>
-    </PageBg>
+    </PageLayout>
   )
 }
 
@@ -774,9 +774,9 @@ export function RecordingDetailPage() {
   }, [rec])
 
   if (!rec) return (
-    <PageBg src={PAGE_BG.recorder}>
+    <PageLayout icon={Mic}>
       <Empty icon={<Mic />} title={tr('noRecordings')} />
-    </PageBg>
+    </PageLayout>
   )
 
   const item = rec
@@ -794,7 +794,7 @@ export function RecordingDetailPage() {
   }
 
   return (
-    <PageBg src={PAGE_BG.recorder}>
+    <PageLayout icon={Mic}>
     <div className="stack">
       <div className="spread">
         <button className="chip" type="button" onClick={() => nav('/record')}>
@@ -879,6 +879,6 @@ export function RecordingDetailPage() {
       </Sheet>
       <Toast text={toast} onDone={() => setToast(null)} />
     </div>
-    </PageBg>
+    </PageLayout>
   )
 }

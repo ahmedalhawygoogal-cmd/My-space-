@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { BookOpen, CheckSquare, Layers, Mic, Search } from 'lucide-react'
 import { useStore } from '../store'
 import { Empty, Segment, useT } from '../ui'
-import { PAGE_BG, PageBg } from '../components/PageBg'
+import { PageLayout } from '../components/PageLayout'
 import { excerpt } from '../utils'
 import type { EntityType } from '../types'
 
@@ -34,7 +34,7 @@ export default function SearchPage() {
   }
 
   return (
-    <PageBg src={PAGE_BG.search}>
+    <PageLayout icon={Search}>
     <div className="stack">
       <h1 className="page-title">{tr('search')}</h1>
       <input className="field" autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('searchPlaceholder')} />
@@ -65,6 +65,6 @@ export default function SearchPage() {
         ))
       )}
     </div>
-    </PageBg>
+    </PageLayout>
   )
 }

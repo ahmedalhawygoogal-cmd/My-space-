@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeftRight, ArrowRight, Ear, Layers, LayoutGrid, Pencil, PenLine, Play, Plus, RefreshCw, Trash2, Volume2 } from 'lucide-react'
 import { useStore } from '../store'
 import { Confirm, Empty, Sheet, Toast, useT } from '../ui'
-import { PAGE_BG, PageBg } from '../components/PageBg'
+import { PageLayout } from '../components/PageLayout'
 import type { ReactNode } from 'react'
 import type { AppSettings, Card, Deck, DeckType, Lang } from '../types'
 import { DECK_TYPES, LEARN_LANGS, NATIVE_LANG_OPTS, TARGET_LANG_OPTS, isRichDeck, labeled } from '../types'
@@ -109,7 +109,7 @@ function BackBtn({ onClick, label }: { onClick: () => void; label: string }) {
 
 function Screen({ title, onBack, backLabel, children }: { title: string; onBack: () => void; backLabel: string; children: ReactNode }) {
   return (
-    <PageBg src={PAGE_BG.flashcards}>
+    <PageLayout icon={Layers}>
     <div className="stack">
       <div className="spread">
         <BackBtn onClick={onBack} label={backLabel} />
@@ -119,7 +119,7 @@ function Screen({ title, onBack, backLabel, children }: { title: string; onBack:
       </div>
       {children}
     </div>
-    </PageBg>
+    </PageLayout>
   )
 }
 
@@ -228,7 +228,7 @@ function SessionDone({ deckId }: { deckId: string }) {
   const tr = useT()
   const nav = useNavigate()
   return (
-    <PageBg src={PAGE_BG.flashcards}>
+    <PageLayout icon={Layers}>
     <div className="stack">
       <BackBtn onClick={() => nav(`/cards/${deckId}`)} label={tr('back')} />
       <div className="card game-done">
@@ -238,7 +238,7 @@ function SessionDone({ deckId }: { deckId: string }) {
         </button>
       </div>
     </div>
-    </PageBg>
+    </PageLayout>
   )
 }
 
@@ -338,7 +338,7 @@ export default function FlashcardsPage() {
   const shown = decks.filter((d) => !q.trim() || d.name.toLowerCase().includes(q.trim().toLowerCase()))
 
   return (
-    <PageBg src={PAGE_BG.flashcards}>
+    <PageLayout icon={Layers}>
     <div className="stack">
       <h1 className="page-title">{tr('flashcards')}</h1>
       <input className="field" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('searchPlaceholder')} />
@@ -421,7 +421,7 @@ export default function FlashcardsPage() {
         }}
       />
     </div>
-    </PageBg>
+    </PageLayout>
   )
 }
 
@@ -456,9 +456,9 @@ export function DeckPage() {
   }
 
   if (!deck) return (
-    <PageBg src={PAGE_BG.flashcards}>
+    <PageLayout icon={Layers}>
       <Empty icon={<Layers />} title={tr('noDecks')} />
-    </PageBg>
+    </PageLayout>
   )
 
   if (open || edit) {
@@ -484,7 +484,7 @@ export function DeckPage() {
   }
 
   return (
-    <PageBg src={PAGE_BG.flashcards}>
+    <PageLayout icon={Layers}>
     <div className="stack">
       <div className="spread">
         <BackBtn onClick={() => nav('/cards')} label={tr('back')} />
@@ -560,7 +560,7 @@ export function DeckPage() {
         }}
       />
     </div>
-    </PageBg>
+    </PageLayout>
   )
 }
 
@@ -568,7 +568,7 @@ function NeedCards({ n, deckId }: { n: number; deckId: string }) {
   const tr = useT()
   const nav = useNavigate()
   return (
-    <PageBg src={PAGE_BG.flashcards}>
+    <PageLayout icon={Layers}>
     <Empty
       icon={<Layers size={36} />}
       title={tr('needMoreCards')}
@@ -579,7 +579,7 @@ function NeedCards({ n, deckId }: { n: number; deckId: string }) {
         </button>
       }
     />
-    </PageBg>
+    </PageLayout>
   )
 }
 
@@ -587,7 +587,7 @@ function GameShell({ title, hint, children }: { title: string; hint: string; chi
   const nav = useNavigate()
   const tr = useT()
   return (
-    <PageBg src={PAGE_BG.flashcards}>
+    <PageLayout icon={Layers}>
     <div className="stack">
       <div className="spread">
         <BackBtn onClick={() => nav(-1)} label={tr('back')} />
@@ -600,7 +600,7 @@ function GameShell({ title, hint, children }: { title: string; hint: string; chi
       </p>
       {children}
     </div>
-    </PageBg>
+    </PageLayout>
   )
 }
 
@@ -656,9 +656,9 @@ export function ChoiceGamePage() {
   })
 
   if (!deck) return (
-    <PageBg src={PAGE_BG.flashcards}>
+    <PageLayout icon={Layers}>
       <Empty icon={<Layers />} title={tr('noDecks')} />
-    </PageBg>
+    </PageLayout>
   )
   if (dc.length < 4 || !pack) return <NeedCards n={4} deckId={deckId} />
   if (finished) return <SessionDone deckId={deckId} />
@@ -732,9 +732,9 @@ export function MatchGamePage() {
   const totalRounds = Math.max(1, Math.ceil(dc.length / 4))
 
   if (!deck) return (
-    <PageBg src={PAGE_BG.flashcards}>
+    <PageLayout icon={Layers}>
       <Empty icon={<Layers />} title={tr('noDecks')} />
-    </PageBg>
+    </PageLayout>
   )
   if (dc.length < 4) return <NeedCards n={4} deckId={deckId} />
   if (finished) return <SessionDone deckId={deckId} />
@@ -838,9 +838,9 @@ export function WriteGamePage() {
   }
 
   if (!deck) return (
-    <PageBg src={PAGE_BG.flashcards}>
+    <PageLayout icon={Layers}>
       <Empty icon={<Layers />} title={tr('noDecks')} />
-    </PageBg>
+    </PageLayout>
   )
   if (dc.length < 1 || !card) return <NeedCards n={1} deckId={deckId} />
   if (finished) return <SessionDone deckId={deckId} />
@@ -934,9 +934,9 @@ export function ListenGamePage() {
   })
 
   if (!deck) return (
-    <PageBg src={PAGE_BG.flashcards}>
+    <PageLayout icon={Layers}>
       <Empty icon={<Layers />} title={tr('noDecks')} />
-    </PageBg>
+    </PageLayout>
   )
   if (dc.length < 4 || !pack) return <NeedCards n={4} deckId={deckId} />
   if (finished) return <SessionDone deckId={deckId} />
@@ -1040,14 +1040,14 @@ export function StudyPage() {
   }
 
   if (!deck) return (
-    <PageBg src={PAGE_BG.flashcards}>
+    <PageLayout icon={Layers}>
       <Empty icon={<Layers />} title={tr('noDecks')} />
-    </PageBg>
+    </PageLayout>
   )
   if (!card) {
     if (idx > 0) return <SessionDone deckId={deckId} />
     return (
-      <PageBg src={PAGE_BG.flashcards}>
+      <PageLayout icon={Layers}>
       <Empty
         icon={<Layers size={36} />}
         title={tr('noDueCards')}
@@ -1057,7 +1057,7 @@ export function StudyPage() {
           </button>
         }
       />
-      </PageBg>
+      </PageLayout>
     )
   }
 
@@ -1065,7 +1065,7 @@ export function StudyPage() {
   const answer = answerOf(card, swapped)
 
   return (
-    <PageBg src={PAGE_BG.flashcards}>
+    <PageLayout icon={Layers}>
     <div className="stack">
       <div className="spread">
         <BackBtn onClick={() => nav(`/cards/${deckId}`)} label={tr('back')} />
@@ -1128,7 +1128,7 @@ export function StudyPage() {
       )}
       <Toast text={toast} onDone={() => setToast(null)} />
     </div>
-    </PageBg>
+    </PageLayout>
   )
 }
 

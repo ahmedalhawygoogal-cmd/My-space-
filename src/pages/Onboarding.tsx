@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Check } from 'lucide-react'
+import { Check, Sparkles } from 'lucide-react'
 import { useStore } from '../store'
 import { Toast, useT } from '../ui'
-import { PAGE_BG, PageBg } from '../components/PageBg'
+import { PageLayout } from '../components/PageLayout'
 import type { DailyGoal, GoalKind, InputPref, Labeled, Lang, UserLevel } from '../types'
 import {
   DAILY_OPTS,
@@ -206,7 +206,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <PageBg src={PAGE_BG.onboard} fill className="onboard text-foreground">
+    <PageLayout icon={Sparkles} fill className="onboard">
       <div className="onboard-card wizard-card bg-card border-border">
         {phase === 'langs' ? (
           <>
@@ -309,6 +309,6 @@ export default function OnboardingPage() {
         )}
       </div>
       <Toast text={toast} onDone={() => setToast(null)} />
-    </PageBg>
+    </PageLayout>
   )
 }
