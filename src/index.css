@@ -1333,11 +1333,77 @@ img { max-width: 100%; }
 }
 .game-done h2 { margin: 0 0 16px; }
 
+.customize-page {
+  width: 100%;
+  text-align: start;
+}
+.customize-page:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.home-widget {
+  position: relative;
+  touch-action: pan-y;
+}
+.home-widget-edit {
+  outline: 1px dashed color-mix(in srgb, var(--brand) 45%, transparent);
+  outline-offset: 4px;
+  border-radius: var(--radius);
+}
+.home-widget-edit .home-widget-body {
+  padding-top: 42px;
+}
+.home-widget.dragging {
+  box-shadow: var(--shadow);
+}
+.home-widget-tools {
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 8px;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+}
+.home-widget-tools .icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+.home-drag-handle {
+  cursor: grab;
+  touch-action: none;
+}
+.home-drag-handle:active { cursor: grabbing; }
+.home-edit-bar {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--nav-h) + var(--safe-b) + 8px);
+  z-index: 16;
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  background: color-mix(in srgb, var(--bg-elev) 92%, transparent);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+.home-edit-bar .btn {
+  flex: 1;
+  padding: 10px 8px;
+  font-size: 0.82rem;
+}
+
 @media (min-width: 860px) {
   .app-shell { max-width: 480px; margin: 0 auto; border-inline: 1px solid var(--line); }
   .bottom-nav { left: max(12px, calc(50% - 240px + 12px)); right: max(12px, calc(50% - 240px + 12px)); }
   .page-wave-bottom {
     left: max(0px, calc(50% - 240px));
     right: max(0px, calc(50% - 240px));
+  }
+  .home-edit-bar {
+    left: max(12px, calc(50% - 240px + 12px));
+    right: max(12px, calc(50% - 240px + 12px));
   }
 }

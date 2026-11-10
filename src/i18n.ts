@@ -420,6 +420,12 @@ const ar = {
   cloudOfflineHint: 'لا يوجد اتصال بالإنترنت حالياً',
   share: 'مشاركة',
   shareUnsupported: 'المشاركة غير مدعومة في هذا المتصفح، جاري التحميل...',
+  editLayout: 'تخصيص التخطيط',
+  customizePages: 'تخصيص الصفحات',
+  resetDefault: 'إرجاع الافتراضي',
+  hideWidget: 'إخفاء',
+  showWidget: 'إظهار',
+  layoutComingSoon: 'قريباً',
 }
 
 const en: Record<keyof typeof ar, string> = {
@@ -842,6 +848,12 @@ const en: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  editLayout: 'Edit layout',
+  customizePages: 'Customize pages',
+  resetDefault: 'Reset to default',
+  hideWidget: 'Hide',
+  showWidget: 'Show',
+  layoutComingSoon: 'Coming soon',
 }
 
 const fr: Record<keyof typeof ar, string> = {
@@ -1264,6 +1276,12 @@ const fr: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  editLayout: 'Edit layout',
+  customizePages: 'Customize pages',
+  resetDefault: 'Reset to default',
+  hideWidget: 'Hide',
+  showWidget: 'Show',
+  layoutComingSoon: 'Coming soon',
 }
 
 const de: Record<keyof typeof ar, string> = {
@@ -1686,6 +1704,12 @@ const de: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  editLayout: 'Edit layout',
+  customizePages: 'Customize pages',
+  resetDefault: 'Reset to default',
+  hideWidget: 'Hide',
+  showWidget: 'Show',
+  layoutComingSoon: 'Coming soon',
 }
 
 const es: Record<keyof typeof ar, string> = {
@@ -2108,6 +2132,12 @@ const es: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  editLayout: 'Edit layout',
+  customizePages: 'Customize pages',
+  resetDefault: 'Reset to default',
+  hideWidget: 'Hide',
+  showWidget: 'Show',
+  layoutComingSoon: 'Coming soon',
 }
 
 const tr: Record<keyof typeof ar, string> = {
@@ -2530,6 +2560,12 @@ const tr: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  editLayout: 'Edit layout',
+  customizePages: 'Customize pages',
+  resetDefault: 'Reset to default',
+  hideWidget: 'Hide',
+  showWidget: 'Show',
+  layoutComingSoon: 'Coming soon',
 }
 
 const it: Record<keyof typeof ar, string> = {
@@ -2952,6 +2988,12 @@ const it: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  editLayout: 'Edit layout',
+  customizePages: 'Customize pages',
+  resetDefault: 'Reset to default',
+  hideWidget: 'Hide',
+  showWidget: 'Show',
+  layoutComingSoon: 'Coming soon',
 }
 
 const ru: Record<keyof typeof ar, string> = {
@@ -3374,6 +3416,12 @@ const ru: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  editLayout: 'Edit layout',
+  customizePages: 'Customize pages',
+  resetDefault: 'Reset to default',
+  hideWidget: 'Hide',
+  showWidget: 'Show',
+  layoutComingSoon: 'Coming soon',
 }
 
 const zh: Record<keyof typeof ar, string> = {
@@ -3796,6 +3844,12 @@ const zh: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  editLayout: 'Edit layout',
+  customizePages: 'Customize pages',
+  resetDefault: 'Reset to default',
+  hideWidget: 'Hide',
+  showWidget: 'Show',
+  layoutComingSoon: 'Coming soon',
 }
 
 const ja: Record<keyof typeof ar, string> = {
@@ -4218,6 +4272,12 @@ const ja: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  editLayout: 'Edit layout',
+  customizePages: 'Customize pages',
+  resetDefault: 'Reset to default',
+  hideWidget: 'Hide',
+  showWidget: 'Show',
+  layoutComingSoon: 'Coming soon',
 }
 
 const ko: Record<keyof typeof ar, string> = {
@@ -4640,6 +4700,12 @@ const ko: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  editLayout: 'Edit layout',
+  customizePages: 'Customize pages',
+  resetDefault: 'Reset to default',
+  hideWidget: 'Hide',
+  showWidget: 'Show',
+  layoutComingSoon: 'Coming soon',
 }
 
 const pt: Record<keyof typeof ar, string> = {
@@ -5062,6 +5128,12 @@ const pt: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  editLayout: 'Edit layout',
+  customizePages: 'Customize pages',
+  resetDefault: 'Reset to default',
+  hideWidget: 'Hide',
+  showWidget: 'Show',
+  layoutComingSoon: 'Coming soon',
 }
 
 const hi: Record<keyof typeof ar, string> = {
@@ -5484,6 +5556,12 @@ const hi: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  editLayout: 'Edit layout',
+  customizePages: 'Customize pages',
+  resetDefault: 'Reset to default',
+  hideWidget: 'Hide',
+  showWidget: 'Show',
+  layoutComingSoon: 'Coming soon',
 }
 
 const ur: Record<keyof typeof ar, string> = {
@@ -5906,6 +5984,12 @@ const ur: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  editLayout: 'Edit layout',
+  customizePages: 'Customize pages',
+  resetDefault: 'Reset to default',
+  hideWidget: 'Hide',
+  showWidget: 'Show',
+  layoutComingSoon: 'Coming soon',
 }
 
 const fa: Record<keyof typeof ar, string> = {
@@ -6328,6 +6412,12 @@ const fa: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  editLayout: 'Edit layout',
+  customizePages: 'Customize pages',
+  resetDefault: 'Reset to default',
+  hideWidget: 'Hide',
+  showWidget: 'Show',
+  layoutComingSoon: 'Coming soon',
 }
 
 const nl: Record<keyof typeof ar, string> = {
@@ -6750,6 +6840,12 @@ const nl: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  editLayout: 'Edit layout',
+  customizePages: 'Customize pages',
+  resetDefault: 'Reset to default',
+  hideWidget: 'Hide',
+  showWidget: 'Show',
+  layoutComingSoon: 'Coming soon',
 }
 
 const pl: Record<keyof typeof ar, string> = {
@@ -7172,6 +7268,12 @@ const pl: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  editLayout: 'Edit layout',
+  customizePages: 'Customize pages',
+  resetDefault: 'Reset to default',
+  hideWidget: 'Hide',
+  showWidget: 'Show',
+  layoutComingSoon: 'Coming soon',
 }
 
 const id: Record<keyof typeof ar, string> = {
@@ -7594,6 +7696,12 @@ const id: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  editLayout: 'Edit layout',
+  customizePages: 'Customize pages',
+  resetDefault: 'Reset to default',
+  hideWidget: 'Hide',
+  showWidget: 'Show',
+  layoutComingSoon: 'Coming soon',
 }
 
 export type I18nKey = keyof typeof ar
