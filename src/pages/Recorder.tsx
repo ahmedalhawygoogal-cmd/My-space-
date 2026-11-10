@@ -170,7 +170,6 @@ function RecListCard({ rec }: { rec: Recording }) {
               mimeType={rec.mimeType}
               onArchive={async (blob) => {
                 await addDownload(rec.name, blob, rec.mimeType || blob.type)
-                setToast(tr('downloaded'))
               }}
             />
             <button
@@ -805,7 +804,6 @@ export function RecordingDetailPage() {
             mimeType={item.mimeType}
             onArchive={async (blob) => {
               await addDownload(name || item.name, blob, item.mimeType || blob.type)
-              setToast(tr('downloaded'))
             }}
           />
         </div>

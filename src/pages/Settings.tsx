@@ -4,7 +4,7 @@ import { Download, Languages } from 'lucide-react'
 import { useStore } from '../store'
 import { useAuth } from '../auth'
 import { Confirm, Segment, Toast, useT } from '../ui'
-import { downloadBlob, formatDateTime } from '../utils'
+import { formatDateTime } from '../utils'
 import { exportSnapshot, type Snapshot } from '../db'
 import type { AppFont, AppFontSize, NotifySound, Theme } from '../types'
 import { APP_FONTS, NOTIFY_SOUNDS, labeled } from '../types'
@@ -14,6 +14,7 @@ import { LanguagePrefs } from './Onboarding'
 import { InfoTooltip } from '../components/InfoTooltip'
 import { isCloudSyncEnabled, setCloudSyncEnabled } from '../lib/cloudPref'
 import { uploadLocalDataToCloud } from '../lib/cloudUpload'
+import { saveBlobToDevice, shareBlob } from '../lib/nativeFiles'
 import { version } from '../../package.json'
 
 export default function SettingsPage() {
@@ -83,11 +84,11 @@ export default function SettingsPage() {
   async function exportDownload() {
     try {
       const { blob } = await prepareBackup()
-      downloadBlob(blob, 'myspace-backup.json')
+      const dest = await saveBlobToDevice(blob, 'myspace-backup.json')
       await markBackup()
       setExportOpen(false)
       backupRef.current = null
-      setToast(tr('downloadedToDownloads'))
+      setToast(dest === 'native' ? tr('savedToDocuments') : tr('downloadedToDownloads'))
     } catch {
       setToast(tr('error'))
     }
@@ -95,29 +96,14 @@ export default function SettingsPage() {
 
   async function exportShare() {
     try {
-      const { blob, file } = await prepareBackup()
-      const shareData: ShareData = { files: [file], title: 'MySpace Backup' }
-      const canShareFiles =
-        typeof navigator !== 'undefined' &&
-        typeof navigator.share === 'function' &&
-        (typeof navigator.canShare !== 'function' || navigator.canShare(shareData))
-      if (canShareFiles) {
-        try {
-          await navigator.share(shareData)
-          await markBackup()
-          setExportOpen(false)
-          backupRef.current = null
-          setToast(tr('exported'))
-          return
-        } catch (err) {
-          if (err instanceof DOMException && err.name === 'AbortError') return
-        }
-      }
-      setToast(tr('shareUnsupported'))
-      downloadBlob(blob, 'myspace-backup.json')
+      const { blob } = await prepareBackup()
+      const result = await shareBlob(blob, 'myspace-backup.json', 'MySpace Backup')
+      if (result === 'aborted') return
       await markBackup()
       setExportOpen(false)
       backupRef.current = null
+      if (result === 'shared') setToast(tr('exported'))
+      else setToast(tr('shareUnsupported'))
     } catch {
       setToast(tr('error'))
     }

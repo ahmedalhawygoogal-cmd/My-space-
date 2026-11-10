@@ -389,7 +389,6 @@ function NotePlayer({ id }: { id: string }) {
         mimeType={rec?.mimeType}
         onArchive={async (blob) => {
           await addDownload(rec?.name || tr('attachAudio'), blob, rec?.mimeType || blob.type)
-          setToast(tr('downloaded'))
         }}
       />
       <Toast text={toast} onDone={() => setToast(null)} />

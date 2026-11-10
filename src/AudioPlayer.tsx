@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Download, Pause, Play, RotateCcw, RotateCw } from 'lucide-react'
-import { useT } from './ui'
-import { audioFileName, downloadBlob, formatDuration } from './utils'
+import { Toast, useT } from './ui'
+import { audioFileName, formatDuration } from './utils'
+import { saveBlobToDevice } from './lib/nativeFiles'
 
 const RATES = [1, 1.5, 2] as const
 
@@ -24,6 +25,7 @@ export function AudioPlayer({
   const [pos, setPos] = useState(0)
   const [dur, setDur] = useState(durationMs ?? 0)
   const [rate, setRate] = useState<(typeof RATES)[number]>(1)
+  const [toast, setToast] = useState<string | null>(null)
 
   useEffect(() => {
     const el = audio.current
@@ -45,10 +47,16 @@ export function AudioPlayer({
   async function exportAudio() {
     const el = audio.current
     if (!el?.src) return
-    const res = await fetch(el.src)
-    const blob = await res.blob()
-    downloadBlob(blob, audioFileName(name, mimeType || blob.type))
-    await onArchive?.(blob)
+    try {
+      const res = await fetch(el.src)
+      const blob = await res.blob()
+      const filename = audioFileName(name, mimeType || blob.type)
+      const dest = await saveBlobToDevice(blob, filename)
+      await onArchive?.(blob)
+      setToast(dest === 'native' ? tr('savedToDocuments') : tr('downloaded'))
+    } catch {
+      setToast(tr('error'))
+    }
   }
 
   const max = Math.max(1, dur)
@@ -119,6 +127,7 @@ export function AudioPlayer({
           <Download size={16} />
         </button>
       </div>
+      <Toast text={toast} onDone={() => setToast(null)} />
     </div>
   )
 }
