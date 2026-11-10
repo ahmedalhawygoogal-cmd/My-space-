@@ -16,8 +16,7 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: 'Stay hungry, stay foolish.',
       ar: 'ابقَ جائعاً، ابقَ أحمقاً.',
     },
-    imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Steve_Jobs_Headshot_2010-CROP.jpg/800px-Steve_Jobs_Headshot_2010-CROP.jpg',
+    imageUrl: '/images/steve_jobs.jpg',
   },
   {
     id: 'dq-thomas-edison',
@@ -34,8 +33,7 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: "I have not failed. I've just found 10,000 ways that won't work.",
       ar: 'لم أفشل. لقد وجدت 10,000 طريقة لا تعمل.',
     },
-    imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Thomas_Edison2.jpg/800px-Thomas_Edison2.jpg',
+    imageUrl: '/images/thomas_edison.jpg',
   },
   {
     id: 'dq-nelson-mandela',
@@ -52,8 +50,7 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: "It always seems impossible until it's done.",
       ar: 'يبدو الأمر مستحيلاً دائماً حتى يتحقق.',
     },
-    imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Nelson_Mandela_1994.jpg/800px-Nelson_Mandela_1994.jpg',
+    imageUrl: '/images/nelson_mandela.jpg',
   },
   {
     id: 'dq-ibn-sina',
@@ -70,8 +67,7 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: 'The knowledge of anything, since all things have causes, is not acquired or complete unless it is known by its causes.',
       ar: 'معرفة أي شيء، ما دامت لكل الأشياء أسباب، لا تكتمل إلا بمعرفة تلك الأسباب.',
     },
-    imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Avicenna_%28Ibn_Sina%29.jpg/800px-Avicenna_%28Ibn_Sina%29.jpg',
+    imageUrl: '/images/ibn_sina.jpg',
   },
   {
     id: 'dq-mohamed-salah',
@@ -88,8 +84,7 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: 'I always believe in myself and work hard.',
       ar: 'أؤمن بنفسي دائماً وأعمل بجد.',
     },
-    imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Mohamed_Salah_2018.jpg/800px-Mohamed_Salah_2018.jpg',
+    imageUrl: '/images/mohamed_salah.jpg',
   },
   {
     id: 'dq-elon-musk',
@@ -106,8 +101,7 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: 'When something is important enough, you do it even if the odds are not in your favor.',
       ar: 'عندما يكون أمر ما مهماً بما يكفي، فإنك تفعله حتى لو لم تكن الاحتمالات في صالحك.',
     },
-    imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Elon_Musk_Royal_Society_%28crop2%29.jpg/800px-Elon_Musk_Royal_Society_%28crop2%29.jpg',
+    imageUrl: '/images/elon_musk.jpg',
   },
   {
     id: 'dq-albert-einstein',
@@ -124,8 +118,7 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: 'Imagination is more important than knowledge.',
       ar: 'الخيال أهم من المعرفة.',
     },
-    imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/800px-Albert_Einstein_Head.jpg',
+    imageUrl: '/images/einstein.jpg',
   },
   {
     id: 'dq-marie-curie',
@@ -142,8 +135,7 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: 'Nothing in life is to be feared, it is only to be understood.',
       ar: 'لا شيء في الحياة يُخاف منه، إنما يُفهم فقط.',
     },
-    imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Marie_Curie_c1920.jpg/800px-Marie_Curie_c1920.jpg',
+    imageUrl: '/images/marie_curie.jpg',
   },
   {
     id: 'dq-khalid-ibn-al-walid',
@@ -160,8 +152,7 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: 'If you are truthful, you will not care who stands with you or against you.',
       ar: 'إن كنت صادقاً فلن يهمك من معك ومن عليك.',
     },
-    imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Khalid_ibn_al-Walid.jpg/800px-Khalid_ibn_al-Walid.jpg',
+    imageUrl: '/images/khalid_ibn_al_walid.jpg',
   },
   {
     id: 'dq-al-khwarizmi',
@@ -178,7 +169,6 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: 'That which is required is that we find the unknown.',
       ar: 'المطلوب هو أن نجد المجهول.',
     },
-    imageUrl:
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Al-Khwarizmi_portrait.jpg/800px-Al-Khwarizmi_portrait.jpg',
+    imageUrl: '/images/al_khwarizmi.jpg',
   },
 ]
