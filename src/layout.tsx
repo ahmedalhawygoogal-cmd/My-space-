@@ -1,12 +1,13 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { BookOpen, CheckSquare, Home, Layers, Mic, Search, Settings } from 'lucide-react'
-import { useT } from './ui'
+import { BookOpen, CheckSquare, Home, Layers, Mic, Search, Settings, Sparkles } from 'lucide-react'
+import { Sheet, useT } from './ui'
 
 export function Layout() {
   const tr = useT()
   const nav = useNavigate()
   const loc = useLocation()
+  const [discoverOpen, setDiscoverOpen] = useState(false)
   const hideNav =
     loc.pathname.includes('/study') ||
     loc.pathname.includes('/test') ||
@@ -23,6 +24,14 @@ export function Layout() {
           <span>{tr('appName')}</span>
         </div>
         <div className="row">
+          <button
+            className="icon-btn discover-pulse"
+            type="button"
+            aria-label={tr('discover')}
+            onClick={() => setDiscoverOpen(true)}
+          >
+            <Sparkles size={18} />
+          </button>
           <button className="icon-btn" type="button" aria-label={tr('search')} onClick={() => nav('/search')}>
             <Search size={18} />
           </button>
@@ -31,6 +40,28 @@ export function Layout() {
           </button>
         </div>
       </header>
+      <Sheet open={discoverOpen} onClose={() => setDiscoverOpen(false)} title={tr('discover')}>
+        <div className="discover-grid">
+          <button
+            className="card pressable discover-tile"
+            type="button"
+            onClick={() => {
+              setDiscoverOpen(false)
+              nav('/motivate')
+            }}
+          >
+            <div className="discover-tile-icon">
+              <Sparkles size={20} />
+            </div>
+            <div className="grow">
+              <b>{tr('motivateMe')}</b>
+              <div className="muted" style={{ fontSize: 12 }}>
+                {tr('motivateSubtitle')}
+              </div>
+            </div>
+          </button>
+        </div>
+      </Sheet>
       <main className="main">
         <Outlet />
       </main>

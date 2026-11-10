@@ -1,5 +1,5 @@
-import { Link, useNavigate } from 'react-router-dom'
-import { Mic, Play, Sparkles } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Mic, Play } from 'lucide-react'
 import { useStore } from '../store'
 import { Ring, useT } from '../ui'
 import { endOfDay, formatDate, startOfDay, weekdayLong } from '../utils'
@@ -68,16 +68,6 @@ export default function HomePage() {
         </div>
         <Play size={18} />
       </button>
-
-      <Link className="card pressable block bg-card text-foreground border-border" to="/motivate" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
-        <div className="row" style={{ gap: 14, padding: 20 }}>
-          <Sparkles size={30} style={{ flexShrink: 0 }} />
-          <div className="grow">
-            <b style={{ fontSize: 20, fontWeight: 800, display: 'block', marginBottom: 4 }}>{tr('motivateMe')}</b>
-            <div className="muted" style={{ fontSize: 14 }}>{tr('motivateSubtitle')}</div>
-          </div>
-        </div>
-      </Link>
 
       <div className="stat-grid">
         <div className="stat">

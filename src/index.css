@@ -112,6 +112,42 @@ img { max-width: 100%; }
   box-shadow: var(--shadow);
 }
 .icon-btn:active { transform: scale(0.96); }
+.icon-btn.discover-pulse {
+  border-radius: 50%;
+  color: var(--brand);
+  animation: discover-glow 2.6s ease-in-out infinite;
+}
+@keyframes discover-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand) 0%, transparent), var(--shadow);
+  }
+  50% {
+    box-shadow: 0 0 12px 3px color-mix(in srgb, var(--brand) 38%, transparent), var(--shadow);
+  }
+}
+.discover-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+.discover-tile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: start;
+  border: 1px solid var(--line);
+}
+.discover-tile-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--brand) 18%, var(--bg-muted));
+  color: var(--brand);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
 
 .main {
   flex: 1;
