@@ -12,6 +12,7 @@ import { resolveColor } from '../utils'
 import { getNative } from '../native'
 import { LanguagePrefs } from './Onboarding'
 import { InfoTooltip } from '../components/InfoTooltip'
+import { PAGE_BG, PageBg } from '../components/PageBg'
 import { isCloudSyncEnabled, setCloudSyncEnabled } from '../lib/cloudPref'
 import { uploadLocalDataToCloud } from '../lib/cloudUpload'
 import { saveBlobToDevice, shareBlob } from '../lib/nativeFiles'
@@ -110,6 +111,7 @@ export default function SettingsPage() {
   }
 
   return (
+    <PageBg src={PAGE_BG.settings}>
     <div className="stack">
       <h1 className="page-title">{tr('settings')}</h1>
       <button className="list-item pressable" type="button" onClick={() => nav('/downloads')}>
@@ -434,5 +436,6 @@ export default function SettingsPage() {
       />
       <Toast text={toast} onDone={() => setToast(null)} />
     </div>
+    </PageBg>
   )
 }

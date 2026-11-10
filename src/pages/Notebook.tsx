@@ -20,6 +20,7 @@ import {
 import { useStore } from '../store'
 import { AudioPlayer } from '../AudioPlayer'
 import { Confirm, Empty, Sheet, Toast, useT } from '../ui'
+import { PAGE_BG, PageBg } from '../components/PageBg'
 import { contrastInk, fileToDataUrl, firstNoteImage, formatDate } from '../utils'
 import { NOTE_COLORS } from '../types'
 import type { Note } from '../types'
@@ -86,6 +87,7 @@ export default function NotebookPage() {
   }
 
   return (
+    <PageBg src={PAGE_BG.notebook}>
     <div className="stack">
       <h1 className="page-title">{tr('notebook')}</h1>
       <input className="field" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('search')} />
@@ -134,6 +136,7 @@ export default function NotebookPage() {
         <Plus size={22} />
       </button>
     </div>
+    </PageBg>
   )
 }
 
@@ -189,7 +192,8 @@ export function NoteEditorPage() {
   }
 
   return (
-    <div className="stack note-surface" style={{ background: color, color: ink, margin: '-16px', padding: 16, minHeight: '100%' }}>
+    <PageBg src={PAGE_BG.notebook}>
+    <div className="stack note-surface" style={{ background: color, color: ink, padding: 16, minHeight: '100%' }}>
       <div className="spread">
         <button className="chip" type="button" onClick={() => nav('/notes')}>
           {tr('back')}
@@ -324,6 +328,7 @@ export function NoteEditorPage() {
       </Sheet>
       <Toast text={toast} onDone={() => setToast(null)} />
     </div>
+    </PageBg>
   )
 }
 
@@ -333,13 +338,18 @@ export function NoteReadPage() {
   const { id } = useParams()
   const { notes, lang } = useStore()
   const note = notes.find((n) => n.id === id)
-  if (!note) return <Empty icon={<BookOpen />} title={tr('noNotes')} />
+  if (!note) return (
+    <PageBg src={PAGE_BG.notebook}>
+      <Empty icon={<BookOpen />} title={tr('noNotes')} />
+    </PageBg>
+  )
   const img = firstNoteImage(note.content)
   const audioId = audioOf(note)
   const ink = noteInk(note.color)
 
   return (
-    <div className="stack note-surface" style={{ background: note.color || undefined, color: ink, margin: '-16px', padding: 16, minHeight: '100%' }}>
+    <PageBg src={PAGE_BG.notebook}>
+    <div className="stack note-surface" style={{ background: note.color || undefined, color: ink, padding: 16, minHeight: '100%' }}>
       <div className="spread">
         <button className="chip" type="button" onClick={() => nav('/notes')}>
           {tr('back')}
@@ -358,6 +368,7 @@ export function NoteReadPage() {
       {audioId ? <NotePlayer id={audioId} /> : null}
       <div className="note-body" style={{ color: ink }} dangerouslySetInnerHTML={{ __html: note.content }} />
     </div>
+    </PageBg>
   )
 }
 

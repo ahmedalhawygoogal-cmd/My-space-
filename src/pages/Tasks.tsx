@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { CheckSquare, ChevronDown, ChevronUp, Eye, EyeOff, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
 import { Confirm, DateField, Empty, Segment, Sheet, useT } from '../ui'
+import { PAGE_BG, PageBg } from '../components/PageBg'
 import { endOfDay, formatDate, startOfDay, uid } from '../utils'
 import type { Priority, Task } from '../types'
 
@@ -91,6 +92,7 @@ export default function TasksPage() {
   }, [roots, view, todayS, todayE])
 
   return (
+    <PageBg src={PAGE_BG.tasks}>
     <div className="stack">
       <h1 className="page-title">{tr('tasks')}</h1>
       <Segment
@@ -203,6 +205,7 @@ export default function TasksPage() {
       />
       {edit ? <TaskForm open task={edit} kind={kidsOf(tasks, edit.id).length ? 'big' : 'normal'} onClose={() => setEdit(null)} /> : null}
     </div>
+    </PageBg>
   )
 }
 
@@ -238,8 +241,13 @@ export function TaskDetailPage() {
   const tk = tasks.find((t) => t.id === id)
   const [open, setOpen] = useState(true)
   const nav = useNavigate()
-  if (!tk) return <Empty icon={<CheckSquare />} title="" />
+  if (!tk) return (
+    <PageBg src={PAGE_BG.tasks}>
+      <Empty icon={<CheckSquare />} title="" />
+    </PageBg>
+  )
   return (
+    <PageBg src={PAGE_BG.tasks}>
     <TaskForm
       open={open}
       task={tk}
@@ -249,6 +257,7 @@ export function TaskDetailPage() {
         nav('/tasks')
       }}
     />
+    </PageBg>
   )
 }
 

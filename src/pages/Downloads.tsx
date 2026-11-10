@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Download, Pause, Play, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
 import { Confirm, Empty, useT } from '../ui'
+import { PAGE_BG, PageBg } from '../components/PageBg'
 import { AudioPlayer } from '../AudioPlayer'
 import { formatBytes, formatDateTime } from '../utils'
 
@@ -40,6 +41,7 @@ export default function DownloadsPage() {
   const current = list.find((d) => d.id === active)
 
   return (
+    <PageBg src={PAGE_BG.downloads}>
     <div className="stack">
       <div className="spread">
         <button className="chip" type="button" onClick={() => nav('/settings')}>
@@ -93,5 +95,6 @@ export default function DownloadsPage() {
         }}
       />
     </div>
+    </PageBg>
   )
 }

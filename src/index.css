@@ -80,6 +80,8 @@ img { max-width: 100%; }
   justify-content: space-between;
   gap: 10px;
   flex-shrink: 0;
+  position: relative;
+  z-index: 10;
 }
 .brand {
   display: flex;
@@ -156,6 +158,41 @@ img { max-width: 100%; }
   overflow-x: hidden;
   padding: 4px 16px calc(var(--nav-h) + var(--safe-b) + 28px);
   -webkit-overflow-scrolling: touch;
+}
+
+.page-bg {
+  position: relative;
+  min-height: 100%;
+  margin: -4px -16px;
+  padding: 4px 16px 0;
+  background-color: var(--bg);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+.page-bg-fill {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  min-height: 100%;
+}
+.page-bg-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+[data-theme='dark'] .page-bg-overlay {
+  background: color-mix(in srgb, var(--bg) 72%, #000 28%);
+}
+.page-bg-content {
+  position: relative;
+  z-index: 1;
+  min-height: 100%;
 }
 
 .bottom-nav {
@@ -998,7 +1035,7 @@ img { max-width: 100%; }
   padding: 24px 16px 96px;
   -webkit-overflow-scrolling: touch;
   color: var(--ink);
-  background: var(--bg);
+  background-color: transparent;
 }
 .onboard-card {
   max-width: 520px;
@@ -1059,7 +1096,7 @@ img { max-width: 100%; }
 .onboard .btn.block {
   margin-top: 8px;
 }
-.bg-background { background: var(--bg); }
+.bg-background { background-color: var(--bg); }
 .bg-card { background: var(--bg-elev); }
 .bg-muted { background: var(--bg-muted); }
 .bg-muted\/50 { background: color-mix(in srgb, var(--bg-muted) 50%, transparent); }

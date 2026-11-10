@@ -7,6 +7,7 @@ import { useStore } from '../store'
 import { uid } from '../utils'
 import { RTL_LANGS, quoteField, type QuoteCharacter } from '../types'
 import { Empty, Sheet, Toast, useT } from '../ui'
+import { PAGE_BG, PageBg } from '../components/PageBg'
 import { DEFAULT_QUOTES } from '../data/defaultQuotes'
 
 function firstLetter(name: string): string {
@@ -187,6 +188,7 @@ export default function MotivateMePage() {
   const detailChallenge = detail ? textOf(detail, 'challenge') : ''
 
   return (
+    <PageBg src={PAGE_BG.motivate}>
     <div className="stack" style={{ gap: 12 }}>
       <div className="spread">
         <h1 className="page-title">{tr('motivateMe')}</h1>
@@ -329,5 +331,6 @@ export default function MotivateMePage() {
         <Plus size={22} />
       </button>
     </div>
+    </PageBg>
   )
 }
