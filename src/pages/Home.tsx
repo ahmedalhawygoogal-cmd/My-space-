@@ -77,19 +77,19 @@ export default function HomePage() {
         </button>
 
         <div className="grid grid-cols-4 gap-2 w-full my-4">
-          <div className="stat home-fill">
+          <div className="stat">
             <b>{recordings.length}</b>
             <span>{tr('recordings')}</span>
           </div>
-          <div className="stat home-fill">
+          <div className="stat">
             <b>{dueCards.length}</b>
             <span>{tr('due')}</span>
           </div>
-          <div className="stat home-fill">
+          <div className="stat">
             <b>{openToday.length}</b>
             <span>{tr('tasks')}</span>
           </div>
-          <div className="stat home-fill">
+          <div className="stat">
             <b>{notes.length}</b>
             <span>{tr('notes')}</span>
           </div>

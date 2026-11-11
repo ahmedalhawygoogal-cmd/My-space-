@@ -16,11 +16,13 @@ export function PageLayout({
 }) {
   const cls = [
     'page-layout',
-    'min-h-screen',
-    'relative',
+    'min-h-[100dvh]',
+    'flex',
+    'flex-col',
     'bg-background',
+    'relative',
+    'overflow-hidden',
     'text-foreground',
-    'pb-24',
     fill ? 'page-layout-fill' : '',
     className ?? '',
   ]
@@ -35,8 +37,10 @@ export function PageLayout({
         </svg>
         <Icon size={120} className="page-wave-icon opacity-20 text-primary-foreground" />
       </div>
-      <div className="page-wave-spacer" aria-hidden />
-      <div className="page-layout-content z-10 relative px-4 -mt-16">{children}</div>
+      <div className="flex-1 overflow-y-auto overflow-x-hidden pb-28 relative z-10">
+        <div className="page-wave-spacer" aria-hidden />
+        <div className="page-layout-content px-4 -mt-16">{children}</div>
+      </div>
       {bottom ? (
         <div className="page-wave page-wave-bottom absolute bottom-0 w-full" aria-hidden>
           <svg viewBox="0 0 1440 320" preserveAspectRatio="none" className="page-wave-svg text-primary">

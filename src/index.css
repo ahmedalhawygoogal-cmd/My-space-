@@ -154,31 +154,41 @@ img { max-width: 100%; }
 .main {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 4px 16px calc(var(--nav-h) + var(--safe-b) + 28px);
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
+  padding: 0;
 }
 
 .min-h-screen { min-height: 100%; }
+.min-h-\[100dvh\] { min-height: 100%; height: 100%; }
 .relative { position: relative; }
 .absolute { position: absolute; }
 .top-0 { top: 0; }
 .bottom-0 { bottom: 0; }
 .w-full { width: 100%; }
+.overflow-hidden { overflow: hidden; }
 .overflow-x-hidden { overflow-x: hidden; }
+.overflow-y-auto { overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .pb-24 { padding-bottom: 6rem; }
+.pb-28 { padding-bottom: 7rem; }
 .px-4 { padding-inline: 1rem; }
 .-mt-16 { margin-top: -4rem; }
 .z-10 { z-index: 10; }
 .opacity-20 { opacity: 0.2; }
+.flex-col { flex-direction: column; }
+.flex-1 { flex: 1 1 0%; min-height: 0; }
+.grid { display: grid; }
+.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.gap-2 { gap: 0.5rem; }
+.my-4 { margin-top: 1rem; margin-bottom: 1rem; }
 
 .page-layout {
   position: relative;
   isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   min-height: 100%;
-  margin: -4px -16px calc(-1 * (var(--nav-h) + var(--safe-b) + 28px));
-  padding-bottom: calc(var(--nav-h) + var(--safe-b) + 48px);
+  overflow: hidden;
   background: var(--bg);
   color: var(--ink);
 }
@@ -186,8 +196,7 @@ img { max-width: 100%; }
   margin: 0;
   min-height: 100%;
   height: 100%;
-  padding-bottom: 6rem;
-  overflow-y: auto;
+  overflow: hidden;
 }
 .page-wave {
   pointer-events: none;
@@ -1132,11 +1141,22 @@ img { max-width: 100%; }
 .border { border: 1px solid var(--line); }
 .border-border { border-color: var(--line); }
 .flex { display: flex; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
 .gap-3 { gap: 12px; }
 .rounded-xl { border-radius: 12px; }
 .rounded-2xl { border-radius: 16px; }
 .p-4 { padding: 16px; }
+.p-6 { padding: 1.5rem; }
+.pb-20 { padding-bottom: 5rem; }
 .w-full { width: 100%; }
+.max-w-md { max-width: 28rem; }
+.fixed { position: fixed; }
+.inset-0 { inset: 0; }
+.z-\[100\] { z-index: 100; }
+.bg-black\/60 { background: rgba(0, 0, 0, 0.6); }
+.backdrop-blur-sm { backdrop-filter: blur(4px); }
+.shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
 .text-5xl { font-size: 3rem; line-height: 1.1; }
 .font-bold { font-weight: 700; }
 .opacity-50 { opacity: 0.5; }

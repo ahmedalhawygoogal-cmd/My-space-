@@ -230,8 +230,11 @@ function EarlyReviewDialog({
   }, [open])
   if (!open) return null
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
-      <div className="dialog" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 pb-20"
+      onClick={onClose}
+    >
+      <div className="bg-card w-full max-w-md rounded-2xl p-6 shadow-2xl relative" onClick={(e) => e.stopPropagation()}>
         <h3 style={{ marginTop: 0 }}>{tr('review')}</h3>
         <p className="muted">{tr('earlyReviewWarn')}</p>
         <label className="check-row">
