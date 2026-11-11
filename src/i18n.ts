@@ -420,6 +420,9 @@ const ar = {
   cloudOfflineHint: 'لا يوجد اتصال بالإنترنت حالياً',
   share: 'مشاركة',
   shareUnsupported: 'المشاركة غير مدعومة في هذا المتصفح، جاري التحميل...',
+  reminders: 'التذكيرات',
+  taskReminders: 'تذكير المهام',
+  habitReminders: 'تذكير العادات',
 }
 
 const en: Record<keyof typeof ar, string> = {
@@ -842,6 +845,9 @@ const en: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  reminders: 'Reminders',
+  taskReminders: 'Task reminders',
+  habitReminders: 'Habit reminders',
 }
 
 const fr: Record<keyof typeof ar, string> = {
@@ -1264,6 +1270,9 @@ const fr: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  reminders: 'Reminders',
+  taskReminders: 'Task reminders',
+  habitReminders: 'Habit reminders',
 }
 
 const de: Record<keyof typeof ar, string> = {
@@ -1686,6 +1695,9 @@ const de: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  reminders: 'Reminders',
+  taskReminders: 'Task reminders',
+  habitReminders: 'Habit reminders',
 }
 
 const es: Record<keyof typeof ar, string> = {
@@ -2108,6 +2120,9 @@ const es: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  reminders: 'Reminders',
+  taskReminders: 'Task reminders',
+  habitReminders: 'Habit reminders',
 }
 
 const tr: Record<keyof typeof ar, string> = {
@@ -2530,6 +2545,9 @@ const tr: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  reminders: 'Reminders',
+  taskReminders: 'Task reminders',
+  habitReminders: 'Habit reminders',
 }
 
 const it: Record<keyof typeof ar, string> = {
@@ -2952,6 +2970,9 @@ const it: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  reminders: 'Reminders',
+  taskReminders: 'Task reminders',
+  habitReminders: 'Habit reminders',
 }
 
 const ru: Record<keyof typeof ar, string> = {
@@ -3374,6 +3395,9 @@ const ru: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  reminders: 'Reminders',
+  taskReminders: 'Task reminders',
+  habitReminders: 'Habit reminders',
 }
 
 const zh: Record<keyof typeof ar, string> = {
@@ -3796,6 +3820,9 @@ const zh: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  reminders: 'Reminders',
+  taskReminders: 'Task reminders',
+  habitReminders: 'Habit reminders',
 }
 
 const ja: Record<keyof typeof ar, string> = {
@@ -4218,6 +4245,9 @@ const ja: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  reminders: 'Reminders',
+  taskReminders: 'Task reminders',
+  habitReminders: 'Habit reminders',
 }
 
 const ko: Record<keyof typeof ar, string> = {
@@ -4640,6 +4670,9 @@ const ko: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  reminders: 'Reminders',
+  taskReminders: 'Task reminders',
+  habitReminders: 'Habit reminders',
 }
 
 const pt: Record<keyof typeof ar, string> = {
@@ -5062,6 +5095,9 @@ const pt: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  reminders: 'Reminders',
+  taskReminders: 'Task reminders',
+  habitReminders: 'Habit reminders',
 }
 
 const hi: Record<keyof typeof ar, string> = {
@@ -5484,6 +5520,9 @@ const hi: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  reminders: 'Reminders',
+  taskReminders: 'Task reminders',
+  habitReminders: 'Habit reminders',
 }
 
 const ur: Record<keyof typeof ar, string> = {
@@ -5906,6 +5945,9 @@ const ur: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  reminders: 'Reminders',
+  taskReminders: 'Task reminders',
+  habitReminders: 'Habit reminders',
 }
 
 const fa: Record<keyof typeof ar, string> = {
@@ -6328,6 +6370,9 @@ const fa: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  reminders: 'Reminders',
+  taskReminders: 'Task reminders',
+  habitReminders: 'Habit reminders',
 }
 
 const nl: Record<keyof typeof ar, string> = {
@@ -6750,6 +6795,9 @@ const nl: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  reminders: 'Reminders',
+  taskReminders: 'Task reminders',
+  habitReminders: 'Habit reminders',
 }
 
 const pl: Record<keyof typeof ar, string> = {
@@ -7172,6 +7220,9 @@ const pl: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  reminders: 'Reminders',
+  taskReminders: 'Task reminders',
+  habitReminders: 'Habit reminders',
 }
 
 const id: Record<keyof typeof ar, string> = {
@@ -7594,6 +7645,9 @@ const id: Record<keyof typeof ar, string> = {
   cloudOfflineHint: 'No internet connection right now',
   share: 'Share',
   shareUnsupported: 'Sharing is not supported in this browser, downloading...',
+  reminders: 'Reminders',
+  taskReminders: 'Task reminders',
+  habitReminders: 'Habit reminders',
 }
 
 export type I18nKey = keyof typeof ar

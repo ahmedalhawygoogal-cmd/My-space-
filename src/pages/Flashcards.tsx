@@ -182,30 +182,15 @@ function deckSwapped(deck?: Deck) {
   return !!deck?.swapped
 }
 
-function PlayRing({ due, total, onClick, label }: { due: number; total: number; onClick: () => void; label: string }) {
-  const r = 18
-  const c = 2 * Math.PI * r
-  const v = total ? Math.max(0, Math.min(100, ((total - due) / total) * 100)) : 0
+function PlayRing({ onClick, label }: { onClick: () => void; label: string }) {
   return (
-    <button className="fc-play" type="button" onClick={onClick} aria-label={label}>
-      <svg width="52" height="52" viewBox="0 0 52 52">
-        <circle cx="26" cy="26" r={r} fill="none" stroke="var(--bg-muted)" strokeWidth="4" />
-        <circle
-          cx="26"
-          cy="26"
-          r={r}
-          fill="none"
-          stroke="var(--brand)"
-          strokeWidth="4"
-          strokeLinecap="round"
-          strokeDasharray={`${(v / 100) * c} ${c}`}
-          transform="rotate(-90 26 26)"
-        />
-      </svg>
-      <span className="fc-play-icon">
-        <Play size={16} fill="currentColor" />
-      </span>
-      {due > 0 ? <span className="fc-play-dot" /> : null}
+    <button
+      className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-cyan-500 text-white shadow-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-transform shrink-0"
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+    >
+      <Play size={20} className="ml-1" fill="currentColor" />
     </button>
   )
 }
@@ -241,8 +226,8 @@ function EarlyReviewDialog({
   }, [open])
   if (!open) return null
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
-      <div className="dialog" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="dialog max-w-sm w-full rounded-2xl p-6" onClick={(e) => e.stopPropagation()}>
         <h3 style={{ marginTop: 0 }}>{tr('review')}</h3>
         <p className="muted">{tr('earlyReviewWarn')}</p>
         <label className="check-row">
@@ -338,7 +323,6 @@ export default function FlashcardsPage() {
       ) : (
         shown.map((d) => {
           const dc = cards.filter((c) => c.deckId === d.id)
-          const due = dc.filter((c) => (c.nextReviewDate || c.dueAt) <= Date.now()).length
           return (
             <div key={d.id} className="card fc-deck">
               <button className="fc-deck-body" type="button" onClick={() => nav(`/cards/${d.id}`)}>
@@ -350,7 +334,7 @@ export default function FlashcardsPage() {
                   </div>
                 </div>
               </button>
-              <PlayRing due={due} total={dc.length} label={tr('playDeck')} onClick={() => tryPlay(d)} />
+              <PlayRing label={tr('playDeck')} onClick={() => tryPlay(d)} />
             </div>
           )
         })

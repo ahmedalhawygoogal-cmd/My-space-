@@ -26,6 +26,10 @@ export function Layout() {
 
   return (
     <div className={`app-shell${isRoot ? '' : ' hide-chrome'}`}>
+      <div className="fixed inset-0 -z-10 bg-background pointer-events-none" aria-hidden="true">
+        <div className="absolute top-0 -left-20 w-96 h-96 bg-primary/20 rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-0 -right-20 w-96 h-96 bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none" />
+      </div>
       {isRoot ? (
         <header className="topbar">
           <div className="brand">

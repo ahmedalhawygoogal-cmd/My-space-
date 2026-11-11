@@ -6,10 +6,9 @@ import { useAuth } from '../auth'
 import { Confirm, Segment, Toast, useT } from '../ui'
 import { formatDateTime } from '../utils'
 import { exportSnapshot, type Snapshot } from '../db'
-import type { AppFont, AppFontSize, NotifySound, Theme } from '../types'
-import { APP_FONTS, NOTIFY_SOUNDS, labeled } from '../types'
+import type { AppFont, AppFontSize, Theme } from '../types'
+import { APP_FONTS } from '../types'
 import { resolveColor } from '../utils'
-import { getNative } from '../native'
 import { LanguagePrefs } from './Onboarding'
 import { InfoTooltip } from '../components/InfoTooltip'
 import { isCloudSyncEnabled, setCloudSyncEnabled } from '../lib/cloudPref'
@@ -17,10 +16,31 @@ import { uploadLocalDataToCloud } from '../lib/cloudUpload'
 import { saveBlobToDevice, shareBlob } from '../lib/nativeFiles'
 import { version } from '../../package.json'
 
+const REMINDER_KEY = 'myspace-reminders'
+
+type ReminderTimes = { cards: string; tasks: string; habits: string }
+
+function loadReminders(): ReminderTimes {
+  try {
+    const raw = localStorage.getItem(REMINDER_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<ReminderTimes>
+      return {
+        cards: parsed.cards || '09:00',
+        tasks: parsed.tasks || '09:00',
+        habits: parsed.habits || '09:00',
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return { cards: '09:00', tasks: '09:00', habits: '09:00' }
+}
+
 export default function SettingsPage() {
   const tr = useT()
   const nav = useNavigate()
-  const { settings, setSettings, subjects, addSubject, deleteSubject, importData, markBackup, lang } = useStore()
+  const { settings, setSettings, subjects, addSubject, deleteSubject, importData, markBackup } = useStore()
   const { signOut } = useAuth()
   const [toast, setToast] = useState<string | null>(null)
   const [confirm, setConfirm] = useState(false)
@@ -40,6 +60,13 @@ export default function SettingsPage() {
   const [exportBusy, setExportBusy] = useState(false)
   const backupRef = useRef<{ blob: Blob; file: File } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
+  const [reminders, setReminders] = useState<ReminderTimes>(loadReminders)
+
+  function saveReminder(key: keyof ReminderTimes, value: string) {
+    const next = { ...reminders, [key]: value }
+    setReminders(next)
+    localStorage.setItem(REMINDER_KEY, JSON.stringify(next))
+  }
 
   useEffect(() => {
     function forceCloudOff() {
@@ -210,41 +237,13 @@ export default function SettingsPage() {
           { id: '5', label: '5' },
         ]}
       />
+      <h3 style={{ marginTop: 0, marginBottom: 6 }}>{tr('reminders')}</h3>
       <label className="label">{tr('cardReminders')}</label>
-      <Segment
-        value={settings.cardReminders ? 'on' : 'off'}
-        onChange={(v) => {
-          void (async () => {
-            if (v === 'on') {
-              const native = await getNative()
-              if (native) {
-                const ok = await native.requestNotify()
-                if (!ok) {
-                  setToast(tr('notifyDenied'))
-                  return
-                }
-              }
-            }
-            await setSettings({ cardReminders: v === 'on' })
-          })()
-        }}
-        options={[
-          { id: 'on', label: tr('on') },
-          { id: 'off', label: tr('off') },
-        ]}
-      />
-      <label className="label">{tr('notifySound')}</label>
-      <select
-        className="field"
-        value={settings.notifySound ?? 'default'}
-        onChange={(e) => void setSettings({ notifySound: e.target.value as NotifySound })}
-      >
-        {NOTIFY_SOUNDS.map((s) => (
-          <option key={s.id} value={s.id}>
-            {labeled(lang, s)}
-          </option>
-        ))}
-      </select>
+      <input className="field" type="time" value={reminders.cards} onChange={(e) => saveReminder('cards', e.target.value)} />
+      <label className="label">{tr('taskReminders')}</label>
+      <input className="field" type="time" value={reminders.tasks} onChange={(e) => saveReminder('tasks', e.target.value)} />
+      <label className="label">{tr('habitReminders')}</label>
+      <input className="field" type="time" value={reminders.habits} onChange={(e) => saveReminder('habits', e.target.value)} />
       <h3 style={{ marginBottom: 0 }}>{tr('subjects')}</h3>
       {subjects.map((s) => (
         <div key={s.id} className="list-item">
@@ -276,7 +275,7 @@ export default function SettingsPage() {
         </h3>
         <p className="muted">{tr('backupHint')}</p>
         <p className="muted" style={{ fontSize: 13 }}>
-          {tr('lastBackup')}: {settings.lastBackupAt ? formatDateTime(settings.lastBackupAt, lang) : tr('never')}
+          {tr('lastBackup')}: {settings.lastBackupAt ? formatDateTime(settings.lastBackupAt, settings.language) : tr('never')}
         </p>
         <button className="btn block" type="button" disabled={exportBusy} onClick={() => void openExport()}>
           {tr('exportData')}
