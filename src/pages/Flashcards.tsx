@@ -343,7 +343,7 @@ export default function FlashcardsPage() {
                 </div>
               </button>
               <button
-                className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-primary to-cyan-500 shadow-lg text-white hover:scale-105 transition-transform"
+                className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-primary to-cyan-500 text-white shadow-lg hover:scale-105 transition-transform shrink-0"
                 type="button"
                 aria-label={tr('playDeck')}
                 onClick={() => tryPlay(d)}
