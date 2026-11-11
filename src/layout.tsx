@@ -1,45 +1,47 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { BookOpen, CheckSquare, Home, Layers, Mic, Search, Settings, Sparkles } from 'lucide-react'
-import { Sheet, useT } from './ui'
+import { BackBtn, Sheet, useT } from './ui'
+
+const ROOT_PATHS = new Set(['/', '/record', '/cards', '/tasks', '/notes', '/habits'])
 
 export function Layout() {
   const tr = useT()
   const nav = useNavigate()
   const loc = useLocation()
   const [discoverOpen, setDiscoverOpen] = useState(false)
-  const hideNav =
-    loc.pathname.includes('/study') ||
-    loc.pathname.includes('/test') ||
-    loc.pathname.includes('/game') ||
-    loc.pathname.includes('/record/live') ||
-    loc.pathname === '/notes/new' ||
-    loc.pathname.endsWith('/edit')
+  const isRoot = ROOT_PATHS.has(loc.pathname)
 
   return (
-    <div className="app-shell">
-      <header className="topbar">
-        <div className="brand">
-          <div className="brand-mark">M</div>
-          <span>{tr('appName')}</span>
-        </div>
-        <div className="row">
-          <button
-            className="icon-btn discover-pulse"
-            type="button"
-            aria-label={tr('discover')}
-            onClick={() => setDiscoverOpen(true)}
-          >
-            <Sparkles size={18} />
-          </button>
-          <button className="icon-btn" type="button" aria-label={tr('search')} onClick={() => nav('/search')}>
-            <Search size={18} />
-          </button>
-          <button className="icon-btn" type="button" aria-label={tr('settings')} onClick={() => nav('/settings')}>
-            <Settings size={18} />
-          </button>
-        </div>
-      </header>
+    <div className={`app-shell${isRoot ? '' : ' hide-chrome'}`}>
+      {isRoot ? (
+        <header className="topbar">
+          <div className="brand">
+            <div className="brand-mark">M</div>
+            <span>{tr('appName')}</span>
+          </div>
+          <div className="row">
+            <button
+              className="icon-btn discover-pulse"
+              type="button"
+              aria-label={tr('discover')}
+              onClick={() => setDiscoverOpen(true)}
+            >
+              <Sparkles size={18} />
+            </button>
+            <button className="icon-btn" type="button" aria-label={tr('search')} onClick={() => nav('/search')}>
+              <Search size={18} />
+            </button>
+            <button className="icon-btn" type="button" aria-label={tr('settings')} onClick={() => nav('/settings')}>
+              <Settings size={18} />
+            </button>
+          </div>
+        </header>
+      ) : (
+        <header className="topbar inner-topbar">
+          <BackBtn />
+        </header>
+      )}
       <Sheet open={discoverOpen} onClose={() => setDiscoverOpen(false)} title={tr('discover')}>
         <div className="discover-grid">
           <button
@@ -65,7 +67,7 @@ export function Layout() {
       <main className="main">
         <Outlet />
       </main>
-      {!hideNav && (
+      {isRoot && (
         <nav className="bottom-nav">
           <Item to="/" icon={<Home />} label={tr('home')} />
           <Item to="/record" icon={<Mic />} label={tr('recorder')} />

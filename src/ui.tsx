@@ -1,6 +1,31 @@
 import { useEffect, useRef, type ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
 import { t, type I18nKey } from './i18n'
 import { useStore } from './store'
+
+export function BackBtn({ onClick }: { onClick?: () => void }) {
+  const tr = useT()
+  const nav = useNavigate()
+  return (
+    <button
+      className="back-btn"
+      type="button"
+      aria-label={tr('back')}
+      onClick={() => {
+        if (onClick) {
+          onClick()
+          return
+        }
+        if (typeof window !== 'undefined' && window.history.length > 1) nav(-1)
+        else nav('/')
+      }}
+    >
+      <ArrowRight size={16} />
+      {tr('back')}
+    </button>
+  )
+}
 
 export function useT() {
   const { lang } = useStore()
@@ -140,7 +165,7 @@ export function Progress({ value }: { value: number }) {
   )
 }
 
-export function Ring({ value, size = 72 }: { value: number; size?: number }) {
+export function Ring({ value, size = 88 }: { value: number; size?: number }) {
   const r = 28
   const c = 2 * Math.PI * r
   const v = Math.max(0, Math.min(100, value))

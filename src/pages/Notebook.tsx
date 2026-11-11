@@ -191,9 +191,7 @@ export function NoteEditorPage() {
   return (
     <div className="stack note-surface" style={{ background: color, color: ink, margin: '-16px', padding: 16, minHeight: '100%' }}>
       <div className="spread">
-        <button className="chip" type="button" onClick={() => nav('/notes')}>
-          {tr('back')}
-        </button>
+        <span />
         <button className="btn" type="button" onClick={() => void save()}>
           {tr('save')}
         </button>
@@ -341,9 +339,7 @@ export function NoteReadPage() {
   return (
     <div className="stack note-surface" style={{ background: note.color || undefined, color: ink, margin: '-16px', padding: 16, minHeight: '100%' }}>
       <div className="spread">
-        <button className="chip" type="button" onClick={() => nav('/notes')}>
-          {tr('back')}
-        </button>
+        <span />
         <button className="icon-btn note-action" type="button" aria-label={tr('edit')} onClick={() => nav(`/notes/${note.id}/edit`)}>
           <Pencil size={16} />
         </button>

@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Plus, Sparkles, Star } from 'lucide-react'
+import { Plus, Sparkles, Star } from 'lucide-react'
 import * as db from '../db'
 import { STORES } from '../db'
 import { useStore } from '../store'
 import { uid } from '../utils'
-import { RTL_LANGS, quoteField, type QuoteCharacter } from '../types'
+import { quoteField, type QuoteCharacter } from '../types'
 import { Empty, Sheet, Toast, useT } from '../ui'
 import { DEFAULT_QUOTES } from '../data/defaultQuotes'
 
@@ -60,9 +59,7 @@ function CharacterAvatar({
 
 export default function MotivateMePage() {
   const tr = useT()
-  const nav = useNavigate()
   const { lang, settings } = useStore()
-  const isRTL = RTL_LANGS.has(lang)
   const nativeLanguage = settings.nativeLang || lang || 'en'
 
   const [characters, setCharacters] = useState<QuoteCharacter[]>([])
@@ -188,18 +185,7 @@ export default function MotivateMePage() {
 
   return (
     <div className="stack" style={{ gap: 12 }}>
-      <div className="spread">
-        <h1 className="page-title">{tr('motivateMe')}</h1>
-        <button
-          className="icon-btn"
-          type="button"
-          onClick={() => nav(-1)}
-          aria-label={tr('back')}
-          style={{ transform: isRTL ? 'scaleX(-1)' : undefined }}
-        >
-          <ArrowLeft size={18} />
-        </button>
-      </div>
+      <h1 className="page-title">{tr('motivateMe')}</h1>
 
       <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
         <button

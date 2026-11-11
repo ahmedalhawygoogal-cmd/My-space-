@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Mic, Play } from 'lucide-react'
+import { BookOpen, CheckSquare, Layers, Mic, Play } from 'lucide-react'
 import { useStore } from '../store'
 import { Ring, useT } from '../ui'
 import { endOfDay, formatDate, startOfDay, weekdayLong } from '../utils'
@@ -54,36 +54,33 @@ export default function HomePage() {
         <Ring value={progress} />
       </div>
 
-      <button className="card pressable spread" type="button" onClick={() => nav('/record/live')}>
-        <div className="row">
-          <div className="mod-icon rec" style={{ width: 44, height: 44, borderRadius: 14 }}>
-            <Mic size={20} />
-          </div>
-          <div>
-            <b>{tr('quickRecord')}</b>
-            <div className="muted" style={{ fontSize: 12 }}>
-              {tr('record')}
-            </div>
-          </div>
-        </div>
+      <button className="card pressable spread quick-record" type="button" onClick={() => nav('/record/live')}>
+        <span className="quick-record-mic" aria-hidden="true">
+          <Mic size={18} />
+        </span>
+        <b>{tr('quickRecord')}</b>
         <Play size={18} />
       </button>
 
       <div className="stat-grid">
         <div className="stat">
           <b>{recordings.length}</b>
+          <Mic size={20} />
           <span>{tr('recordings')}</span>
         </div>
         <div className="stat">
           <b>{dueCards.length}</b>
+          <Layers size={20} />
           <span>{tr('due')}</span>
         </div>
         <div className="stat">
           <b>{openToday.length}</b>
+          <CheckSquare size={20} />
           <span>{tr('tasks')}</span>
         </div>
         <div className="stat">
           <b>{notes.length}</b>
+          <BookOpen size={20} />
           <span>{tr('notes')}</span>
         </div>
       </div>

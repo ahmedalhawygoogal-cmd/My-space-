@@ -262,11 +262,6 @@ export default function RecorderPage() {
 
   return (
     <div className="stack rec-list">
-      <div className="spread">
-        <button className="chip" type="button" onClick={() => nav('/')}>
-          {tr('back')}
-        </button>
-      </div>
       <h1 className="page-title">{tr('recorder')}</h1>
       <input className="field" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('search')} />
       <div className="chip-row">
@@ -626,18 +621,6 @@ export function LiveRecordPage() {
 
   return (
     <div className="stack">
-      <div className="spread">
-        <button
-          className="chip"
-          type="button"
-          onClick={() => {
-            cancelSave()
-            nav('/record')
-          }}
-        >
-          {tr('back')}
-        </button>
-      </div>
       <h1 className="page-title">{tr('newRecording')}</h1>
       <div className="card rec-stage bg-card border">
         <div className="text-muted-foreground">
@@ -786,11 +769,6 @@ export function RecordingDetailPage() {
 
   return (
     <div className="stack">
-      <div className="spread">
-        <button className="chip" type="button" onClick={() => nav('/record')}>
-          {tr('back')}
-        </button>
-      </div>
       <div className="card rec-stage bg-card border">
         <div className="text-muted-foreground">
           {formatDateTime(item.createdAt, lang)}
