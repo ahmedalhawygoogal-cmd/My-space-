@@ -439,6 +439,14 @@ const ar = {
   dowThu: 'الخميس',
   dowFri: 'الجمعة',
   dowSat: 'السبت',
+  habitWhy: 'السبب',
+  habitMood: 'كيف كان شعورك؟',
+  moodGood: 'جيد',
+  moodOk: 'عادي',
+  moodBad: 'سيء',
+  habitHeatmap: 'تقويم الشهر',
+  habitMoodHistory: 'سجل المزاج',
+  mostFrequentMood: 'المزاج الأكثر تكراراً',
 }
 
 const en: Record<keyof typeof ar, string> = {
@@ -880,6 +888,14 @@ const en: Record<keyof typeof ar, string> = {
   dowThu: 'Thu',
   dowFri: 'Fri',
   dowSat: 'Sat',
+  habitWhy: 'Why',
+  habitMood: 'How did it feel?',
+  moodGood: 'Good',
+  moodOk: 'Okay',
+  moodBad: 'Bad',
+  habitHeatmap: 'Month calendar',
+  habitMoodHistory: 'Mood history',
+  mostFrequentMood: 'Most frequent mood',
 }
 
 const fr: Record<keyof typeof ar, string> = {
@@ -1321,6 +1337,14 @@ const fr: Record<keyof typeof ar, string> = {
   dowThu: 'Thu',
   dowFri: 'Fri',
   dowSat: 'Sat',
+  habitWhy: 'Why',
+  habitMood: 'How did it feel?',
+  moodGood: 'Good',
+  moodOk: 'Okay',
+  moodBad: 'Bad',
+  habitHeatmap: 'Month calendar',
+  habitMoodHistory: 'Mood history',
+  mostFrequentMood: 'Most frequent mood',
 }
 
 const de: Record<keyof typeof ar, string> = {
@@ -1762,6 +1786,14 @@ const de: Record<keyof typeof ar, string> = {
   dowThu: 'Thu',
   dowFri: 'Fri',
   dowSat: 'Sat',
+  habitWhy: 'Why',
+  habitMood: 'How did it feel?',
+  moodGood: 'Good',
+  moodOk: 'Okay',
+  moodBad: 'Bad',
+  habitHeatmap: 'Month calendar',
+  habitMoodHistory: 'Mood history',
+  mostFrequentMood: 'Most frequent mood',
 }
 
 const es: Record<keyof typeof ar, string> = {
@@ -2203,6 +2235,14 @@ const es: Record<keyof typeof ar, string> = {
   dowThu: 'Thu',
   dowFri: 'Fri',
   dowSat: 'Sat',
+  habitWhy: 'Why',
+  habitMood: 'How did it feel?',
+  moodGood: 'Good',
+  moodOk: 'Okay',
+  moodBad: 'Bad',
+  habitHeatmap: 'Month calendar',
+  habitMoodHistory: 'Mood history',
+  mostFrequentMood: 'Most frequent mood',
 }
 
 const tr: Record<keyof typeof ar, string> = {
@@ -2644,6 +2684,14 @@ const tr: Record<keyof typeof ar, string> = {
   dowThu: 'Thu',
   dowFri: 'Fri',
   dowSat: 'Sat',
+  habitWhy: 'Why',
+  habitMood: 'How did it feel?',
+  moodGood: 'Good',
+  moodOk: 'Okay',
+  moodBad: 'Bad',
+  habitHeatmap: 'Month calendar',
+  habitMoodHistory: 'Mood history',
+  mostFrequentMood: 'Most frequent mood',
 }
 
 const it: Record<keyof typeof ar, string> = {
@@ -3085,6 +3133,14 @@ const it: Record<keyof typeof ar, string> = {
   dowThu: 'Thu',
   dowFri: 'Fri',
   dowSat: 'Sat',
+  habitWhy: 'Why',
+  habitMood: 'How did it feel?',
+  moodGood: 'Good',
+  moodOk: 'Okay',
+  moodBad: 'Bad',
+  habitHeatmap: 'Month calendar',
+  habitMoodHistory: 'Mood history',
+  mostFrequentMood: 'Most frequent mood',
 }
 
 const ru: Record<keyof typeof ar, string> = {
@@ -3526,6 +3582,14 @@ const ru: Record<keyof typeof ar, string> = {
   dowThu: 'Thu',
   dowFri: 'Fri',
   dowSat: 'Sat',
+  habitWhy: 'Why',
+  habitMood: 'How did it feel?',
+  moodGood: 'Good',
+  moodOk: 'Okay',
+  moodBad: 'Bad',
+  habitHeatmap: 'Month calendar',
+  habitMoodHistory: 'Mood history',
+  mostFrequentMood: 'Most frequent mood',
 }
 
 const zh: Record<keyof typeof ar, string> = {
@@ -3967,6 +4031,14 @@ const zh: Record<keyof typeof ar, string> = {
   dowThu: 'Thu',
   dowFri: 'Fri',
   dowSat: 'Sat',
+  habitWhy: 'Why',
+  habitMood: 'How did it feel?',
+  moodGood: 'Good',
+  moodOk: 'Okay',
+  moodBad: 'Bad',
+  habitHeatmap: 'Month calendar',
+  habitMoodHistory: 'Mood history',
+  mostFrequentMood: 'Most frequent mood',
 }
 
 const ja: Record<keyof typeof ar, string> = {
@@ -4408,6 +4480,14 @@ const ja: Record<keyof typeof ar, string> = {
   dowThu: 'Thu',
   dowFri: 'Fri',
   dowSat: 'Sat',
+  habitWhy: 'Why',
+  habitMood: 'How did it feel?',
+  moodGood: 'Good',
+  moodOk: 'Okay',
+  moodBad: 'Bad',
+  habitHeatmap: 'Month calendar',
+  habitMoodHistory: 'Mood history',
+  mostFrequentMood: 'Most frequent mood',
 }
 
 const ko: Record<keyof typeof ar, string> = {
@@ -4849,6 +4929,14 @@ const ko: Record<keyof typeof ar, string> = {
   dowThu: 'Thu',
   dowFri: 'Fri',
   dowSat: 'Sat',
+  habitWhy: 'Why',
+  habitMood: 'How did it feel?',
+  moodGood: 'Good',
+  moodOk: 'Okay',
+  moodBad: 'Bad',
+  habitHeatmap: 'Month calendar',
+  habitMoodHistory: 'Mood history',
+  mostFrequentMood: 'Most frequent mood',
 }
 
 const pt: Record<keyof typeof ar, string> = {
@@ -5290,6 +5378,14 @@ const pt: Record<keyof typeof ar, string> = {
   dowThu: 'Thu',
   dowFri: 'Fri',
   dowSat: 'Sat',
+  habitWhy: 'Why',
+  habitMood: 'How did it feel?',
+  moodGood: 'Good',
+  moodOk: 'Okay',
+  moodBad: 'Bad',
+  habitHeatmap: 'Month calendar',
+  habitMoodHistory: 'Mood history',
+  mostFrequentMood: 'Most frequent mood',
 }
 
 const hi: Record<keyof typeof ar, string> = {
@@ -5731,6 +5827,14 @@ const hi: Record<keyof typeof ar, string> = {
   dowThu: 'Thu',
   dowFri: 'Fri',
   dowSat: 'Sat',
+  habitWhy: 'Why',
+  habitMood: 'How did it feel?',
+  moodGood: 'Good',
+  moodOk: 'Okay',
+  moodBad: 'Bad',
+  habitHeatmap: 'Month calendar',
+  habitMoodHistory: 'Mood history',
+  mostFrequentMood: 'Most frequent mood',
 }
 
 const ur: Record<keyof typeof ar, string> = {
@@ -6172,6 +6276,14 @@ const ur: Record<keyof typeof ar, string> = {
   dowThu: 'Thu',
   dowFri: 'Fri',
   dowSat: 'Sat',
+  habitWhy: 'Why',
+  habitMood: 'How did it feel?',
+  moodGood: 'Good',
+  moodOk: 'Okay',
+  moodBad: 'Bad',
+  habitHeatmap: 'Month calendar',
+  habitMoodHistory: 'Mood history',
+  mostFrequentMood: 'Most frequent mood',
 }
 
 const fa: Record<keyof typeof ar, string> = {
@@ -6613,6 +6725,14 @@ const fa: Record<keyof typeof ar, string> = {
   dowThu: 'Thu',
   dowFri: 'Fri',
   dowSat: 'Sat',
+  habitWhy: 'Why',
+  habitMood: 'How did it feel?',
+  moodGood: 'Good',
+  moodOk: 'Okay',
+  moodBad: 'Bad',
+  habitHeatmap: 'Month calendar',
+  habitMoodHistory: 'Mood history',
+  mostFrequentMood: 'Most frequent mood',
 }
 
 const nl: Record<keyof typeof ar, string> = {
@@ -7054,6 +7174,14 @@ const nl: Record<keyof typeof ar, string> = {
   dowThu: 'Thu',
   dowFri: 'Fri',
   dowSat: 'Sat',
+  habitWhy: 'Why',
+  habitMood: 'How did it feel?',
+  moodGood: 'Good',
+  moodOk: 'Okay',
+  moodBad: 'Bad',
+  habitHeatmap: 'Month calendar',
+  habitMoodHistory: 'Mood history',
+  mostFrequentMood: 'Most frequent mood',
 }
 
 const pl: Record<keyof typeof ar, string> = {
@@ -7495,6 +7623,14 @@ const pl: Record<keyof typeof ar, string> = {
   dowThu: 'Thu',
   dowFri: 'Fri',
   dowSat: 'Sat',
+  habitWhy: 'Why',
+  habitMood: 'How did it feel?',
+  moodGood: 'Good',
+  moodOk: 'Okay',
+  moodBad: 'Bad',
+  habitHeatmap: 'Month calendar',
+  habitMoodHistory: 'Mood history',
+  mostFrequentMood: 'Most frequent mood',
 }
 
 const id: Record<keyof typeof ar, string> = {
@@ -7936,6 +8072,14 @@ const id: Record<keyof typeof ar, string> = {
   dowThu: 'Thu',
   dowFri: 'Fri',
   dowSat: 'Sat',
+  habitWhy: 'Why',
+  habitMood: 'How did it feel?',
+  moodGood: 'Good',
+  moodOk: 'Okay',
+  moodBad: 'Bad',
+  habitHeatmap: 'Month calendar',
+  habitMoodHistory: 'Mood history',
+  mostFrequentMood: 'Most frequent mood',
 }
 
 export type I18nKey = keyof typeof ar

@@ -6,7 +6,7 @@ import { STORES } from '../db'
 import { Empty, useT } from '../ui'
 import { PageLayout } from '../components/PageLayout'
 import { now } from '../utils'
-import { SUBJECT_COLORS, type Habit, type HabitIconId, type HabitLog } from '../types'
+import type { Habit, HabitIconId, HabitLog, HabitMood } from '../types'
 import {
   removeRemoteHabitLog,
   syncHabitsFromCloud,
@@ -33,12 +33,22 @@ const ICON_MAP: Record<HabitIconId, LucideIcon> = {
 }
 
 const DOW_KEYS = ['dowSun', 'dowMon', 'dowTue', 'dowWed', 'dowThu', 'dowFri', 'dowSat'] as const
+const MOODS: { id: HabitMood; face: string; key: 'moodGood' | 'moodOk' | 'moodBad' }[] = [
+  { id: 'good', face: '\u{1F60A}', key: 'moodGood' },
+  { id: 'ok', face: '\u{1F610}', key: 'moodOk' },
+  { id: 'bad', face: '\u{1F61E}', key: 'moodBad' },
+]
 
 function ymd(d: Date): string {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
+}
+
+function parseYmd(s: string): Date {
+  const [y, m, d] = s.split('-').map(Number)
+  return new Date(y, (m || 1) - 1, d || 1)
 }
 
 function startOfWeek(ts = Date.now()): Date {
@@ -57,17 +67,67 @@ function weekDays(ts = Date.now()): Date[] {
   })
 }
 
+function shiftDay(date: string, days: number): string {
+  const d = parseYmd(date)
+  d.setDate(d.getDate() + days)
+  return ymd(d)
+}
+
+function currentStreak(dates: Set<string>, today: string): number {
+  let cursor = dates.has(today) ? today : shiftDay(today, -1)
+  if (!dates.has(cursor)) return 0
+  let n = 0
+  while (dates.has(cursor)) {
+    n += 1
+    cursor = shiftDay(cursor, -1)
+  }
+  return n
+}
+
+function monthCells(nowDate: Date): { date: string | null; inMonth: boolean }[] {
+  const y = nowDate.getFullYear()
+  const m = nowDate.getMonth()
+  const first = new Date(y, m, 1)
+  const last = new Date(y, m + 1, 0)
+  const cells: { date: string | null; inMonth: boolean }[] = []
+  for (let i = 0; i < first.getDay(); i++) cells.push({ date: null, inMonth: false })
+  for (let day = 1; day <= last.getDate(); day++) {
+    cells.push({ date: ymd(new Date(y, m, day)), inMonth: true })
+  }
+  while (cells.length % 7) cells.push({ date: null, inMonth: false })
+  return cells
+}
+
+function topMood(logs: HabitLog[]): HabitMood | null {
+  const counts: Record<HabitMood, number> = { good: 0, ok: 0, bad: 0 }
+  for (const l of logs) {
+    if (l.mood) counts[l.mood] += 1
+  }
+  let best: HabitMood | null = null
+  let n = 0
+  for (const m of MOODS) {
+    if (counts[m.id] > n) {
+      n = counts[m.id]
+      best = m.id
+    }
+  }
+  return best
+}
+
 export default function HabitsPage() {
   const tr = useT()
   const days = useMemo(() => weekDays(), [])
   const today = ymd(new Date())
+  const monthGrid = useMemo(() => monthCells(new Date()), [])
   const [habits, setHabits] = useState<Habit[]>([])
   const [logs, setLogs] = useState<HabitLog[]>([])
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
+  const [why, setWhy] = useState('')
   const [icon, setIcon] = useState<HabitIconId>('heart')
-  const [color, setColor] = useState(SUBJECT_COLORS[0])
   const [busy, setBusy] = useState(false)
+  const [moodPick, setMoodPick] = useState<{ habit: Habit; date: string } | null>(null)
+  const [detail, setDetail] = useState<Habit | null>(null)
 
   const load = useCallback(async () => {
     await syncHabitsFromCloud().catch(() => false)
@@ -83,63 +143,103 @@ export default function HabitsPage() {
     void load()
   }, [load])
 
+  const logsByHabit = useMemo(() => {
+    const map = new Map<string, HabitLog[]>()
+    for (const log of logs) {
+      const arr = map.get(log.habitId) ?? []
+      arr.push(log)
+      map.set(log.habitId, arr)
+    }
+    return map
+  }, [logs])
+
   const doneSet = useMemo(() => {
     const s = new Set<string>()
     for (const log of logs) s.add(`${log.habitId}:${log.date}`)
     return s
   }, [logs])
 
+  function resetAdd() {
+    setOpen(false)
+    setName('')
+    setWhy('')
+    setIcon('heart')
+  }
+
   async function saveHabit() {
     const title = name.trim()
-    if (!title || busy) return
+    const reason = why.trim()
+    if (!title || !reason || busy) return
     setBusy(true)
     const item: Habit = {
       id: crypto.randomUUID(),
       name: title,
       icon,
-      color,
+      why: reason,
+      color: '#0f6e6b',
       target: 'daily',
       createdAt: now(),
       updatedAt: now(),
     }
     await db.putOne(STORES.habits, item)
     setHabits((prev) => [...prev, item])
-    setOpen(false)
-    setName('')
-    setIcon('heart')
-    setColor(SUBJECT_COLORS[0])
+    resetAdd()
     setBusy(false)
     void upsertRemoteHabit(item)
   }
 
-  async function toggleDay(habit: Habit, date: string) {
+  async function completeDay(habit: Habit, date: string, mood: HabitMood) {
     const existing = logs.find((l) => l.habitId === habit.id && l.date === date)
     if (existing) {
-      await db.deleteById(STORES.habitLogs, existing.id)
-      setLogs((prev) => prev.filter((l) => l.id !== existing.id))
-      void removeRemoteHabitLog(existing.id)
+      const next = { ...existing, mood }
+      await db.putOne(STORES.habitLogs, next)
+      setLogs((prev) => prev.map((l) => (l.id === existing.id ? next : l)))
+      void upsertRemoteHabitLog(next)
+      setMoodPick(null)
       return
     }
     const log: HabitLog = {
       id: crypto.randomUUID(),
       habitId: habit.id,
       date,
+      mood,
       createdAt: now(),
     }
     await db.putOne(STORES.habitLogs, log)
     setLogs((prev) => [...prev, log])
     void upsertRemoteHabitLog(log)
+    setMoodPick(null)
+  }
+
+  async function uncompleteDay(habit: Habit, date: string) {
+    const existing = logs.find((l) => l.habitId === habit.id && l.date === date)
+    if (!existing) return
+    await db.deleteById(STORES.habitLogs, existing.id)
+    setLogs((prev) => prev.filter((l) => l.id !== existing.id))
+    void removeRemoteHabitLog(existing.id)
+  }
+
+  function onCellClick(habit: Habit, date: string, future: boolean, done: boolean) {
+    if (future) return
+    if (done) {
+      void uncompleteDay(habit, date)
+      return
+    }
+    setMoodPick({ habit, date })
+  }
+
+  const detailLogs = detail ? logsByHabit.get(detail.id) ?? [] : []
+  const detailDates = new Set(detailLogs.map((l) => l.date))
+  const detailMood = topMood(detailLogs)
+  const moodCounts: Record<HabitMood, number> = { good: 0, ok: 0, bad: 0 }
+  for (const l of detailLogs) {
+    if (l.mood) moodCounts[l.mood] += 1
   }
 
   return (
     <PageLayout icon={Repeat}>
       <div className="stack" style={{ gap: 14 }}>
-        <div className="spread">
-          <h1 className="page-title">{tr('habits')}</h1>
-          <button className="icon-btn" type="button" aria-label={tr('addHabit')} onClick={() => setOpen(true)}>
-            <Plus size={20} />
-          </button>
-        </div>
+        <h1 className="page-title">{tr('habits')}</h1>
 
         <div className="habit-week-head">
           <div className="habit-name-col" />
@@ -157,25 +257,29 @@ export default function HabitsPage() {
           <div className="habit-list">
             {habits.map((h) => {
               const Icon = ICON_MAP[h.icon] || Heart
+              const dates = new Set((logsByHabit.get(h.id) ?? []).map((l) => l.date))
+              const streak = currentStreak(dates, today)
               return (
                 <div key={h.id} className="habit-row">
-                  <div className="habit-name-col">
-                    <span className="habit-dot" style={{ background: h.color }}>
+                  <button type="button" className="habit-name-col" onClick={() => setDetail(h)}>
+                    <span className="habit-dot">
                       <Icon size={12} />
                     </span>
                     <span className="habit-title">{h.name}</span>
-                  </div>
+                    {streak > 0 ? <span className="habit-streak">{'\u{1F525}'} {streak}</span> : null}
+                  </button>
                   {days.map((d) => {
                     const date = ymd(d)
                     const done = doneSet.has(`${h.id}:${date}`)
+                    const future = date > today
                     return (
                       <button
                         key={date}
                         type="button"
-                        className={`habit-cell${done ? ' done' : ''}${date === today ? ' is-today' : ''}`}
-                        style={done ? { background: h.color, borderColor: h.color } : { borderColor: h.color }}
+                        disabled={future}
+                        className={`habit-cell${done ? ' done' : ''}${date === today ? ' is-today' : ''}${future ? ' pointer-events-none opacity-50' : ''}`}
                         aria-label={`${h.name} ${date}`}
-                        onClick={() => void toggleDay(h, date)}
+                        onClick={() => onCellClick(h, date, future, done)}
                       >
                         {done ? <Check size={12} /> : null}
                       </button>
@@ -188,35 +292,36 @@ export default function HabitsPage() {
         )}
       </div>
 
+      <button
+        className="fixed bottom-24 left-6 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center z-50"
+        type="button"
+        aria-label={tr('addHabit')}
+        onClick={() => setOpen(true)}
+      >
+        <Plus size={24} />
+      </button>
+
       {open ? (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 pb-20"
-          onClick={() => setOpen(false)}
+          onClick={resetAdd}
         >
           <div className="bg-card w-full max-w-md rounded-2xl p-6 shadow-2xl relative" onClick={(e) => e.stopPropagation()}>
             <h3 style={{ marginTop: 0 }}>{tr('addHabit')}</h3>
             <label className="label">{tr('habitName')}</label>
-            <input
-              className="field"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoFocus
-            />
+            <input className="field" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+            <label className="label">{tr('habitWhy')}</label>
+            <input className="field" value={why} onChange={(e) => setWhy(e.target.value)} />
             <label className="label">{tr('habitIcon')}</label>
             <div className="habit-icon-grid">
               {ICONS.map(({ id, Icon }) => {
-                const c = SUBJECT_COLORS[ICONS.findIndex((x) => x.id === id)] || color
                 const on = icon === id
                 return (
                   <button
                     key={id}
                     type="button"
                     className={`habit-icon-pick${on ? ' on' : ''}`}
-                    style={{ borderColor: on ? c : 'var(--line)', color: c }}
-                    onClick={() => {
-                      setIcon(id)
-                      setColor(c)
-                    }}
+                    onClick={() => setIcon(id)}
                   >
                     <Icon size={18} />
                   </button>
@@ -224,11 +329,81 @@ export default function HabitsPage() {
               })}
             </div>
             <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>
-              <button className="btn ghost" type="button" onClick={() => setOpen(false)}>
+              <button className="btn ghost" type="button" onClick={resetAdd}>
                 {tr('cancel')}
               </button>
-              <button className="btn" type="button" disabled={!name.trim() || busy} onClick={() => void saveHabit()}>
+              <button className="btn" type="button" disabled={!name.trim() || !why.trim() || busy} onClick={() => void saveHabit()}>
                 {tr('save')}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {moodPick ? (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 pb-20"
+          onClick={() => setMoodPick(null)}
+        >
+          <div className="bg-card w-full max-w-md rounded-2xl p-6 shadow-2xl relative" onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginTop: 0 }}>{tr('habitMood')}</h3>
+            <div className="habit-mood-row">
+              {MOODS.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  className="habit-mood-btn"
+                  onClick={() => void completeDay(moodPick.habit, moodPick.date, m.id)}
+                >
+                  <span className="habit-mood-face">{m.face}</span>
+                  <span>{tr(m.key)}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {detail ? (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 pb-20"
+          onClick={() => setDetail(null)}
+        >
+          <div className="bg-card w-full max-w-md rounded-2xl p-6 shadow-2xl relative habit-detail" onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginTop: 0 }}>{detail.name}</h3>
+            <p className="habit-why">{detail.why}</p>
+            <div className="label">{tr('habitHeatmap')}</div>
+            <div className="habit-heat">
+              {monthGrid.map((c, i) => {
+                if (!c.date) return <span key={`e-${i}`} className="habit-heat-cell empty" />
+                const done = detailDates.has(c.date)
+                const missed = c.date < today && !done
+                return (
+                  <span
+                    key={c.date}
+                    className={`habit-heat-cell${done ? ' bg-primary' : missed ? ' bg-muted' : ''}`}
+                    title={c.date}
+                  />
+                )
+              })}
+            </div>
+            <div className="label">{tr('habitMoodHistory')}</div>
+            <div className="habit-mood-hist">
+              {MOODS.map((m) => (
+                <div key={m.id} className="habit-mood-hist-row">
+                  <span>{m.face} {tr(m.key)}</span>
+                  <b>{moodCounts[m.id]}</b>
+                </div>
+              ))}
+              {detailMood ? (
+                <div className="muted" style={{ marginTop: 8 }}>
+                  {tr('mostFrequentMood')}: {MOODS.find((m) => m.id === detailMood)?.face} {tr(MOODS.find((m) => m.id === detailMood)!.key)}
+                </div>
+              ) : null}
+            </div>
+            <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>
+              <button className="btn ghost" type="button" onClick={() => setDetail(null)}>
+                {tr('close')}
               </button>
             </div>
           </div>

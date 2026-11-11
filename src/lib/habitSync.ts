@@ -1,4 +1,4 @@
-import type { Habit, HabitIconId, HabitLog } from '../types'
+import type { Habit, HabitIconId, HabitLog, HabitMood } from '../types'
 import * as db from '../db'
 import { STORES } from '../db'
 import { now } from '../utils'
@@ -7,14 +7,14 @@ import { assertOnline, supabase, throwIfError } from './supabase'
 import { isUuid } from './taskSync'
 
 const ICONS: HabitIconId[] = ['dumbbell', 'book', 'droplet', 'brain', 'heart', 'moon']
+const MOODS: HabitMood[] = ['good', 'ok', 'bad']
 
 type RemoteHabit = {
   id: string
   user_id: string
   name: string | null
   icon: string | null
-  color: string | null
-  target: string | null
+  why: string | null
   created_at: string | null
 }
 
@@ -23,11 +23,16 @@ type RemoteHabitLog = {
   user_id: string
   habit_id: string
   date: string | null
+  mood: string | null
   created_at: string | null
 }
 
 function asIcon(raw: string | null | undefined, fallback: HabitIconId = 'heart'): HabitIconId {
   return raw && (ICONS as string[]).includes(raw) ? (raw as HabitIconId) : fallback
+}
+
+function asMood(raw: string | null | undefined): HabitMood | undefined {
+  return raw && (MOODS as string[]).includes(raw) ? (raw as HabitMood) : undefined
 }
 
 function remoteHabitToLocal(row: RemoteHabit, prev?: Habit): Habit {
@@ -36,7 +41,8 @@ function remoteHabitToLocal(row: RemoteHabit, prev?: Habit): Habit {
     id: row.id,
     name: row.name ?? prev?.name ?? '',
     icon: asIcon(row.icon, prev?.icon),
-    color: row.color ?? prev?.color ?? '#0f6e6b',
+    why: row.why ?? prev?.why ?? '',
+    color: prev?.color ?? '#0f6e6b',
     target: 'daily',
     createdAt: Number.isFinite(createdAt) ? createdAt : prev?.createdAt ?? now(),
     updatedAt: prev?.updatedAt ?? now(),
@@ -49,8 +55,7 @@ function localHabitToRemote(habit: Habit, userId: string): RemoteHabit {
     user_id: userId,
     name: habit.name ?? '',
     icon: habit.icon ?? 'heart',
-    color: habit.color ?? '#0f6e6b',
-    target: habit.target ?? 'daily',
+    why: habit.why ?? '',
     created_at: new Date(habit.createdAt || now()).toISOString(),
   }
 }
@@ -61,6 +66,7 @@ function remoteLogToLocal(row: RemoteHabitLog, prev?: HabitLog): HabitLog {
     id: row.id,
     habitId: row.habit_id || prev?.habitId || '',
     date: row.date ?? prev?.date ?? '',
+    mood: asMood(row.mood) ?? prev?.mood,
     createdAt: Number.isFinite(createdAt) ? createdAt : prev?.createdAt ?? now(),
   }
 }
@@ -71,6 +77,7 @@ function localLogToRemote(log: HabitLog, userId: string): RemoteHabitLog {
     user_id: userId,
     habit_id: log.habitId,
     date: log.date,
+    mood: log.mood ?? null,
     created_at: new Date(log.createdAt || now()).toISOString(),
   }
 }

@@ -1188,6 +1188,11 @@ img { max-width: 100%; }
   align-items: center;
   gap: 8px;
   min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: start;
+  color: inherit;
 }
 .habit-day-label {
   display: flex;
@@ -1225,6 +1230,7 @@ img { max-width: 100%; }
   place-items: center;
   color: #fff;
   flex-shrink: 0;
+  background: var(--primary-color);
 }
 .habit-title {
   font-weight: 700;
@@ -1233,20 +1239,33 @@ img { max-width: 100%; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.habit-streak {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
 .habit-cell {
   width: 28px;
   height: 28px;
   margin: 0 auto;
   border-radius: 999px;
-  border: 2px solid var(--line);
+  border: 2px solid var(--primary-color);
   background: transparent;
   display: grid;
   place-items: center;
   color: #fff;
   padding: 0;
 }
+.habit-cell.done {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+}
 .habit-cell.is-today:not(.done) {
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 28%, transparent);
+}
+.habit-cell:disabled {
+  pointer-events: none;
 }
 .habit-icon-grid {
   display: grid;
@@ -1265,6 +1284,52 @@ img { max-width: 100%; }
 }
 .habit-icon-pick.on {
   background: color-mix(in srgb, var(--primary-color) 16%, var(--bg-elev));
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+.bottom-24 { bottom: 6rem; }
+.left-6 { left: 1.5rem; }
+[dir='rtl'] .left-6 { left: auto; right: 1.5rem; }
+.w-14 { width: 3.5rem; }
+.h-14 { height: 3.5rem; }
+.z-50 { z-index: 50; }
+.habit-mood-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.habit-mood-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg-muted);
+}
+.habit-mood-face { font-size: 1.6rem; line-height: 1; }
+.habit-why {
+  margin: 0 0 12px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+.habit-heat {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin: 8px 0 14px;
+}
+.habit-heat-cell {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--bg-muted) 55%, transparent);
+}
+.habit-heat-cell.empty { visibility: hidden; }
+.habit-mood-hist-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
 }
 .lang-pick-btn {
   display: flex;

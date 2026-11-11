@@ -211,11 +211,13 @@ export interface Task {
 
 export type HabitIconId = 'dumbbell' | 'book' | 'droplet' | 'brain' | 'heart' | 'moon'
 export type HabitTarget = 'daily'
+export type HabitMood = 'good' | 'ok' | 'bad'
 
 export interface Habit {
   id: string
   name: string
   icon: HabitIconId
+  why: string
   color: string
   target: HabitTarget
   createdAt: number
@@ -226,6 +228,7 @@ export interface HabitLog {
   id: string
   habitId: string
   date: string
+  mood?: HabitMood
   createdAt: number
 }
 
