@@ -36,7 +36,7 @@ export function PageLayout({
         <Icon size={120} className="page-wave-icon opacity-20 text-primary-foreground" />
       </div>
       <div className="page-wave-spacer" aria-hidden />
-      <div className="page-layout-content z-10 relative px-4 -mt-8">{children}</div>
+      <div className="page-layout-content z-10 relative px-4 -mt-16">{children}</div>
       {bottom ? (
         <div className="page-wave page-wave-bottom absolute bottom-0 w-full" aria-hidden>
           <svg viewBox="0 0 1440 320" preserveAspectRatio="none" className="page-wave-svg text-primary">

@@ -258,8 +258,8 @@ img { max-width: 100%; }
 .nav-item svg { width: 22px; height: 22px; }
 
 .page-title {
-  margin: 1.5rem 0 1rem;
-  font-size: 1.875rem;
+  margin: 4px 0 14px;
+  font-size: 1.7rem;
   letter-spacing: -0.04em;
   font-weight: 700;
 }
@@ -1200,27 +1200,17 @@ img { max-width: 100%; }
 }
 .fc-play {
   position: relative;
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   border: 0;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--brand), color-mix(in srgb, var(--brand) 75%, var(--ink)));
-  color: var(--primary-ink);
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--brand) 40%, transparent);
+  background: transparent;
+  color: var(--brand);
   flex-shrink: 0;
-  transition: transform 0.1s ease, box-shadow 0.2s ease;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.fc-play:active {
-  transform: scale(0.94);
 }
 .fc-play-dot {
   position: absolute;
-  top: 6px;
-  inset-inline-end: 6px;
+  top: 4px;
+  inset-inline-end: 4px;
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -1228,6 +1218,7 @@ img { max-width: 100%; }
   border: 2px solid var(--bg-elev);
   pointer-events: none;
 }
+.fc-play svg { display: block; }
 .fc-play-icon {
   position: absolute;
   inset: 0;
@@ -1235,7 +1226,6 @@ img { max-width: 100%; }
   place-items: center;
   pointer-events: none;
 }
-.fc-play svg { display: block; }
 .fc-badge {
   display: inline-flex;
   align-items: center;
