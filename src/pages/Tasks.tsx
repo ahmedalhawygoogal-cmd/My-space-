@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { CheckSquare, ChevronDown, ChevronUp, Eye, EyeOff, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
-import { Confirm, DateField, Empty, Segment, Sheet, useT } from '../ui'
+import { BackBtn, Confirm, DateField, Empty, Segment, Sheet, useT } from '../ui'
 import { PageLayout } from '../components/PageLayout'
 import { endOfDay, formatDate, startOfDay, uid } from '../utils'
 import type { Priority, Task } from '../types'
@@ -94,7 +94,7 @@ export default function TasksPage() {
   return (
     <PageLayout icon={CheckSquare}>
     <div className="stack">
-      <h1 className="text-3xl font-bold text-foreground relative z-10 mt-4 mb-6 px-4">{tr('tasks')}</h1>
+      <h1 className="page-title text-2xl font-bold text-foreground">{tr('tasks')}</h1>
       <Segment
         value={view}
         onChange={(v) => setView(v as View)}
@@ -243,11 +243,17 @@ export function TaskDetailPage() {
   const nav = useNavigate()
   if (!tk) return (
     <PageLayout icon={CheckSquare}>
+      <div className="inner-head">
+        <BackBtn onClick={() => nav('/tasks')} />
+      </div>
       <Empty icon={<CheckSquare />} title="" />
     </PageLayout>
   )
   return (
     <PageLayout icon={CheckSquare}>
+    <div className="inner-head">
+      <BackBtn onClick={() => nav('/tasks')} />
+    </div>
     <TaskForm
       open={open}
       task={tk}

@@ -8,16 +8,19 @@ export function Layout() {
   const nav = useNavigate()
   const loc = useLocation()
   const [discoverOpen, setDiscoverOpen] = useState(false)
-  const hideNav =
-    loc.pathname.includes('/study') ||
-    loc.pathname.includes('/test') ||
-    loc.pathname.includes('/game') ||
-    loc.pathname.includes('/record/live') ||
-    loc.pathname === '/notes/new' ||
-    loc.pathname.endsWith('/edit')
+  const tabs = ['/', '/record', '/cards', '/tasks', '/notes', '/habits']
+  const isTab =
+    tabs.includes(loc.pathname) ||
+    loc.pathname === '/record/' ||
+    loc.pathname === '/cards/' ||
+    loc.pathname === '/tasks/' ||
+    loc.pathname === '/notes/' ||
+    loc.pathname === '/habits/'
+  const hideChrome = !isTab
 
   return (
-    <div className="app-shell">
+    <div className="app-shell h-[100dvh] overflow-hidden">
+      {!hideChrome ? (
       <header className="topbar">
         <div className="brand">
           <div className="brand-mark">M</div>
@@ -40,6 +43,7 @@ export function Layout() {
           </button>
         </div>
       </header>
+      ) : null}
       <Sheet open={discoverOpen} onClose={() => setDiscoverOpen(false)} title={tr('discover')}>
         <div className="discover-grid">
           <button
@@ -83,7 +87,7 @@ export function Layout() {
       <main className="main">
         <Outlet />
       </main>
-      {!hideNav && (
+      {!hideChrome && (
         <nav className="bottom-nav">
           <Item to="/" icon={<Home />} label={tr('home')} />
           <Item to="/record" icon={<Mic />} label={tr('recorder')} />

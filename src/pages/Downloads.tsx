@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Download, Pause, Play, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
-import { Confirm, Empty, useT } from '../ui'
+import { BackBtn, Confirm, Empty, useT } from '../ui'
 import { PageLayout } from '../components/PageLayout'
 import { AudioPlayer } from '../AudioPlayer'
 import { formatBytes, formatDateTime } from '../utils'
@@ -43,12 +43,10 @@ export default function DownloadsPage() {
   return (
     <PageLayout icon={Download}>
     <div className="stack">
-      <div className="spread">
-        <button className="chip" type="button" onClick={() => nav('/settings')}>
-          {tr('back')}
-        </button>
+      <div className="inner-head">
+        <h1 className="page-title text-2xl font-bold text-foreground" style={{ margin: 0 }}>{tr('downloads')}</h1>
+        <BackBtn onClick={() => nav('/settings')} />
       </div>
-      <h1 className="page-title">{tr('downloads')}</h1>
       {list.length === 0 ? (
         <Empty icon={<Download size={36} />} title={tr('noDownloads')} hint={tr('noDownloadsHint')} />
       ) : (

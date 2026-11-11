@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Download, Languages, Settings as SettingsIcon } from 'lucide-react'
 import { useStore } from '../store'
 import { useAuth } from '../auth'
-import { Confirm, Segment, Toast, useT } from '../ui'
+import { BackBtn, Confirm, Segment, Sheet, Toast, useT } from '../ui'
 import { formatDateTime } from '../utils'
 import { exportSnapshot, type Snapshot } from '../db'
 import type { AppFont, AppFontSize, NotifySound, Theme } from '../types'
@@ -113,7 +113,10 @@ export default function SettingsPage() {
   return (
     <PageLayout icon={SettingsIcon} bottom={false}>
     <div className="stack">
-      <h1 className="page-title">{tr('settings')}</h1>
+      <div className="inner-head">
+        <h1 className="page-title text-2xl font-bold text-foreground" style={{ margin: 0 }}>{tr('settings')}</h1>
+        <BackBtn onClick={() => nav('/')} />
+      </div>
       <button className="list-item pressable" type="button" onClick={() => nav('/downloads')}>
         <Download size={18} />
         <div className="grow">{tr('downloads')}</div>
@@ -317,106 +320,75 @@ export default function SettingsPage() {
           {tr('version')} {version}
         </div>
       </div>
-      {prefs ? (
-        <div className="sheet-backdrop" onClick={() => setPrefs(false)}>
-          <div className="sheet bg-card border-border text-foreground" onClick={(e) => e.stopPropagation()}>
-            <div className="sheet-handle" />
-            <h3 className="page-title" style={{ margin: '0 0 12px' }}>
-              {tr('changeLang')}
-            </h3>
-            <LanguagePrefs />
-          </div>
+      <Sheet open={prefs} onClose={() => setPrefs(false)} title={tr('changeLang')}>
+        <LanguagePrefs />
+      </Sheet>
+      <Sheet
+        open={exportOpen}
+        onClose={() => {
+          setExportOpen(false)
+          backupRef.current = null
+        }}
+        title={tr('exportData')}
+      >
+        <div className="stack" style={{ gap: 8 }}>
+          <button className="btn block" type="button" onClick={() => void exportDownload()}>
+            {tr('download')}
+          </button>
+          <button className="btn ghost block" type="button" onClick={() => void exportShare()}>
+            {tr('share')}
+          </button>
         </div>
-      ) : null}
-      {exportOpen ? (
-        <div
-          className="modal-backdrop"
-          onClick={() => {
-            setExportOpen(false)
-            backupRef.current = null
-          }}
-        >
-          <div className="dialog modal-panel" onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ marginTop: 0 }}>{tr('exportData')}</h3>
-            <div className="stack" style={{ gap: 8, marginTop: 8 }}>
-              <button className="btn block" type="button" onClick={() => void exportDownload()}>
-                {tr('download')}
-              </button>
-              <button className="btn ghost block" type="button" onClick={() => void exportShare()}>
-                {tr('share')}
-              </button>
-              <button
-                className="btn ghost block"
-                type="button"
-                onClick={() => {
-                  setExportOpen(false)
-                  backupRef.current = null
-                }}
-              >
-                {tr('cancel')}
-              </button>
-            </div>
-          </div>
+      </Sheet>
+      <Sheet open={logoutOpen} onClose={() => setLogoutOpen(false)} title={tr('logout')}>
+        <p className="muted" style={{ marginTop: 0 }}>
+          {tr('logoutConfirmBody')}
+        </p>
+        <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16, flexWrap: 'wrap', gap: 8 }}>
+          <button className="btn ghost" type="button" onClick={() => setLogoutOpen(false)}>
+            {tr('cancel')}
+          </button>
+          <button
+            className="btn danger"
+            type="button"
+            onClick={() => {
+              setLogoutOpen(false)
+              void signOut()
+            }}
+          >
+            {tr('logoutConfirmYes')}
+          </button>
         </div>
-      ) : null}
-      {logoutOpen ? (
-        <div className="modal-backdrop" onClick={() => setLogoutOpen(false)}>
-          <div className="dialog modal-panel" onClick={(e) => e.stopPropagation()}>
-            <p className="muted" style={{ marginTop: 0 }}>
-              {tr('logoutConfirmBody')}
-            </p>
-            <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16, flexWrap: 'wrap', gap: 8 }}>
-              <button className="btn ghost" type="button" onClick={() => setLogoutOpen(false)}>
-                {tr('cancel')}
-              </button>
-              <button
-                className="btn danger"
-                type="button"
-                onClick={() => {
-                  setLogoutOpen(false)
-                  void signOut()
-                }}
-              >
-                {tr('logoutConfirmYes')}
-              </button>
-            </div>
-          </div>
+      </Sheet>
+      <Sheet open={consent} onClose={() => { if (!uploading) setConsent(false) }} title={tr('cloudConsentTitle')}>
+        <p className="muted">{tr('cloudConsentBody')}</p>
+        <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16, flexWrap: 'wrap', gap: 8 }}>
+          <button className="btn ghost" type="button" disabled={uploading} onClick={() => setConsent(false)}>
+            {tr('cloudConsentLater')}
+          </button>
+          <button
+            className="btn"
+            type="button"
+            disabled={uploading}
+            onClick={() => {
+              void (async () => {
+                setUploading(true)
+                try {
+                  await uploadLocalDataToCloud()
+                  setToast(tr('cloudUploadDone'))
+                } catch {
+                  setToast(tr('cloudUploadError'))
+                } finally {
+                  setUploading(false)
+                  setConsent(false)
+                }
+              })()
+            }}
+          >
+            {tr('cloudConsentYes')}
+          </button>
         </div>
-      ) : null}
-      {consent ? (
-        <div className="modal-backdrop" onClick={() => !uploading && setConsent(false)}>
-          <div className="dialog modal-panel" onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ marginTop: 0 }}>{tr('cloudConsentTitle')}</h3>
-            <p className="muted">{tr('cloudConsentBody')}</p>
-            <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16, flexWrap: 'wrap', gap: 8 }}>
-              <button className="btn ghost" type="button" disabled={uploading} onClick={() => setConsent(false)}>
-                {tr('cloudConsentLater')}
-              </button>
-              <button
-                className="btn"
-                type="button"
-                disabled={uploading}
-                onClick={() => {
-                  void (async () => {
-                    setUploading(true)
-                    try {
-                      await uploadLocalDataToCloud()
-                      setToast(tr('cloudUploadDone'))
-                    } catch {
-                      setToast(tr('cloudUploadError'))
-                    } finally {
-                      setUploading(false)
-                      setConsent(false)
-                    }
-                  })()
-                }}
-              >
-                {tr('cloudConsentYes')}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      </Sheet>
       <Confirm
         open={confirm}
         title={tr('restoreConfirm')}

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeftRight, ArrowRight, Ear, Layers, LayoutGrid, Pencil, PenLine, Play, Plus, RefreshCw, Trash2, Volume2 } from 'lucide-react'
+import { ArrowLeftRight, Ear, Layers, LayoutGrid, Pencil, PenLine, Play, Plus, RefreshCw, Trash2, Volume2 } from 'lucide-react'
 import { useStore } from '../store'
-import { Confirm, Empty, Sheet, Toast, useT } from '../ui'
+import { BackBtn, Confirm, Empty, Sheet, Toast, useT } from '../ui'
 import { PageLayout } from '../components/PageLayout'
 import type { ReactNode } from 'react'
 import type { AppSettings, Card, Deck, DeckType, Lang } from '../types'
@@ -99,23 +99,15 @@ type CardFormState = {
 
 const emptyForm: CardFormState = { front: '', back: '', example: '', note: '', imageBlob: '' }
 
-function BackBtn({ onClick, label }: { onClick: () => void; label: string }) {
-  return (
-    <button className="chip" type="button" onClick={onClick}>
-      <ArrowRight size={14} /> {label}
-    </button>
-  )
-}
-
 function Screen({ title, onBack, backLabel, children }: { title: string; onBack: () => void; backLabel: string; children: ReactNode }) {
   return (
     <PageLayout icon={Layers}>
     <div className="stack">
-      <div className="spread">
-        <BackBtn onClick={onBack} label={backLabel} />
-        <h1 className="page-title" style={{ margin: 0, fontSize: '1.2rem' }}>
+      <div className="inner-head">
+        <h1 className="page-title text-2xl font-bold text-foreground" style={{ margin: 0 }}>
           {title}
         </h1>
+        <BackBtn onClick={onBack} label={backLabel} />
       </div>
       {children}
     </div>
@@ -202,7 +194,9 @@ function SessionDone({ deckId }: { deckId: string }) {
   return (
     <PageLayout icon={Layers}>
     <div className="stack">
-      <BackBtn onClick={() => nav(`/cards/${deckId}`)} label={tr('back')} />
+      <div className="inner-head">
+        <BackBtn onClick={() => nav(`/cards/${deckId}`)} />
+      </div>
       <div className="card game-done">
         <h2>{tr('sessionSuccess')}</h2>
         <button className="btn block" type="button" onClick={() => nav(`/cards/${deckId}`)}>
@@ -230,12 +224,7 @@ function EarlyReviewDialog({
   }, [open])
   if (!open) return null
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 pb-20"
-      onClick={onClose}
-    >
-      <div className="bg-card w-full max-w-md rounded-2xl p-6 shadow-2xl relative" onClick={(e) => e.stopPropagation()}>
-        <h3 style={{ marginTop: 0 }}>{tr('review')}</h3>
+    <Sheet open={open} onClose={onClose} title={tr('review')}>
         <p className="muted">{tr('earlyReviewWarn')}</p>
         <label className="check-row">
           <input type="checkbox" checked={dontShow} onChange={(e) => setDontShow(e.target.checked)} />
@@ -249,8 +238,7 @@ function EarlyReviewDialog({
             {tr('continueReview')}
           </button>
         </div>
-      </div>
-    </div>
+    </Sheet>
   )
 }
 
@@ -315,7 +303,7 @@ export default function FlashcardsPage() {
   return (
     <PageLayout icon={Layers}>
     <div className="stack">
-      <h1 className="text-3xl font-bold text-foreground relative z-10 mt-4 mb-6 px-4">{tr('flashcards')}</h1>
+      <h1 className="page-title text-2xl font-bold text-foreground">{tr('flashcards')}</h1>
       <input className="field" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('searchPlaceholder')} />
       {shown.length === 0 ? (
         <Empty
@@ -358,10 +346,6 @@ export default function FlashcardsPage() {
         <Plus size={22} />
       </button>
       <Sheet open={open} onClose={() => setOpen(false)} title={tr('newDeck')}>
-        <div className="spread" style={{ marginBottom: 8 }}>
-          <BackBtn onClick={() => setOpen(false)} label={tr('back')} />
-          <span />
-        </div>
         <label className="label">{tr('deckType')}</label>
         <select className="field" value={type} onChange={(e) => setType(e.target.value as DeckType)}>
           {DECK_TYPES.map((id) => (
@@ -467,11 +451,11 @@ export function DeckPage() {
   return (
     <PageLayout icon={Layers}>
     <div className="stack">
-      <div className="spread">
-        <BackBtn onClick={() => nav('/cards')} label={tr('back')} />
-        <h1 className="page-title" style={{ margin: 0, fontSize: '1.2rem' }}>
+      <div className="inner-head">
+        <h1 className="page-title text-2xl font-bold text-foreground" style={{ margin: 0 }}>
           {deck.name}
         </h1>
+        <BackBtn onClick={() => nav('/cards')} />
       </div>
       <button
         className="btn ghost fc-dir"
@@ -550,6 +534,10 @@ function NeedCards({ n, deckId }: { n: number; deckId: string }) {
   const nav = useNavigate()
   return (
     <PageLayout icon={Layers}>
+    <div className="stack">
+      <div className="inner-head">
+        <BackBtn onClick={() => nav(`/cards/${deckId}`)} />
+      </div>
     <Empty
       icon={<Layers size={36} />}
       title={tr('needMoreCards')}
@@ -560,21 +548,21 @@ function NeedCards({ n, deckId }: { n: number; deckId: string }) {
         </button>
       }
     />
+    </div>
     </PageLayout>
   )
 }
 
 function GameShell({ title, hint, children }: { title: string; hint: string; children: ReactNode }) {
   const nav = useNavigate()
-  const tr = useT()
   return (
     <PageLayout icon={Layers}>
     <div className="stack">
-      <div className="spread">
-        <BackBtn onClick={() => nav(-1)} label={tr('back')} />
-        <h1 className="page-title" style={{ margin: 0, fontSize: '1.15rem' }}>
+      <div className="inner-head">
+        <h1 className="page-title text-2xl font-bold text-foreground" style={{ margin: 0 }}>
           {title}
         </h1>
+        <BackBtn onClick={() => nav(-1)} />
       </div>
       <p className="muted" style={{ marginTop: 0 }}>
         {hint}
@@ -1048,11 +1036,11 @@ export function StudyPage() {
   return (
     <PageLayout icon={Layers}>
     <div className="stack">
-      <div className="spread">
-        <BackBtn onClick={() => nav(`/cards/${deckId}`)} label={tr('back')} />
-        <h1 className="page-title" style={{ margin: 0, fontSize: '1.15rem' }}>
+      <div className="inner-head">
+        <h1 className="page-title text-2xl font-bold text-foreground" style={{ margin: 0 }}>
           {tr('review')}
         </h1>
+        <BackBtn onClick={() => nav(`/cards/${deckId}`)} />
       </div>
       <div className="muted">
         {Math.max(0, ids.length - idx)} {tr('remaining')}

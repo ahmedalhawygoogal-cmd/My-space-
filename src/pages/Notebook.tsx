@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import { useStore } from '../store'
 import { AudioPlayer } from '../AudioPlayer'
-import { Confirm, Empty, Sheet, Toast, useT } from '../ui'
+import { BackBtn, Confirm, Empty, Sheet, Toast, useT } from '../ui'
 import { PageLayout } from '../components/PageLayout'
 import { contrastInk, fileToDataUrl, firstNoteImage, formatDate } from '../utils'
 import { NOTE_COLORS } from '../types'
@@ -89,7 +89,7 @@ export default function NotebookPage() {
   return (
     <PageLayout icon={BookOpen}>
     <div className="stack">
-      <h1 className="page-title">{tr('notebook')}</h1>
+      <h1 className="page-title text-2xl font-bold text-foreground">{tr('notebook')}</h1>
       <input className="field" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('search')} />
       {list.length === 0 ? (
         <Empty icon={<BookOpen size={36} />} title={tr('noNotes')} hint={tr('noNotesHint')} />
@@ -194,13 +194,11 @@ export function NoteEditorPage() {
   return (
     <PageLayout icon={BookOpen}>
     <div className="stack note-surface" style={{ background: color, color: ink, padding: 16, minHeight: '100%' }}>
-      <div className="spread">
-        <button className="chip" type="button" onClick={() => nav('/notes')}>
-          {tr('back')}
-        </button>
+      <div className="inner-head">
         <button className="btn" type="button" onClick={() => void save()}>
           {tr('save')}
         </button>
+        <BackBtn onClick={() => nav('/notes')} />
       </div>
       <input className="note-title" value={title} placeholder={tr('title')} onChange={(e) => setTitle(e.target.value)} style={{ color: ink }} />
       <label className="label">{tr('noteType')}</label>
@@ -350,17 +348,15 @@ export function NoteReadPage() {
   return (
     <PageLayout icon={BookOpen}>
     <div className="stack note-surface" style={{ background: note.color || undefined, color: ink, padding: 16, minHeight: '100%' }}>
-      <div className="spread">
-        <button className="chip" type="button" onClick={() => nav('/notes')}>
-          {tr('back')}
-        </button>
+      <div className="inner-head">
+        <h1 className="page-title text-2xl font-bold" style={{ margin: 0, color: ink }}>
+          {note.title || tr('untitled')}
+        </h1>
         <button className="icon-btn note-action" type="button" aria-label={tr('edit')} onClick={() => nav(`/notes/${note.id}/edit`)}>
           <Pencil size={16} />
         </button>
+        <BackBtn onClick={() => nav('/notes')} />
       </div>
-      <h1 className="page-title" style={{ marginBottom: 0, color: ink }}>
-        {note.title || tr('untitled')}
-      </h1>
       <div className="muted" style={{ color: ink, opacity: 0.72 }}>
         {note.type || tr('note')} · {formatDate(note.updatedAt, lang, { day: 'numeric', month: 'short', year: 'numeric' })}
       </div>

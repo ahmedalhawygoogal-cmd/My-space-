@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Home, Mic, Play } from 'lucide-react'
+import { Home, Mic, Play, Plus } from 'lucide-react'
 import { useStore } from '../store'
 import { Ring, useT } from '../ui'
 import { PageLayout } from '../components/PageLayout'
@@ -95,6 +95,9 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+      <button className="fab" type="button" onClick={() => nav('/record/live')} aria-label={tr('quickRecord')}>
+        <Plus size={22} />
+      </button>
     </PageLayout>
   )
 }

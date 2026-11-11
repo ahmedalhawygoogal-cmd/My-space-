@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
+import { ArrowRight, X } from 'lucide-react'
 import { t, type I18nKey } from './i18n'
 import { useStore } from './store'
 
@@ -19,6 +20,16 @@ export function IconBtn({
   return (
     <button className="icon-btn" onClick={onClick} aria-label={label} type="button">
       {children}
+    </button>
+  )
+}
+
+export function BackBtn({ onClick, label }: { onClick: () => void; label?: string }) {
+  const tr = useT()
+  return (
+    <button className="back-btn" type="button" onClick={onClick}>
+      <ArrowRight size={16} />
+      {label ?? tr('back')}
     </button>
   )
 }
@@ -55,12 +66,17 @@ export function Sheet({
   title?: string
   children: ReactNode
 }) {
+  const tr = useT()
   if (!open) return null
   return (
     <div className="sheet-backdrop" onClick={onClose}>
-      <div className="sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="sheet-handle" />
-        {title ? <h3 style={{ margin: '0 0 12px' }}>{title}</h3> : null}
+      <div className="sheet bg-card text-foreground" onClick={(e) => e.stopPropagation()}>
+        <div className="sheet-head">
+          {title ? <h3 className="sheet-title">{title}</h3> : <span />}
+          <button className="sheet-close" type="button" onClick={onClose} aria-label={tr('close')}>
+            <X size={18} />
+          </button>
+        </div>
         {children}
       </div>
     </div>
@@ -86,8 +102,13 @@ export function Confirm({
   if (!open) return null
   return (
     <div className="sheet-backdrop" onClick={onClose}>
-      <div className="dialog" onClick={(e) => e.stopPropagation()}>
-        <h3 style={{ marginTop: 0 }}>{title}</h3>
+      <div className="sheet bg-card text-foreground" onClick={(e) => e.stopPropagation()}>
+        <div className="sheet-head">
+          <h3 className="sheet-title">{title}</h3>
+          <button className="sheet-close" type="button" onClick={onClose} aria-label={tr('close')}>
+            <X size={18} />
+          </button>
+        </div>
         {body ? <p className="muted">{body}</p> : null}
         <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>
           <button className="btn ghost" type="button" onClick={onClose}>

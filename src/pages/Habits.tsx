@@ -3,7 +3,7 @@ import { Book, Brain, Check, Droplet, Dumbbell, Heart, Moon, Plus, Repeat } from
 import type { LucideIcon } from 'lucide-react'
 import * as db from '../db'
 import { STORES } from '../db'
-import { Empty, useT } from '../ui'
+import { Sheet, useT, Empty } from '../ui'
 import { PageLayout } from '../components/PageLayout'
 import { now } from '../utils'
 import type { Habit, HabitIconId, HabitLog, HabitMood } from '../types'
@@ -239,7 +239,7 @@ export default function HabitsPage() {
   return (
     <PageLayout icon={Repeat}>
       <div className="stack" style={{ gap: 14 }}>
-        <h1 className="page-title">{tr('habits')}</h1>
+        <h1 className="page-title text-2xl font-bold text-foreground">{tr('habits')}</h1>
 
         <div className="habit-week-head">
           <div className="habit-name-col" />
@@ -293,21 +293,15 @@ export default function HabitsPage() {
       </div>
 
       <button
-        className="fixed bottom-24 left-6 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center z-50"
+        className="fab"
         type="button"
         aria-label={tr('addHabit')}
         onClick={() => setOpen(true)}
       >
-        <Plus size={24} />
+        <Plus size={22} />
       </button>
 
-      {open ? (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 pb-20"
-          onClick={resetAdd}
-        >
-          <div className="bg-card w-full max-w-md rounded-2xl p-6 shadow-2xl relative" onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ marginTop: 0 }}>{tr('addHabit')}</h3>
+      <Sheet open={open} onClose={resetAdd} title={tr('addHabit')}>
             <label className="label">{tr('habitName')}</label>
             <input className="field" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
             <label className="label">{tr('habitWhy')}</label>
@@ -329,48 +323,31 @@ export default function HabitsPage() {
               })}
             </div>
             <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>
-              <button className="btn ghost" type="button" onClick={resetAdd}>
-                {tr('cancel')}
-              </button>
               <button className="btn" type="button" disabled={!name.trim() || !why.trim() || busy} onClick={() => void saveHabit()}>
                 {tr('save')}
               </button>
             </div>
-          </div>
-        </div>
-      ) : null}
+      </Sheet>
 
-      {moodPick ? (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 pb-20"
-          onClick={() => setMoodPick(null)}
-        >
-          <div className="bg-card w-full max-w-md rounded-2xl p-6 shadow-2xl relative" onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ marginTop: 0 }}>{tr('habitMood')}</h3>
+      <Sheet open={!!moodPick} onClose={() => setMoodPick(null)} title={tr('habitMood')}>
             <div className="habit-mood-row">
               {MOODS.map((m) => (
                 <button
                   key={m.id}
                   type="button"
                   className="habit-mood-btn"
-                  onClick={() => void completeDay(moodPick.habit, moodPick.date, m.id)}
+                  onClick={() => moodPick && void completeDay(moodPick.habit, moodPick.date, m.id)}
                 >
                   <span className="habit-mood-face">{m.face}</span>
                   <span>{tr(m.key)}</span>
                 </button>
               ))}
             </div>
-          </div>
-        </div>
-      ) : null}
+      </Sheet>
 
-      {detail ? (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 pb-20"
-          onClick={() => setDetail(null)}
-        >
-          <div className="bg-card w-full max-w-md rounded-2xl p-6 shadow-2xl relative habit-detail" onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ marginTop: 0 }}>{detail.name}</h3>
+      <Sheet open={!!detail} onClose={() => setDetail(null)} title={detail?.name}>
+            {detail ? (
+              <>
             <p className="habit-why">{detail.why}</p>
             <div className="label">{tr('habitHeatmap')}</div>
             <div className="habit-heat">
@@ -401,14 +378,9 @@ export default function HabitsPage() {
                 </div>
               ) : null}
             </div>
-            <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>
-              <button className="btn ghost" type="button" onClick={() => setDetail(null)}>
-                {tr('close')}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+              </>
+            ) : null}
+      </Sheet>
     </PageLayout>
   )
 }

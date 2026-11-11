@@ -1,14 +1,15 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { BookOpen, CheckSquare, Layers, Mic, Search } from 'lucide-react'
 import { useStore } from '../store'
-import { Empty, Segment, useT } from '../ui'
+import { BackBtn, Empty, Segment, useT } from '../ui'
 import { PageLayout } from '../components/PageLayout'
 import { excerpt } from '../utils'
 import type { EntityType } from '../types'
 
 export default function SearchPage() {
   const tr = useT()
+  const nav = useNavigate()
   const { search } = useStore()
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState<'all' | EntityType>('all')
@@ -36,7 +37,10 @@ export default function SearchPage() {
   return (
     <PageLayout icon={Search}>
     <div className="stack">
-      <h1 className="page-title">{tr('search')}</h1>
+      <div className="inner-head">
+        <h1 className="page-title text-2xl font-bold text-foreground" style={{ margin: 0 }}>{tr('search')}</h1>
+        <BackBtn onClick={() => nav('/')} />
+      </div>
       <input className="field" autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('searchPlaceholder')} />
       <Segment
         value={filter}

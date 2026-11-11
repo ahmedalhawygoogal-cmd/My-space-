@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ChevronDown, CloudUpload, FolderPlus, Loader2, Mic, Pause, Pencil, Play, Sparkles, Square, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
 import { AudioPlayer } from '../AudioPlayer'
-import { Confirm, Empty, Segment, Sheet, SubjectSelect, TagInput, Toast, useT } from '../ui'
+import { BackBtn, Confirm, Empty, Segment, Sheet, SubjectSelect, TagInput, Toast, useT } from '../ui'
 import { PageLayout } from '../components/PageLayout'
 import type { RecDistance, Recording } from '../types'
 import {
@@ -264,7 +264,7 @@ export default function RecorderPage() {
   return (
     <PageLayout icon={Mic}>
     <div className="stack rec-list">
-      <h1 className="text-3xl font-bold text-foreground relative z-10 mt-4 mb-6 px-4">{tr('recorder')}</h1>
+      <h1 className="page-title text-2xl font-bold text-foreground">{tr('recorder')}</h1>
       <input className="field" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('search')} />
       <div className="chip-row">
         <button className={`chip ${folderId === 'all' ? 'active' : ''}`} type="button" onClick={() => setFolderId('all')}>
@@ -295,7 +295,7 @@ export default function RecorderPage() {
       ) : (
         list.map((r) => <RecListCard key={r.id} rec={r} />)
       )}
-      <button className="fab accent" type="button" onClick={() => nav('/record/live')} aria-label={tr('record')}>
+      <button className="fab" type="button" onClick={() => nav('/record/live')} aria-label={tr('record')}>
         <Mic size={22} />
       </button>
       <Sheet open={folderOpen} onClose={() => setFolderOpen(false)} title={tr('newFolder')}>
@@ -625,19 +625,15 @@ export function LiveRecordPage() {
   return (
     <PageLayout icon={Mic}>
     <div className="stack">
-      <div className="spread">
-        <button
-          className="chip"
-          type="button"
+      <div className="inner-head">
+        <h1 className="page-title text-2xl font-bold text-foreground" style={{ margin: 0 }}>{tr('newRecording')}</h1>
+        <BackBtn
           onClick={() => {
             cancelSave()
             nav('/record')
           }}
-        >
-          {tr('back')}
-        </button>
+        />
       </div>
-      <h1 className="page-title">{tr('newRecording')}</h1>
       <div className="card rec-stage bg-card border">
         <div className="text-muted-foreground">
           {status === 'live' ? tr('recording') : status === 'paused' ? tr('paused') : tr('record')}
@@ -791,10 +787,8 @@ export function RecordingDetailPage() {
   return (
     <PageLayout icon={Mic}>
     <div className="stack">
-      <div className="spread">
-        <button className="chip" type="button" onClick={() => nav('/record')}>
-          {tr('back')}
-        </button>
+      <div className="inner-head">
+        <BackBtn onClick={() => nav('/record')} />
       </div>
       <div className="card rec-stage bg-card border">
         <div className="text-muted-foreground">

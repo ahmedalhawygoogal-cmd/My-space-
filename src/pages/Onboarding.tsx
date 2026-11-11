@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check, Sparkles } from 'lucide-react'
 import { useStore } from '../store'
-import { Toast, useT } from '../ui'
+import { Sheet, Toast, useT } from '../ui'
 import { PageLayout } from '../components/PageLayout'
 import type { DailyGoal, GoalKind, InputPref, Labeled, Lang, UserLevel } from '../types'
 import {
@@ -47,14 +47,8 @@ export function LanguageSheet({
         })
   }, [q])
 
-  if (!open) return null
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
-      <div className="sheet bg-card border-border text-foreground" onClick={(e) => e.stopPropagation()}>
-        <div className="sheet-handle" />
-        <h3 className="page-title" style={{ margin: '0 0 12px' }}>
-          {title}
-        </h3>
+    <Sheet open={open} onClose={onClose} title={title}>
         <input
           className="field"
           value={q}
@@ -86,8 +80,7 @@ export function LanguageSheet({
             <p className="muted">{tr('noLangMatch')}</p>
           )}
         </div>
-      </div>
-    </div>
+    </Sheet>
   )
 }
 

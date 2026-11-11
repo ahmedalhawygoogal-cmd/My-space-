@@ -41,8 +41,8 @@ export function InfoTooltip({ text }: { text: string }) {
         <Info size={16} />
       </button>
       {open ? (
-        <span className="info-tip-overlay modal-backdrop" onClick={() => setOpen(false)}>
-          <span className="info-tip-pop modal-panel" id={id} role="tooltip" onClick={(e) => e.stopPropagation()}>
+        <span className="info-tip-overlay" onClick={() => setOpen(false)}>
+          <span className="info-tip-pop" id={id} role="tooltip" onClick={(e) => e.stopPropagation()}>
             {text}
           </span>
         </span>
