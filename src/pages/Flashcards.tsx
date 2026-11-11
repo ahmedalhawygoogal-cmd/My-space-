@@ -196,34 +196,6 @@ function deckSwapped(deck?: Deck) {
   return !!deck?.swapped
 }
 
-function PlayRing({ due, total, onClick, label }: { due: number; total: number; onClick: () => void; label: string }) {
-  const r = 18
-  const c = 2 * Math.PI * r
-  const v = total ? Math.max(0, Math.min(100, ((total - due) / total) * 100)) : 0
-  return (
-    <button className="fc-play" type="button" onClick={onClick} aria-label={label}>
-      <svg width="52" height="52" viewBox="0 0 52 52">
-        <circle cx="26" cy="26" r={r} fill="none" stroke="var(--bg-muted)" strokeWidth="4" />
-        <circle
-          cx="26"
-          cy="26"
-          r={r}
-          fill="none"
-          stroke="var(--brand)"
-          strokeWidth="4"
-          strokeLinecap="round"
-          strokeDasharray={`${(v / 100) * c} ${c}`}
-          transform="rotate(-90 26 26)"
-        />
-      </svg>
-      <span className="fc-play-icon">
-        <Play size={16} fill="currentColor" />
-      </span>
-      {due > 0 ? <span className="fc-play-dot" /> : null}
-    </button>
-  )
-}
-
 function SessionDone({ deckId }: { deckId: string }) {
   const tr = useT()
   const nav = useNavigate()
@@ -340,7 +312,7 @@ export default function FlashcardsPage() {
   return (
     <PageLayout icon={Layers}>
     <div className="stack">
-      <h1 className="page-title">{tr('flashcards')}</h1>
+      <h1 className="text-3xl font-bold text-foreground relative z-10 mt-4 mb-6 px-4">{tr('flashcards')}</h1>
       <input className="field" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('searchPlaceholder')} />
       {shown.length === 0 ? (
         <Empty
@@ -356,7 +328,6 @@ export default function FlashcardsPage() {
       ) : (
         shown.map((d) => {
           const dc = cards.filter((c) => c.deckId === d.id)
-          const due = dc.filter((c) => (c.nextReviewDate || c.dueAt) <= Date.now()).length
           return (
             <div key={d.id} className="card fc-deck">
               <button className="fc-deck-body" type="button" onClick={() => nav(`/cards/${d.id}`)}>
@@ -368,7 +339,14 @@ export default function FlashcardsPage() {
                   </div>
                 </div>
               </button>
-              <PlayRing due={due} total={dc.length} label={tr('playDeck')} onClick={() => tryPlay(d)} />
+              <button
+                className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-primary to-cyan-500 shadow-lg text-white hover:scale-105 transition-transform"
+                type="button"
+                aria-label={tr('playDeck')}
+                onClick={() => tryPlay(d)}
+              >
+                <Play size={20} className="ml-1" fill="currentColor" />
+              </button>
             </div>
           )
         })

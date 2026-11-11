@@ -94,7 +94,7 @@ export default function TasksPage() {
   return (
     <PageLayout icon={CheckSquare}>
     <div className="stack">
-      <h1 className="page-title">{tr('tasks')}</h1>
+      <h1 className="text-3xl font-bold text-foreground relative z-10 mt-4 mb-6 px-4">{tr('tasks')}</h1>
       <Segment
         value={view}
         onChange={(v) => setView(v as View)}
