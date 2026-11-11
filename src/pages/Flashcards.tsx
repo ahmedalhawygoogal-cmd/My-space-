@@ -196,28 +196,11 @@ function deckSwapped(deck?: Deck) {
   return !!deck?.swapped
 }
 
-function PlayRing({ due, total, onClick, label }: { due: number; total: number; onClick: () => void; label: string }) {
-  const r = 18
-  const c = 2 * Math.PI * r
-  const v = total ? Math.max(0, Math.min(100, ((total - due) / total) * 100)) : 0
+function PlayRing({ due, onClick, label }: { due: number; total: number; onClick: () => void; label: string }) {
   return (
     <button className="fc-play" type="button" onClick={onClick} aria-label={label}>
-      <svg width="52" height="52" viewBox="0 0 52 52">
-        <circle cx="26" cy="26" r={r} fill="none" stroke="var(--bg-muted)" strokeWidth="4" />
-        <circle
-          cx="26"
-          cy="26"
-          r={r}
-          fill="none"
-          stroke="var(--brand)"
-          strokeWidth="4"
-          strokeLinecap="round"
-          strokeDasharray={`${(v / 100) * c} ${c}`}
-          transform="rotate(-90 26 26)"
-        />
-      </svg>
       <span className="fc-play-icon">
-        <Play size={16} fill="currentColor" />
+        <Play size={20} fill="currentColor" />
       </span>
       {due > 0 ? <span className="fc-play-dot" /> : null}
     </button>
