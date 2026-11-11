@@ -76,7 +76,7 @@ export default function HomePage() {
           <Play size={18} />
         </button>
 
-        <div className="home-stats">
+        <div className="home-stats grid grid-cols-4 gap-2 w-full">
           <div className="stat home-fill">
             <b>{recordings.length}</b>
             <span>{tr('recordings')}</span>

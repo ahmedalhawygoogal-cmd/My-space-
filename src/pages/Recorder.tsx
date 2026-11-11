@@ -264,11 +264,6 @@ export default function RecorderPage() {
   return (
     <PageLayout icon={Mic}>
     <div className="stack rec-list">
-      <div className="spread">
-        <button className="chip" type="button" onClick={() => nav('/')}>
-          {tr('back')}
-        </button>
-      </div>
       <h1 className="page-title">{tr('recorder')}</h1>
       <input className="field" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('search')} />
       <div className="chip-row">
