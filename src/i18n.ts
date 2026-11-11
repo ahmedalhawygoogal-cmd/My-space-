@@ -423,6 +423,8 @@ const ar = {
   reminders: 'التذكيرات',
   taskReminders: 'تذكير المهام',
   habitReminders: 'تذكير العادات',
+  habits: 'عاداتي',
+  comingSoon: 'قريباً',
 }
 
 const en: Record<keyof typeof ar, string> = {
@@ -848,6 +850,8 @@ const en: Record<keyof typeof ar, string> = {
   reminders: 'Reminders',
   taskReminders: 'Task reminders',
   habitReminders: 'Habit reminders',
+  habits: 'Habits',
+  comingSoon: 'Coming soon',
 }
 
 const fr: Record<keyof typeof ar, string> = {
@@ -1273,6 +1277,8 @@ const fr: Record<keyof typeof ar, string> = {
   reminders: 'Reminders',
   taskReminders: 'Task reminders',
   habitReminders: 'Habit reminders',
+  habits: 'Habits',
+  comingSoon: 'Coming soon',
 }
 
 const de: Record<keyof typeof ar, string> = {
@@ -1698,6 +1704,8 @@ const de: Record<keyof typeof ar, string> = {
   reminders: 'Reminders',
   taskReminders: 'Task reminders',
   habitReminders: 'Habit reminders',
+  habits: 'Habits',
+  comingSoon: 'Coming soon',
 }
 
 const es: Record<keyof typeof ar, string> = {
@@ -2123,6 +2131,8 @@ const es: Record<keyof typeof ar, string> = {
   reminders: 'Reminders',
   taskReminders: 'Task reminders',
   habitReminders: 'Habit reminders',
+  habits: 'Habits',
+  comingSoon: 'Coming soon',
 }
 
 const tr: Record<keyof typeof ar, string> = {
@@ -2548,6 +2558,8 @@ const tr: Record<keyof typeof ar, string> = {
   reminders: 'Reminders',
   taskReminders: 'Task reminders',
   habitReminders: 'Habit reminders',
+  habits: 'Habits',
+  comingSoon: 'Coming soon',
 }
 
 const it: Record<keyof typeof ar, string> = {
@@ -2973,6 +2985,8 @@ const it: Record<keyof typeof ar, string> = {
   reminders: 'Reminders',
   taskReminders: 'Task reminders',
   habitReminders: 'Habit reminders',
+  habits: 'Habits',
+  comingSoon: 'Coming soon',
 }
 
 const ru: Record<keyof typeof ar, string> = {
@@ -3398,6 +3412,8 @@ const ru: Record<keyof typeof ar, string> = {
   reminders: 'Reminders',
   taskReminders: 'Task reminders',
   habitReminders: 'Habit reminders',
+  habits: 'Habits',
+  comingSoon: 'Coming soon',
 }
 
 const zh: Record<keyof typeof ar, string> = {
@@ -3823,6 +3839,8 @@ const zh: Record<keyof typeof ar, string> = {
   reminders: 'Reminders',
   taskReminders: 'Task reminders',
   habitReminders: 'Habit reminders',
+  habits: 'Habits',
+  comingSoon: 'Coming soon',
 }
 
 const ja: Record<keyof typeof ar, string> = {
@@ -4248,6 +4266,8 @@ const ja: Record<keyof typeof ar, string> = {
   reminders: 'Reminders',
   taskReminders: 'Task reminders',
   habitReminders: 'Habit reminders',
+  habits: 'Habits',
+  comingSoon: 'Coming soon',
 }
 
 const ko: Record<keyof typeof ar, string> = {
@@ -4673,6 +4693,8 @@ const ko: Record<keyof typeof ar, string> = {
   reminders: 'Reminders',
   taskReminders: 'Task reminders',
   habitReminders: 'Habit reminders',
+  habits: 'Habits',
+  comingSoon: 'Coming soon',
 }
 
 const pt: Record<keyof typeof ar, string> = {
@@ -5098,6 +5120,8 @@ const pt: Record<keyof typeof ar, string> = {
   reminders: 'Reminders',
   taskReminders: 'Task reminders',
   habitReminders: 'Habit reminders',
+  habits: 'Habits',
+  comingSoon: 'Coming soon',
 }
 
 const hi: Record<keyof typeof ar, string> = {
@@ -5523,6 +5547,8 @@ const hi: Record<keyof typeof ar, string> = {
   reminders: 'Reminders',
   taskReminders: 'Task reminders',
   habitReminders: 'Habit reminders',
+  habits: 'Habits',
+  comingSoon: 'Coming soon',
 }
 
 const ur: Record<keyof typeof ar, string> = {
@@ -5948,6 +5974,8 @@ const ur: Record<keyof typeof ar, string> = {
   reminders: 'Reminders',
   taskReminders: 'Task reminders',
   habitReminders: 'Habit reminders',
+  habits: 'Habits',
+  comingSoon: 'Coming soon',
 }
 
 const fa: Record<keyof typeof ar, string> = {
@@ -6373,6 +6401,8 @@ const fa: Record<keyof typeof ar, string> = {
   reminders: 'Reminders',
   taskReminders: 'Task reminders',
   habitReminders: 'Habit reminders',
+  habits: 'Habits',
+  comingSoon: 'Coming soon',
 }
 
 const nl: Record<keyof typeof ar, string> = {
@@ -6798,6 +6828,8 @@ const nl: Record<keyof typeof ar, string> = {
   reminders: 'Reminders',
   taskReminders: 'Task reminders',
   habitReminders: 'Habit reminders',
+  habits: 'Habits',
+  comingSoon: 'Coming soon',
 }
 
 const pl: Record<keyof typeof ar, string> = {
@@ -7223,6 +7255,8 @@ const pl: Record<keyof typeof ar, string> = {
   reminders: 'Reminders',
   taskReminders: 'Task reminders',
   habitReminders: 'Habit reminders',
+  habits: 'Habits',
+  comingSoon: 'Coming soon',
 }
 
 const id: Record<keyof typeof ar, string> = {
@@ -7648,6 +7682,8 @@ const id: Record<keyof typeof ar, string> = {
   reminders: 'Reminders',
   taskReminders: 'Task reminders',
   habitReminders: 'Habit reminders',
+  habits: 'Habits',
+  comingSoon: 'Coming soon',
 }
 
 export type I18nKey = keyof typeof ar
