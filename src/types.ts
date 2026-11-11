@@ -209,6 +209,26 @@ export interface Task {
   completedAt?: number
 }
 
+export type HabitIconId = 'dumbbell' | 'book' | 'droplet' | 'brain' | 'heart' | 'moon'
+export type HabitTarget = 'daily'
+
+export interface Habit {
+  id: string
+  name: string
+  icon: HabitIconId
+  color: string
+  target: HabitTarget
+  createdAt: number
+  updatedAt: number
+}
+
+export interface HabitLog {
+  id: string
+  habitId: string
+  date: string
+  createdAt: number
+}
+
 export interface Notebook {
   id: string
   name: string

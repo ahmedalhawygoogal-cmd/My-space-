@@ -14,7 +14,7 @@ import type {
 import { DEFAULT_SETTINGS } from './types'
 
 const DB_NAME = 'myspace-db'
-const DB_VERSION = 4
+const DB_VERSION = 5
 
 export const STORES = {
   subjects: 'subjects',
@@ -33,6 +33,8 @@ export const STORES = {
   downloadBlobs: 'downloadBlobs',
   customQuotes: 'customQuotes',
   favoriteQuoteIds: 'favoriteQuoteIds',
+  habits: 'habits',
+  habitLogs: 'habitLogs',
 } as const
 
 let dbPromise: Promise<IDBDatabase> | null = null

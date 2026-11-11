@@ -426,6 +426,19 @@ const ar = {
   hideWidget: 'إخفاء',
   showWidget: 'إظهار',
   layoutComingSoon: 'قريباً',
+  habits: 'عاداتي',
+  habitsSubtitle: 'تتبع عاداتك اليومية',
+  addHabit: 'إضافة عادة',
+  habitName: 'اسم العادة',
+  habitIcon: 'الأيقونة',
+  noHabits: 'لا توجد عادات بعد',
+  dowSun: 'الأحد',
+  dowMon: 'الاثنين',
+  dowTue: 'الثلاثاء',
+  dowWed: 'الأربعاء',
+  dowThu: 'الخميس',
+  dowFri: 'الجمعة',
+  dowSat: 'السبت',
 }
 
 const en: Record<keyof typeof ar, string> = {
@@ -854,6 +867,19 @@ const en: Record<keyof typeof ar, string> = {
   hideWidget: 'Hide',
   showWidget: 'Show',
   layoutComingSoon: 'Coming soon',
+  habits: 'Habits',
+  habitsSubtitle: 'Track your daily habits',
+  addHabit: 'Add habit',
+  habitName: 'Habit name',
+  habitIcon: 'Icon',
+  noHabits: 'No habits yet',
+  dowSun: 'Sun',
+  dowMon: 'Mon',
+  dowTue: 'Tue',
+  dowWed: 'Wed',
+  dowThu: 'Thu',
+  dowFri: 'Fri',
+  dowSat: 'Sat',
 }
 
 const fr: Record<keyof typeof ar, string> = {
@@ -1282,6 +1308,19 @@ const fr: Record<keyof typeof ar, string> = {
   hideWidget: 'Hide',
   showWidget: 'Show',
   layoutComingSoon: 'Coming soon',
+  habits: 'Habits',
+  habitsSubtitle: 'Track your daily habits',
+  addHabit: 'Add habit',
+  habitName: 'Habit name',
+  habitIcon: 'Icon',
+  noHabits: 'No habits yet',
+  dowSun: 'Sun',
+  dowMon: 'Mon',
+  dowTue: 'Tue',
+  dowWed: 'Wed',
+  dowThu: 'Thu',
+  dowFri: 'Fri',
+  dowSat: 'Sat',
 }
 
 const de: Record<keyof typeof ar, string> = {
@@ -1710,6 +1749,19 @@ const de: Record<keyof typeof ar, string> = {
   hideWidget: 'Hide',
   showWidget: 'Show',
   layoutComingSoon: 'Coming soon',
+  habits: 'Habits',
+  habitsSubtitle: 'Track your daily habits',
+  addHabit: 'Add habit',
+  habitName: 'Habit name',
+  habitIcon: 'Icon',
+  noHabits: 'No habits yet',
+  dowSun: 'Sun',
+  dowMon: 'Mon',
+  dowTue: 'Tue',
+  dowWed: 'Wed',
+  dowThu: 'Thu',
+  dowFri: 'Fri',
+  dowSat: 'Sat',
 }
 
 const es: Record<keyof typeof ar, string> = {
@@ -2138,6 +2190,19 @@ const es: Record<keyof typeof ar, string> = {
   hideWidget: 'Hide',
   showWidget: 'Show',
   layoutComingSoon: 'Coming soon',
+  habits: 'Habits',
+  habitsSubtitle: 'Track your daily habits',
+  addHabit: 'Add habit',
+  habitName: 'Habit name',
+  habitIcon: 'Icon',
+  noHabits: 'No habits yet',
+  dowSun: 'Sun',
+  dowMon: 'Mon',
+  dowTue: 'Tue',
+  dowWed: 'Wed',
+  dowThu: 'Thu',
+  dowFri: 'Fri',
+  dowSat: 'Sat',
 }
 
 const tr: Record<keyof typeof ar, string> = {
@@ -2566,6 +2631,19 @@ const tr: Record<keyof typeof ar, string> = {
   hideWidget: 'Hide',
   showWidget: 'Show',
   layoutComingSoon: 'Coming soon',
+  habits: 'Habits',
+  habitsSubtitle: 'Track your daily habits',
+  addHabit: 'Add habit',
+  habitName: 'Habit name',
+  habitIcon: 'Icon',
+  noHabits: 'No habits yet',
+  dowSun: 'Sun',
+  dowMon: 'Mon',
+  dowTue: 'Tue',
+  dowWed: 'Wed',
+  dowThu: 'Thu',
+  dowFri: 'Fri',
+  dowSat: 'Sat',
 }
 
 const it: Record<keyof typeof ar, string> = {
@@ -2994,6 +3072,19 @@ const it: Record<keyof typeof ar, string> = {
   hideWidget: 'Hide',
   showWidget: 'Show',
   layoutComingSoon: 'Coming soon',
+  habits: 'Habits',
+  habitsSubtitle: 'Track your daily habits',
+  addHabit: 'Add habit',
+  habitName: 'Habit name',
+  habitIcon: 'Icon',
+  noHabits: 'No habits yet',
+  dowSun: 'Sun',
+  dowMon: 'Mon',
+  dowTue: 'Tue',
+  dowWed: 'Wed',
+  dowThu: 'Thu',
+  dowFri: 'Fri',
+  dowSat: 'Sat',
 }
 
 const ru: Record<keyof typeof ar, string> = {
@@ -3422,6 +3513,19 @@ const ru: Record<keyof typeof ar, string> = {
   hideWidget: 'Hide',
   showWidget: 'Show',
   layoutComingSoon: 'Coming soon',
+  habits: 'Habits',
+  habitsSubtitle: 'Track your daily habits',
+  addHabit: 'Add habit',
+  habitName: 'Habit name',
+  habitIcon: 'Icon',
+  noHabits: 'No habits yet',
+  dowSun: 'Sun',
+  dowMon: 'Mon',
+  dowTue: 'Tue',
+  dowWed: 'Wed',
+  dowThu: 'Thu',
+  dowFri: 'Fri',
+  dowSat: 'Sat',
 }
 
 const zh: Record<keyof typeof ar, string> = {
@@ -3850,6 +3954,19 @@ const zh: Record<keyof typeof ar, string> = {
   hideWidget: 'Hide',
   showWidget: 'Show',
   layoutComingSoon: 'Coming soon',
+  habits: 'Habits',
+  habitsSubtitle: 'Track your daily habits',
+  addHabit: 'Add habit',
+  habitName: 'Habit name',
+  habitIcon: 'Icon',
+  noHabits: 'No habits yet',
+  dowSun: 'Sun',
+  dowMon: 'Mon',
+  dowTue: 'Tue',
+  dowWed: 'Wed',
+  dowThu: 'Thu',
+  dowFri: 'Fri',
+  dowSat: 'Sat',
 }
 
 const ja: Record<keyof typeof ar, string> = {
@@ -4278,6 +4395,19 @@ const ja: Record<keyof typeof ar, string> = {
   hideWidget: 'Hide',
   showWidget: 'Show',
   layoutComingSoon: 'Coming soon',
+  habits: 'Habits',
+  habitsSubtitle: 'Track your daily habits',
+  addHabit: 'Add habit',
+  habitName: 'Habit name',
+  habitIcon: 'Icon',
+  noHabits: 'No habits yet',
+  dowSun: 'Sun',
+  dowMon: 'Mon',
+  dowTue: 'Tue',
+  dowWed: 'Wed',
+  dowThu: 'Thu',
+  dowFri: 'Fri',
+  dowSat: 'Sat',
 }
 
 const ko: Record<keyof typeof ar, string> = {
@@ -4706,6 +4836,19 @@ const ko: Record<keyof typeof ar, string> = {
   hideWidget: 'Hide',
   showWidget: 'Show',
   layoutComingSoon: 'Coming soon',
+  habits: 'Habits',
+  habitsSubtitle: 'Track your daily habits',
+  addHabit: 'Add habit',
+  habitName: 'Habit name',
+  habitIcon: 'Icon',
+  noHabits: 'No habits yet',
+  dowSun: 'Sun',
+  dowMon: 'Mon',
+  dowTue: 'Tue',
+  dowWed: 'Wed',
+  dowThu: 'Thu',
+  dowFri: 'Fri',
+  dowSat: 'Sat',
 }
 
 const pt: Record<keyof typeof ar, string> = {
@@ -5134,6 +5277,19 @@ const pt: Record<keyof typeof ar, string> = {
   hideWidget: 'Hide',
   showWidget: 'Show',
   layoutComingSoon: 'Coming soon',
+  habits: 'Habits',
+  habitsSubtitle: 'Track your daily habits',
+  addHabit: 'Add habit',
+  habitName: 'Habit name',
+  habitIcon: 'Icon',
+  noHabits: 'No habits yet',
+  dowSun: 'Sun',
+  dowMon: 'Mon',
+  dowTue: 'Tue',
+  dowWed: 'Wed',
+  dowThu: 'Thu',
+  dowFri: 'Fri',
+  dowSat: 'Sat',
 }
 
 const hi: Record<keyof typeof ar, string> = {
@@ -5562,6 +5718,19 @@ const hi: Record<keyof typeof ar, string> = {
   hideWidget: 'Hide',
   showWidget: 'Show',
   layoutComingSoon: 'Coming soon',
+  habits: 'Habits',
+  habitsSubtitle: 'Track your daily habits',
+  addHabit: 'Add habit',
+  habitName: 'Habit name',
+  habitIcon: 'Icon',
+  noHabits: 'No habits yet',
+  dowSun: 'Sun',
+  dowMon: 'Mon',
+  dowTue: 'Tue',
+  dowWed: 'Wed',
+  dowThu: 'Thu',
+  dowFri: 'Fri',
+  dowSat: 'Sat',
 }
 
 const ur: Record<keyof typeof ar, string> = {
@@ -5990,6 +6159,19 @@ const ur: Record<keyof typeof ar, string> = {
   hideWidget: 'Hide',
   showWidget: 'Show',
   layoutComingSoon: 'Coming soon',
+  habits: 'Habits',
+  habitsSubtitle: 'Track your daily habits',
+  addHabit: 'Add habit',
+  habitName: 'Habit name',
+  habitIcon: 'Icon',
+  noHabits: 'No habits yet',
+  dowSun: 'Sun',
+  dowMon: 'Mon',
+  dowTue: 'Tue',
+  dowWed: 'Wed',
+  dowThu: 'Thu',
+  dowFri: 'Fri',
+  dowSat: 'Sat',
 }
 
 const fa: Record<keyof typeof ar, string> = {
@@ -6418,6 +6600,19 @@ const fa: Record<keyof typeof ar, string> = {
   hideWidget: 'Hide',
   showWidget: 'Show',
   layoutComingSoon: 'Coming soon',
+  habits: 'Habits',
+  habitsSubtitle: 'Track your daily habits',
+  addHabit: 'Add habit',
+  habitName: 'Habit name',
+  habitIcon: 'Icon',
+  noHabits: 'No habits yet',
+  dowSun: 'Sun',
+  dowMon: 'Mon',
+  dowTue: 'Tue',
+  dowWed: 'Wed',
+  dowThu: 'Thu',
+  dowFri: 'Fri',
+  dowSat: 'Sat',
 }
 
 const nl: Record<keyof typeof ar, string> = {
@@ -6846,6 +7041,19 @@ const nl: Record<keyof typeof ar, string> = {
   hideWidget: 'Hide',
   showWidget: 'Show',
   layoutComingSoon: 'Coming soon',
+  habits: 'Habits',
+  habitsSubtitle: 'Track your daily habits',
+  addHabit: 'Add habit',
+  habitName: 'Habit name',
+  habitIcon: 'Icon',
+  noHabits: 'No habits yet',
+  dowSun: 'Sun',
+  dowMon: 'Mon',
+  dowTue: 'Tue',
+  dowWed: 'Wed',
+  dowThu: 'Thu',
+  dowFri: 'Fri',
+  dowSat: 'Sat',
 }
 
 const pl: Record<keyof typeof ar, string> = {
@@ -7274,6 +7482,19 @@ const pl: Record<keyof typeof ar, string> = {
   hideWidget: 'Hide',
   showWidget: 'Show',
   layoutComingSoon: 'Coming soon',
+  habits: 'Habits',
+  habitsSubtitle: 'Track your daily habits',
+  addHabit: 'Add habit',
+  habitName: 'Habit name',
+  habitIcon: 'Icon',
+  noHabits: 'No habits yet',
+  dowSun: 'Sun',
+  dowMon: 'Mon',
+  dowTue: 'Tue',
+  dowWed: 'Wed',
+  dowThu: 'Thu',
+  dowFri: 'Fri',
+  dowSat: 'Sat',
 }
 
 const id: Record<keyof typeof ar, string> = {
@@ -7702,6 +7923,19 @@ const id: Record<keyof typeof ar, string> = {
   hideWidget: 'Hide',
   showWidget: 'Show',
   layoutComingSoon: 'Coming soon',
+  habits: 'Habits',
+  habitsSubtitle: 'Track your daily habits',
+  addHabit: 'Add habit',
+  habitName: 'Habit name',
+  habitIcon: 'Icon',
+  noHabits: 'No habits yet',
+  dowSun: 'Sun',
+  dowMon: 'Mon',
+  dowTue: 'Tue',
+  dowWed: 'Wed',
+  dowThu: 'Thu',
+  dowFri: 'Fri',
+  dowSat: 'Sat',
 }
 
 export type I18nKey = keyof typeof ar

@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { BookOpen, CheckSquare, Home, Layers, Mic, Search, Settings, Sparkles } from 'lucide-react'
+import { BookOpen, CheckSquare, Home, Layers, Mic, Repeat, Search, Settings, Sparkles } from 'lucide-react'
 import { Sheet, useT } from './ui'
 
 export function Layout() {
@@ -57,6 +57,24 @@ export function Layout() {
               <b>{tr('motivateMe')}</b>
               <div className="muted" style={{ fontSize: 12 }}>
                 {tr('motivateSubtitle')}
+              </div>
+            </div>
+          </button>
+          <button
+            className="card pressable discover-tile"
+            type="button"
+            onClick={() => {
+              setDiscoverOpen(false)
+              nav('/habits')
+            }}
+          >
+            <div className="discover-tile-icon">
+              <Repeat size={20} />
+            </div>
+            <div className="grow">
+              <b>{tr('habits')}</b>
+              <div className="muted" style={{ fontSize: 12 }}>
+                {tr('habitsSubtitle')}
               </div>
             </div>
           </button>

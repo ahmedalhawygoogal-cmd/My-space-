@@ -1173,6 +1173,99 @@ img { max-width: 100%; }
 .font-bold { font-weight: 700; }
 .opacity-50 { opacity: 0.5; }
 .pointer-events-none { pointer-events: none; }
+.habit-week-head,
+.habit-row {
+  display: grid;
+  grid-template-columns: minmax(88px, 1.4fr) repeat(7, minmax(28px, 1fr));
+  align-items: center;
+  gap: 6px;
+}
+.habit-week-head {
+  padding: 0 4px 8px;
+}
+.habit-name-col {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.habit-day-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  color: var(--ink-soft);
+  line-height: 1.15;
+}
+.habit-day-label b {
+  font-size: 13px;
+  color: var(--ink);
+}
+.habit-day-label.is-today b,
+.habit-day-label.is-today span {
+  color: var(--primary-color);
+}
+.habit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.habit-row {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px 8px;
+}
+.habit-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+.habit-title {
+  font-weight: 700;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.habit-cell {
+  width: 28px;
+  height: 28px;
+  margin: 0 auto;
+  border-radius: 999px;
+  border: 2px solid var(--line);
+  background: transparent;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  padding: 0;
+}
+.habit-cell.is-today:not(.done) {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 28%, transparent);
+}
+.habit-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-top: 6px;
+}
+.habit-icon-pick {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  border: 1.5px solid var(--line);
+  background: var(--bg-muted);
+  display: grid;
+  place-items: center;
+}
+.habit-icon-pick.on {
+  background: color-mix(in srgb, var(--primary-color) 16%, var(--bg-elev));
+}
 .lang-pick-btn {
   display: flex;
   flex-direction: column;

@@ -38,6 +38,7 @@ import { migrateLocalDataToCloud } from './lib/migrateLocal'
 import { saveProfile, syncProfileFromCloud } from './lib/profileSync'
 import { pushRecordingToCloud, removeRemoteRecording, syncRecordingsFromCloud, upsertRemoteRecording } from './lib/recordingSync'
 import { removeRemoteTask, syncTasksFromCloud, upsertRemoteTask } from './lib/taskSync'
+import { syncHabitsFromCloud } from './lib/habitSync'
 
 interface StoreState {
   ready: boolean
@@ -362,6 +363,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         syncDecksFromCloud(),
         syncRecordingsFromCloud(),
         syncTasksFromCloud(),
+        syncHabitsFromCloud(),
       ])
       await syncCardsFromCloud()
     }
