@@ -63,6 +63,7 @@ button { cursor: pointer; }
 img { max-width: 100%; }
 
 .app-shell {
+  position: relative;
   height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -72,8 +73,26 @@ img { max-width: 100%; }
     radial-gradient(720px 280px at -8% 8%, color-mix(in srgb, var(--primary-color) 16%, transparent), transparent 48%),
     var(--bg);
 }
+.page-watermark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 0;
+  color: var(--primary-color);
+  opacity: 0.03;
+  overflow: hidden;
+}
+.page-watermark svg {
+  width: 250px;
+  height: 250px;
+  transform: translateY(-12px);
+}
 
 .topbar {
+  position: relative;
+  z-index: 2;
   height: calc(var(--top-h) + var(--safe-t));
   padding: var(--safe-t) 16px 0;
   display: flex;
@@ -117,6 +136,7 @@ img { max-width: 100%; }
   box-shadow: var(--glow);
   backdrop-filter: blur(14px);
 }
+.icon-btn { transition: transform 0.12s ease, box-shadow 0.2s ease; }
 .icon-btn:active { transform: scale(0.96); }
 .icon-btn.discover-pulse {
   border-radius: 50%;
@@ -171,6 +191,8 @@ img { max-width: 100%; }
 }
 
 .main {
+  position: relative;
+  z-index: 1;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -327,6 +349,8 @@ img { max-width: 100%; }
 .btn.danger { background: var(--danger); color: #fff; }
 .btn.accent { background: var(--primary-color); color: var(--brand-ink); }
 .btn.block { width: 100%; }
+.btn { transition: transform 0.12s ease, box-shadow 0.2s ease; }
+.btn:active { transform: scale(0.97); }
 .btn:disabled { opacity: 0.5; }
 .spin {
   animation: spin 0.8s linear infinite;

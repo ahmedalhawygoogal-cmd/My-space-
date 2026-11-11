@@ -16,7 +16,7 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: 'Stay hungry, stay foolish.',
       ar: 'ابقَ جائعاً، ابقَ أحمقاً.',
     },
-    imageUrl: '/images/steve_jobs.jpg',
+    imageUrl: '/images/steve_jobs.webp',
   },
   {
     id: 'dq-thomas-edison',
@@ -33,7 +33,7 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: "I have not failed. I've just found 10,000 ways that won't work.",
       ar: 'لم أفشل. لقد وجدت 10,000 طريقة لا تعمل.',
     },
-    imageUrl: '/images/thomas_edison.jpg',
+    imageUrl: '/images/thomas_edison.webp',
   },
   {
     id: 'dq-nelson-mandela',
@@ -50,7 +50,7 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: "It always seems impossible until it's done.",
       ar: 'يبدو الأمر مستحيلاً دائماً حتى يتحقق.',
     },
-    imageUrl: '/images/nelson_mandela.jpg',
+    imageUrl: '/images/nelson_mandela.webp',
   },
   {
     id: 'dq-ibn-sina',
@@ -67,7 +67,7 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: 'The knowledge of anything, since all things have causes, is not acquired or complete unless it is known by its causes.',
       ar: 'معرفة أي شيء، ما دامت لكل الأشياء أسباب، لا تكتمل إلا بمعرفة تلك الأسباب.',
     },
-    imageUrl: '/images/ibn_sina.jpg',
+    imageUrl: '/images/ibn_sina.webp',
   },
   {
     id: 'dq-mohamed-salah',
@@ -84,7 +84,7 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: 'I always believe in myself and work hard.',
       ar: 'أؤمن بنفسي دائماً وأعمل بجد.',
     },
-    imageUrl: '/images/mohamed_salah.jpg',
+    imageUrl: '/images/mohamed_salah.webp',
   },
   {
     id: 'dq-elon-musk',
@@ -101,7 +101,7 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: 'When something is important enough, you do it even if the odds are not in your favor.',
       ar: 'عندما يكون أمر ما مهماً بما يكفي، فإنك تفعله حتى لو لم تكن الاحتمالات في صالحك.',
     },
-    imageUrl: '/images/elon_musk.jpg',
+    imageUrl: '/images/elon_musk.webp',
   },
   {
     id: 'dq-albert-einstein',
@@ -118,7 +118,7 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: 'Imagination is more important than knowledge.',
       ar: 'الخيال أهم من المعرفة.',
     },
-    imageUrl: '/images/einstein.jpg',
+    imageUrl: '/images/einstein.webp',
   },
   {
     id: 'dq-marie-curie',
@@ -135,7 +135,7 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: 'Nothing in life is to be feared, it is only to be understood.',
       ar: 'لا شيء في الحياة يُخاف منه، إنما يُفهم فقط.',
     },
-    imageUrl: '/images/marie_curie.jpg',
+    imageUrl: '/images/marie_curie.webp',
   },
   {
     id: 'dq-khalid-ibn-al-walid',
@@ -152,7 +152,7 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: 'If you are truthful, you will not care who stands with you or against you.',
       ar: 'إن كنت صادقاً فلن يهمك من معك ومن عليك.',
     },
-    imageUrl: '/images/khalid_ibn_al_walid.jpg',
+    imageUrl: '/images/khalid_ibn_al_walid.webp',
   },
   {
     id: 'dq-al-khwarizmi',
@@ -169,6 +169,6 @@ export const DEFAULT_QUOTES: QuoteCharacter[] = [
       en: 'That which is required is that we find the unknown.',
       ar: 'المطلوب هو أن نجد المجهول.',
     },
-    imageUrl: '/images/al_khwarizmi.jpg',
+    imageUrl: '/images/al_khwarizmi.webp',
   },
 ]

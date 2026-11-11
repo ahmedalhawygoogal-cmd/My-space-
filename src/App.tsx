@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { Layout, Splash } from './layout'
 import { StoreProvider, useStore } from './store'
@@ -6,26 +6,31 @@ import { AuthProvider, useAuth } from './auth'
 import { supabase } from './lib/supabase'
 import { fetchProfile } from './lib/profileSync'
 import HomePage from './pages/Home'
-import RecorderPage, { LiveRecordPage, RecordingDetailPage } from './pages/Recorder'
-import FlashcardsPage, {
-  ChoiceGamePage,
-  DeckPage,
-  ListenGamePage,
-  MatchGamePage,
-  StudyPage,
-  TestPage,
-  WriteGamePage,
-} from './pages/Flashcards'
-import TasksPage, { TaskDetailPage } from './pages/Tasks'
-import NotebookPage, { NoteEditorPage, NoteReadPage } from './pages/Notebook'
-import SearchPage from './pages/Search'
-import SettingsPage from './pages/Settings'
-import DownloadsPage from './pages/Downloads'
 import OnboardingPage from './pages/Onboarding'
-import MotivateMePage from './pages/MotivateMe'
 import AuthPage from './pages/Auth'
 import { getNative } from './native'
 import { t } from './i18n'
+
+const RecorderPage = lazy(() => import('./pages/Recorder'))
+const LiveRecordPage = lazy(() => import('./pages/Recorder').then((m) => ({ default: m.LiveRecordPage })))
+const RecordingDetailPage = lazy(() => import('./pages/Recorder').then((m) => ({ default: m.RecordingDetailPage })))
+const FlashcardsPage = lazy(() => import('./pages/Flashcards'))
+const DeckPage = lazy(() => import('./pages/Flashcards').then((m) => ({ default: m.DeckPage })))
+const StudyPage = lazy(() => import('./pages/Flashcards').then((m) => ({ default: m.StudyPage })))
+const TestPage = lazy(() => import('./pages/Flashcards').then((m) => ({ default: m.TestPage })))
+const ChoiceGamePage = lazy(() => import('./pages/Flashcards').then((m) => ({ default: m.ChoiceGamePage })))
+const MatchGamePage = lazy(() => import('./pages/Flashcards').then((m) => ({ default: m.MatchGamePage })))
+const WriteGamePage = lazy(() => import('./pages/Flashcards').then((m) => ({ default: m.WriteGamePage })))
+const ListenGamePage = lazy(() => import('./pages/Flashcards').then((m) => ({ default: m.ListenGamePage })))
+const TasksPage = lazy(() => import('./pages/Tasks'))
+const TaskDetailPage = lazy(() => import('./pages/Tasks').then((m) => ({ default: m.TaskDetailPage })))
+const NotebookPage = lazy(() => import('./pages/Notebook'))
+const NoteEditorPage = lazy(() => import('./pages/Notebook').then((m) => ({ default: m.NoteEditorPage })))
+const NoteReadPage = lazy(() => import('./pages/Notebook').then((m) => ({ default: m.NoteReadPage })))
+const SearchPage = lazy(() => import('./pages/Search'))
+const SettingsPage = lazy(() => import('./pages/Settings'))
+const DownloadsPage = lazy(() => import('./pages/Downloads'))
+const MotivateMePage = lazy(() => import('./pages/MotivateMe'))
 
 function NativeBack() {
   useEffect(() => {
@@ -128,33 +133,35 @@ function Gate() {
   if (loc.pathname === '/auth') return <Navigate to="/" replace />
   if (!(cloudOnboarded || settings.onboarded)) return <OnboardingPage />
   return (
-    <Routes>
-      <Route element={<Layout />}>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/record" element={<RecorderPage />} />
-        <Route path="/record/live" element={<LiveRecordPage />} />
-        <Route path="/record/:id" element={<RecordingDetailPage />} />
-        <Route path="/cards" element={<FlashcardsPage />} />
-        <Route path="/cards/:deckId" element={<DeckPage />} />
-        <Route path="/cards/:deckId/study" element={<StudyPage />} />
-        <Route path="/cards/:deckId/test" element={<TestPage />} />
-        <Route path="/cards/:deckId/game/choice" element={<ChoiceGamePage />} />
-        <Route path="/cards/:deckId/game/match" element={<MatchGamePage />} />
-        <Route path="/cards/:deckId/game/write" element={<WriteGamePage />} />
-        <Route path="/cards/:deckId/game/listen" element={<ListenGamePage />} />
-        <Route path="/tasks" element={<TasksPage />} />
-        <Route path="/tasks/:id" element={<TaskDetailPage />} />
-        <Route path="/notes" element={<NotebookPage />} />
-        <Route path="/notes/new" element={<NoteEditorPage />} />
-        <Route path="/notes/:id" element={<NoteReadPage />} />
-        <Route path="/notes/:id/edit" element={<NoteEditorPage />} />
-        <Route path="/search" element={<SearchPage />} />
-        <Route path="/motivate" element={<MotivateMePage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/downloads" element={<DownloadsPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Route>
-    </Routes>
+    <Suspense fallback={<Splash />}>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/record" element={<RecorderPage />} />
+          <Route path="/record/live" element={<LiveRecordPage />} />
+          <Route path="/record/:id" element={<RecordingDetailPage />} />
+          <Route path="/cards" element={<FlashcardsPage />} />
+          <Route path="/cards/:deckId" element={<DeckPage />} />
+          <Route path="/cards/:deckId/study" element={<StudyPage />} />
+          <Route path="/cards/:deckId/test" element={<TestPage />} />
+          <Route path="/cards/:deckId/game/choice" element={<ChoiceGamePage />} />
+          <Route path="/cards/:deckId/game/match" element={<MatchGamePage />} />
+          <Route path="/cards/:deckId/game/write" element={<WriteGamePage />} />
+          <Route path="/cards/:deckId/game/listen" element={<ListenGamePage />} />
+          <Route path="/tasks" element={<TasksPage />} />
+          <Route path="/tasks/:id" element={<TaskDetailPage />} />
+          <Route path="/notes" element={<NotebookPage />} />
+          <Route path="/notes/new" element={<NoteEditorPage />} />
+          <Route path="/notes/:id" element={<NoteReadPage />} />
+          <Route path="/notes/:id/edit" element={<NoteEditorPage />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/motivate" element={<MotivateMePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/downloads" element={<DownloadsPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </Suspense>
   )
 }
 

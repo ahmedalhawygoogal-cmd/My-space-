@@ -1,9 +1,20 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { BookOpen, CheckSquare, Home, Layers, Mic, Search, Settings, Sparkles } from 'lucide-react'
+import { Activity, BookOpen, CheckSquare, Home, Layers, Mic, Search, Settings, Sparkles, type LucideIcon } from 'lucide-react'
 import { BackBtn, Sheet, useT } from './ui'
 
 const ROOT_PATHS = new Set(['/', '/record', '/cards', '/tasks', '/notes', '/habits'])
+
+function watermarkIcon(path: string): LucideIcon | null {
+  if (path === '/') return Home
+  if (path.startsWith('/record')) return Mic
+  if (path.startsWith('/cards')) return Layers
+  if (path.startsWith('/tasks')) return CheckSquare
+  if (path.startsWith('/notes')) return BookOpen
+  if (path.startsWith('/habits')) return Activity
+  if (path.startsWith('/motivate')) return Sparkles
+  return null
+}
 
 export function Layout() {
   const tr = useT()
@@ -11,6 +22,7 @@ export function Layout() {
   const loc = useLocation()
   const [discoverOpen, setDiscoverOpen] = useState(false)
   const isRoot = ROOT_PATHS.has(loc.pathname)
+  const Mark = watermarkIcon(loc.pathname)
 
   return (
     <div className={`app-shell${isRoot ? '' : ' hide-chrome'}`}>
@@ -64,6 +76,11 @@ export function Layout() {
           </button>
         </div>
       </Sheet>
+      {Mark && (
+        <div className="page-watermark" aria-hidden="true">
+          <Mark size={250} strokeWidth={1.15} />
+        </div>
+      )}
       <main className="main">
         <Outlet />
       </main>
