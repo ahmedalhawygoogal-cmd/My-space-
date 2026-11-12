@@ -7,17 +7,17 @@ export const BACKGROUND_OPTIONS: Array<{ id: Exclude<BackgroundChoice, 'none'>; 
   {
     id: 'bg1',
     label: 'خلفية هادئة',
-    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/1794503636446-ssCymYQG3b516wom1ms49WpKUk2fxa.jpg',
+    image: '/backgrounds/bg1.jpg',
   },
   {
     id: 'bg2',
     label: 'خلفية هندسية',
-    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/e7b4b140-debd-11f1-a498-6da443c2f8c3-PVj6gKyX7Lb2ku80biomTnRfxV8X8q.png',
+    image: '/backgrounds/bg2.png',
   },
   {
     id: 'bg3',
     label: 'خلفية انسيابية',
-    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/951a25a0-debd-11f1-a498-6da443c2f8c3-v6FRdbkkD8RMH5INIjTcuuPSB7Nwhj.png',
+    image: '/backgrounds/bg3.png',
   },
 ]
 
@@ -68,7 +68,7 @@ export default function AppBackground() {
 
   return (
     <div className="app-background" aria-hidden="true">
-      <img className="app-background-image" src={selectedOption.image} alt="" />
+      <img key={selectedOption.id} className="app-background-image transition-opacity duration-500" src={selectedOption.image} alt="" />
       <div className="app-background-tint" />
       <div className="app-background-wash" />
     </div>

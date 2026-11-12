@@ -164,17 +164,29 @@ img { max-width: 100%; }
 }
 .app-background-image {
   object-fit: cover;
-  filter: blur(16px);
-  transform: scale(1.08);
+  opacity: 1;
+  filter: blur(4px);
+  transform: scale(1.03);
+  animation: background-image-fade-in 500ms ease both;
+}
+@keyframes background-image-fade-in {
+  from { opacity: 0.65; }
+  to { opacity: 1; }
 }
 .app-background-tint {
   background: var(--primary-color);
-  mix-blend-mode: color;
-  opacity: 0.4;
+  opacity: 0.18;
 }
 .app-background-wash {
-  background: color-mix(in srgb, var(--bg) 62%, transparent);
-  backdrop-filter: blur(3px);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg) 28%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 38%, transparent) 54%,
+    color-mix(in srgb, var(--bg) 58%, transparent) 100%
+  );
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-background-image { animation: none; }
 }
 :root[data-selected-background] .app-shell {
   z-index: 1;
@@ -461,7 +473,7 @@ img { max-width: 100%; }
 .label { font-size: 0.8rem; font-weight: 600; color: var(--ink-soft); margin-bottom: 6px; display: block; }
 .background-settings { display: flex; flex-direction: column; gap: 8px; }
 .background-picker-title { margin: 0; font-size: 1rem; font-weight: 700; }
-.background-picker { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.background-picker { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .background-option {
   min-width: 0;
   overflow: hidden;
@@ -479,9 +491,12 @@ img { max-width: 100%; }
 .background-none-swatch {
   display: block;
   width: 100%;
-  aspect-ratio: 1.6;
+  aspect-ratio: 0.52;
   border-radius: 11px;
   object-fit: cover;
+  object-position: center;
+  filter: none;
+  opacity: 1;
 }
 .background-option > span:last-child { padding: 0 4px 2px; font-size: 0.78rem; font-weight: 600; }
 .background-option.selected { border-color: var(--primary-color); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 28%, transparent); }
