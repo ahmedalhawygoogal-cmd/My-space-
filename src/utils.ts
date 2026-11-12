@@ -285,6 +285,7 @@ export function speakLocale(code: string): string {
 
 let speakHold: SpeechSynthesisUtterance[] = []
 let speakTimer = 0
+let voiceTimer = 0
 let voicesWait: (() => void) | null = null
 let speakGen = 0
 
@@ -310,47 +311,49 @@ export function speakText(text: string, langCode: string, repeats = 1): void {
   const gen = ++speakGen
   speakHold = []
   if (speakTimer) window.clearTimeout(speakTimer)
-  if (voicesWait) {
-    synth.removeEventListener('voiceschanged', voicesWait)
-    voicesWait = null
-  }
+  if (voiceTimer) window.clearTimeout(voiceTimer)
+  if (voicesWait) synth.removeEventListener('voiceschanged', voicesWait)
+  voicesWait = null
 
-  const kick = () => {
+  try {
+    synth.cancel()
+  } catch {
+    /* ignore */
+  }
+  if (synth.paused) {
     try {
-      synth.cancel()
+      synth.resume()
     } catch {
       /* ignore */
     }
-    if (synth.paused) {
-      try {
-        synth.resume()
-      } catch {
-        /* ignore */
-      }
-    }
   }
 
+  let started = false
   const start = () => {
-    if (gen !== speakGen) return
+    if (gen !== speakGen || started) return
+    started = true
+    if (voiceTimer) window.clearTimeout(voiceTimer)
+    voiceTimer = 0
+    if (voicesWait) synth.removeEventListener('voiceschanged', voicesWait)
+    voicesWait = null
+
     const voice = pickVoice(synth.getVoices(), langCode, locale)
-    kick()
     let left = n
     const play = () => {
       if (gen !== speakGen || left <= 0) return
       left -= 1
-      const u = new SpeechSynthesisUtterance(text)
-      u.lang = voice?.lang || locale
-      u.rate = 0.92
-      u.pitch = 1
-      if (voice) u.voice = voice
-      u.onend = () => {
+      const utterance = new SpeechSynthesisUtterance(text)
+      utterance.lang = locale
+      utterance.rate = 0.92
+      utterance.pitch = 1
+      if (voice) utterance.voice = voice
+      utterance.onend = () => {
         if (gen === speakGen) play()
       }
-      u.onerror = () => {
-        if (gen !== speakGen) return
-        left = 0
+      utterance.onerror = () => {
+        if (gen === speakGen) left = 0
       }
-      speakHold.push(u)
+      speakHold.push(utterance)
       if (synth.paused) {
         try {
           synth.resume()
@@ -358,29 +361,23 @@ export function speakText(text: string, langCode: string, repeats = 1): void {
           /* ignore */
         }
       }
-      synth.speak(u)
+      try {
+        synth.speak(utterance)
+      } catch {
+        left = 0
+      }
     }
-    speakTimer = window.setTimeout(play, 140)
+    speakTimer = window.setTimeout(play, 120)
   }
 
-  kick()
   if (synth.getVoices().length) {
     start()
     return
   }
-  voicesWait = () => {
-    if (voicesWait) synth.removeEventListener('voiceschanged', voicesWait)
-    voicesWait = null
-    start()
-  }
+
+  voicesWait = start
   synth.addEventListener('voiceschanged', voicesWait)
-  speakTimer = window.setTimeout(() => {
-    if (voicesWait) {
-      synth.removeEventListener('voiceschanged', voicesWait)
-      voicesWait = null
-    }
-    start()
-  }, 400)
+  voiceTimer = window.setTimeout(start, 400)
 }
 
 if (typeof window !== 'undefined' && window.speechSynthesis) {

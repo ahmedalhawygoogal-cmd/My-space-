@@ -305,7 +305,7 @@ function applySm2(card: Card, recalled: boolean): Card {
     repetitions += 1
     if (repetitions === 1) interval = 1
     else if (repetitions === 2) interval = 6
-    else interval = Math.max(1, Math.round(interval * easeFactor))
+    else interval = Math.round(interval * easeFactor)
     easeFactor = Math.min(2.5, easeFactor + 0.1)
     mistakes = Math.max(0, mistakes - 1)
     status = repetitions >= 3 ? 'learned' : 'review'

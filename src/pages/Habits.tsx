@@ -20,6 +20,7 @@ import {
   type HabitDraft,
 } from '../lib/habits'
 import {
+  createHabit,
   fetchHabitLogs,
   fetchHabits,
   removeHabit,
@@ -122,24 +123,30 @@ export default function HabitsPage() {
       ) : (
         <div className="habit-week">
           <div className="habit-week-head">
-            <div className="habit-week-name" />
-            {days.map((ts) => (
-              <div key={ts} className={`habit-dow${isoDate(ts) === todayIso ? ' is-today' : ''}`}>
-                {new Intl.DateTimeFormat(lang, { weekday: 'narrow' }).format(new Date(ts))}
-                <span>{new Date(ts).getDate()}</span>
-              </div>
-            ))}
+            <div className="habit-week-name flex-1" />
+            <div className="flex gap-1">
+              {days.map((ts) => (
+                <div key={ts} className={`habit-dow w-7${isoDate(ts) === todayIso ? ' is-today' : ''}`}>
+                  {new Intl.DateTimeFormat(lang, { weekday: 'narrow' }).format(new Date(ts))}
+                  <span>{new Date(ts).getDate()}</span>
+                </div>
+              ))}
+            </div>
           </div>
           {habits.map((h) => {
             const Icon = habitIcon(h.icon)
             const streak = currentStreak(h, logs)
             return (
-              <div key={h.id} className="habit-row">
-                <button className="habit-week-name pressable" type="button" onClick={() => nav(`/habits/${h.id}`)}>
+              <div key={h.id} className="flex items-center justify-between w-full p-3 rounded-2xl bg-card border border-border">
+                <button
+                  className="habit-week-name pressable flex-1 min-w-0"
+                  type="button"
+                  onClick={() => nav(`/habits/${h.id}`)}
+                >
                   <span className="habit-ico">
                     <Icon size={16} />
                   </span>
-                  <span className="ellipsis" style={{ fontWeight: 700 }}>
+                  <span className="truncate flex-1 text-right" style={{ fontWeight: 700 }}>
                     {h.name}
                   </span>
                   {streak > 0 ? (
@@ -149,23 +156,26 @@ export default function HabitsPage() {
                     </span>
                   ) : null}
                 </button>
-                {days.map((ts) => {
-                  const future = isFutureDay(ts)
-                  const log = logMap.get(logKey(h.id, isoDate(ts)))
-                  const on = isDayComplete(h, log)
-                  return (
-                    <button
-                      key={ts}
-                      type="button"
-                      className={`habit-dot${on ? ' on' : ''}${future ? ' is-future' : ''}`}
-                      disabled={future}
-                      aria-label={h.name}
-                      onClick={() => void toggleDay(h, ts)}
-                    >
-                      {on ? '✓' : ''}
-                    </button>
-                  )
-                })}
+                <div className="flex gap-1">
+                  {days.map((ts) => {
+                    const future = isFutureDay(ts)
+                    const log = logMap.get(logKey(h.id, isoDate(ts)))
+                    const on = isDayComplete(h, log)
+                    return (
+                      <button
+                        key={ts}
+                        type="button"
+                        className={`habit-dot w-7 h-7${on ? ' on' : ''}${future ? ' is-future' : ''}`}
+                        disabled={future}
+                        aria-label={`${h.name}, ${new Intl.DateTimeFormat(lang, { dateStyle: 'medium' }).format(new Date(ts))}`}
+                        aria-pressed={on}
+                        onClick={() => void toggleDay(h, ts)}
+                      >
+                        {on ? '✓' : ''}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             )
           })}
@@ -286,10 +296,15 @@ export function HabitForm({
             createdAt: habit?.createdAt ?? t,
             updatedAt: t,
           }
-          const saved = await upsertHabit(payload)
-          setBusy(false)
-          if (!saved) return
-          await onSaved()
+          try {
+            const saved = habit ? await upsertHabit(payload) : await createHabit(payload)
+            if (!saved) return
+            await onSaved()
+          } catch (error) {
+            console.error('[Habits] Failed to save habit', error)
+          } finally {
+            setBusy(false)
+          }
         }}
         onDelete={habit ? () => setConfirm(true) : undefined}
       />
