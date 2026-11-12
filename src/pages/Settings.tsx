@@ -15,6 +15,12 @@ import { isCloudSyncEnabled, setCloudSyncEnabled } from '../lib/cloudPref'
 import { uploadLocalDataToCloud } from '../lib/cloudUpload'
 import { saveBlobToDevice, shareBlob } from '../lib/nativeFiles'
 import { version } from '../../package.json'
+import {
+  BACKGROUND_OPTIONS,
+  getSelectedBackground,
+  setSelectedBackground,
+  type BackgroundChoice,
+} from '../components/AppBackground'
 
 const REMINDER_KEY = 'myspace-reminders'
 
@@ -60,6 +66,7 @@ export default function SettingsPage() {
   const backupRef = useRef<{ blob: Blob; file: File } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const [reminders, setReminders] = useState<ReminderTimes>(loadReminders)
+  const [selectedBackground, setBackground] = useState<BackgroundChoice>(getSelectedBackground)
 
   function saveReminder(key: keyof ReminderTimes, value: string) {
     const next = { ...reminders, [key]: value }
@@ -182,6 +189,39 @@ export default function SettingsPage() {
           { id: 'system', label: tr('system') },
         ]}
       />
+      <section className="background-settings" aria-labelledby="background-picker-title">
+        <h3 id="background-picker-title" className="background-picker-title">الخلفيات</h3>
+        <div className="background-picker" role="group" aria-label="اختيار خلفية التطبيق">
+          {BACKGROUND_OPTIONS.map((option) => (
+            <button
+              key={option.id}
+              className={`background-option${selectedBackground === option.id ? ' selected' : ''}`}
+              type="button"
+              aria-label={option.label}
+              aria-pressed={selectedBackground === option.id}
+              onClick={() => {
+                setBackground(option.id)
+                setSelectedBackground(option.id)
+              }}
+            >
+              <img src={option.image} alt="" loading="lazy" />
+              <span>{option.label}</span>
+            </button>
+          ))}
+          <button
+            className={`background-option background-option-none${selectedBackground === 'none' ? ' selected' : ''}`}
+            type="button"
+            aria-pressed={selectedBackground === 'none'}
+            onClick={() => {
+              setBackground('none')
+              setSelectedBackground('none')
+            }}
+          >
+            <span className="background-none-swatch" aria-hidden="true" />
+            <span>بدون خلفية</span>
+          </button>
+        </div>
+      </section>
       <label className="label">{tr('fontFamily')}</label>
       <select
         className="field"

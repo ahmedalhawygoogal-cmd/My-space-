@@ -10,6 +10,7 @@ import OnboardingPage from './pages/Onboarding'
 import AuthPage from './pages/Auth'
 import { getNative } from './native'
 import { t } from './i18n'
+import AppBackground from './components/AppBackground'
 
 const RecorderPage = lazy(() => import('./pages/Recorder'))
 const LiveRecordPage = lazy(() => import('./pages/Recorder').then((m) => ({ default: m.LiveRecordPage })))
@@ -173,6 +174,7 @@ export default function App() {
   return (
     <AuthProvider>
       <StoreProvider>
+        <AppBackground />
         <BrowserRouter>
           <NativeBack />
           <CardReminders />
