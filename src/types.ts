@@ -256,6 +256,29 @@ export interface Link {
   createdAt: number
 }
 
+export type HabitFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly'
+
+export interface Habit {
+  id: string
+  name: string
+  isMeasurable: boolean
+  targetCount: number
+  frequency: HabitFrequency
+  reminder: string
+  why: string
+  icon: string
+  createdAt: number
+  updatedAt: number
+}
+
+export interface HabitLog {
+  id: string
+  habitId: string
+  date: string
+  count: number
+  createdAt: number
+}
+
 export type NotifySound = 'default' | 'chime' | 'bell'
 export type DeckType = 'vocab' | 'phrases' | 'synonyms' | 'definitions' | 'antonyms'
 export type DailyGoal = '10' | '30' | '60'

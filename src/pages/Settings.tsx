@@ -18,7 +18,7 @@ import { version } from '../../package.json'
 
 const REMINDER_KEY = 'myspace-reminders'
 
-type ReminderTimes = { cards: string; tasks: string; habits: string }
+type ReminderTimes = { cards: string; tasks: string }
 
 function loadReminders(): ReminderTimes {
   try {
@@ -28,13 +28,12 @@ function loadReminders(): ReminderTimes {
       return {
         cards: parsed.cards || '09:00',
         tasks: parsed.tasks || '09:00',
-        habits: parsed.habits || '09:00',
       }
     }
   } catch {
     /* ignore */
   }
-  return { cards: '09:00', tasks: '09:00', habits: '09:00' }
+  return { cards: '09:00', tasks: '09:00' }
 }
 
 export default function SettingsPage() {
@@ -242,8 +241,6 @@ export default function SettingsPage() {
       <input className="field" type="time" value={reminders.cards} onChange={(e) => saveReminder('cards', e.target.value)} />
       <label className="label">{tr('taskReminders')}</label>
       <input className="field" type="time" value={reminders.tasks} onChange={(e) => saveReminder('tasks', e.target.value)} />
-      <label className="label">{tr('habitReminders')}</label>
-      <input className="field" type="time" value={reminders.habits} onChange={(e) => saveReminder('habits', e.target.value)} />
       <h3 style={{ marginBottom: 0 }}>{tr('subjects')}</h3>
       {subjects.map((s) => (
         <div key={s.id} className="list-item">

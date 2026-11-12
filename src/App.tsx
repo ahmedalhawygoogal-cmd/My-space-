@@ -31,6 +31,8 @@ const SearchPage = lazy(() => import('./pages/Search'))
 const SettingsPage = lazy(() => import('./pages/Settings'))
 const DownloadsPage = lazy(() => import('./pages/Downloads'))
 const MotivateMePage = lazy(() => import('./pages/MotivateMe'))
+const HabitsPage = lazy(() => import('./pages/Habits'))
+const HabitDetailsPage = lazy(() => import('./pages/HabitDetails'))
 
 function NativeBack() {
   useEffect(() => {
@@ -156,6 +158,8 @@ function Gate() {
           <Route path="/notes/:id/edit" element={<NoteEditorPage />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/motivate" element={<MotivateMePage />} />
+          <Route path="/habits" element={<HabitsPage />} />
+          <Route path="/habits/:id" element={<HabitDetailsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/downloads" element={<DownloadsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

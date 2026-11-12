@@ -95,7 +95,7 @@ export function Layout() {
             hint={tr('motivateSubtitle')}
             onClick={() => go('/motivate')}
           />
-          <DiscoverTile icon={<Activity size={20} />} title={tr('habits')} hint={tr('comingSoon')} disabled />
+          <DiscoverTile icon={<Activity size={20} />} title={tr('habits')} onClick={() => go('/habits')} />
         </div>
       </Sheet>
       {Mark && (
