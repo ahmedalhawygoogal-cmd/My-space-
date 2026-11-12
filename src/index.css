@@ -147,46 +147,33 @@ img { max-width: 100%; }
   -webkit-mask-image: linear-gradient(180deg, #000 0%, rgb(0 0 0 / 0.72) 42%, transparent 100%);
   mask-image: linear-gradient(180deg, #000 0%, rgb(0 0 0 / 0.72) 42%, transparent 100%);
 }
+#root { isolation: isolate; }
 .app-background {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: -10;
   overflow: hidden;
   pointer-events: none;
+  contain: paint;
 }
-.app-background-image,
-.app-background-tint,
-.app-background-wash {
-  position: absolute;
-  inset: 0;
+.app-background-artwork {
+  display: block;
   width: 100%;
   height: 100%;
+  animation: background-artwork-fade-in 500ms ease both;
 }
-.app-background-image {
-  object-fit: cover;
-  opacity: 1;
-  filter: blur(4px);
-  transform: scale(1.03);
-  animation: background-image-fade-in 500ms ease both;
-}
-@keyframes background-image-fade-in {
-  from { opacity: 0.65; }
+@keyframes background-artwork-fade-in {
+  from { opacity: 0.82; }
   to { opacity: 1; }
 }
-.app-background-tint {
-  background: var(--primary-color);
-  opacity: 0.18;
-}
-.app-background-wash {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--bg) 28%, transparent) 0%,
-    color-mix(in srgb, var(--bg) 38%, transparent) 54%,
-    color-mix(in srgb, var(--bg) 58%, transparent) 100%
-  );
+.background-artwork-default {
+  background: var(--bg);
 }
 @media (prefers-reduced-motion: reduce) {
-  .app-background-image { animation: none; }
+  .app-background-artwork { animation: none; }
+}
+:root[data-selected-background] body {
+  background: transparent;
 }
 :root[data-selected-background] .app-shell {
   z-index: 1;
@@ -213,6 +200,13 @@ img { max-width: 100%; }
 }
 [data-theme='light'] .app-bg-beam {
   opacity: 0.22;
+}
+.app-bg { background: var(--bg); }
+.app-bg::after,
+.app-bg-beam,
+.app-bg-orb,
+.app-bg-wave {
+  display: none;
 }
 .page-watermark {
   position: absolute;
@@ -473,11 +467,11 @@ img { max-width: 100%; }
 .label { font-size: 0.8rem; font-weight: 600; color: var(--ink-soft); margin-bottom: 6px; display: block; }
 .background-settings { display: flex; flex-direction: column; gap: 8px; }
 .background-picker-title { margin: 0; font-size: 1rem; font-weight: 700; }
-.background-picker { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.background-picker { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .background-option {
   min-width: 0;
   overflow: hidden;
-  padding: 6px;
+  padding: 7px;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: color-mix(in srgb, var(--bg-elev) 82%, transparent);
@@ -485,24 +479,19 @@ img { max-width: 100%; }
   text-align: start;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
 }
-.background-option img,
-.background-none-swatch {
+.background-option-art,
+.background-artwork-default {
   display: block;
   width: 100%;
-  aspect-ratio: 0.52;
+  aspect-ratio: 0.8;
   border-radius: 11px;
-  object-fit: cover;
-  object-position: center;
-  filter: none;
-  opacity: 1;
+  overflow: hidden;
 }
 .background-option > span:last-child { padding: 0 4px 2px; font-size: 0.78rem; font-weight: 600; }
 .background-option.selected { border-color: var(--primary-color); box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary-color) 28%, transparent); }
-.background-none-swatch {
-  background: linear-gradient(135deg, var(--bg-muted) 0 48%, color-mix(in srgb, var(--primary-color) 22%, var(--bg-elev)) 49% 51%, var(--bg-elev) 52%);
-}
+.background-artwork-default { background: var(--bg); border: 1px solid var(--line); }
 .background-option:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
 
 .empty {

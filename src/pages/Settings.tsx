@@ -17,6 +17,7 @@ import { saveBlobToDevice, shareBlob } from '../lib/nativeFiles'
 import { version } from '../../package.json'
 import {
   BACKGROUND_OPTIONS,
+  BackgroundArtwork,
   getSelectedBackground,
   setSelectedBackground,
   type BackgroundChoice,
@@ -204,22 +205,14 @@ export default function SettingsPage() {
                 setSelectedBackground(option.id)
               }}
             >
-              <img src={option.image} alt="" loading="lazy" />
+              <BackgroundArtwork
+                variant={option.id}
+                className="background-option-art"
+                idPrefix={`settings-${option.id}`}
+              />
               <span>{option.label}</span>
             </button>
           ))}
-          <button
-            className={`background-option background-option-none${selectedBackground === 'none' ? ' selected' : ''}`}
-            type="button"
-            aria-pressed={selectedBackground === 'none'}
-            onClick={() => {
-              setBackground('none')
-              setSelectedBackground('none')
-            }}
-          >
-            <span className="background-none-swatch" aria-hidden="true" />
-            <span>بدون خلفية</span>
-          </button>
         </div>
       </section>
       <label className="label">{tr('fontFamily')}</label>
