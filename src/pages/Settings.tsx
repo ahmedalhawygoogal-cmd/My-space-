@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Download, Languages } from 'lucide-react'
 import { useStore } from '../store'
 import { useAuth } from '../auth'
-import { Confirm, Segment, Toast, useT } from '../ui'
+import { CloseBtn, Confirm, Segment, Toast, useT } from '../ui'
 import { formatDateTime } from '../utils'
 import { exportSnapshot, type Snapshot } from '../db'
 import type { AppFont, AppFontSize, Theme } from '../types'
@@ -317,6 +317,7 @@ export default function SettingsPage() {
       {prefs ? (
         <div className="sheet-backdrop" onClick={() => setPrefs(false)}>
           <div className="sheet bg-card border-border text-foreground" onClick={(e) => e.stopPropagation()}>
+            <CloseBtn variant="modal" onClick={() => setPrefs(false)} />
             <div className="sheet-handle" />
             <h3 className="page-title" style={{ margin: '0 0 12px' }}>
               {tr('changeLang')}
@@ -334,6 +335,13 @@ export default function SettingsPage() {
           }}
         >
           <div className="dialog modal-panel" onClick={(e) => e.stopPropagation()}>
+            <CloseBtn
+              variant="modal"
+              onClick={() => {
+                setExportOpen(false)
+                backupRef.current = null
+              }}
+            />
             <h3 style={{ marginTop: 0 }}>{tr('exportData')}</h3>
             <div className="stack" style={{ gap: 8, marginTop: 8 }}>
               <button className="btn block" type="button" onClick={() => void exportDownload()}>
@@ -359,6 +367,7 @@ export default function SettingsPage() {
       {logoutOpen ? (
         <div className="modal-backdrop" onClick={() => setLogoutOpen(false)}>
           <div className="dialog modal-panel" onClick={(e) => e.stopPropagation()}>
+            <CloseBtn variant="modal" onClick={() => setLogoutOpen(false)} />
             <p className="muted" style={{ marginTop: 0 }}>
               {tr('logoutConfirmBody')}
             </p>
@@ -383,6 +392,7 @@ export default function SettingsPage() {
       {consent ? (
         <div className="modal-backdrop" onClick={() => !uploading && setConsent(false)}>
           <div className="dialog modal-panel" onClick={(e) => e.stopPropagation()}>
+            <CloseBtn variant="modal" onClick={() => !uploading && setConsent(false)} />
             <h3 style={{ marginTop: 0 }}>{tr('cloudConsentTitle')}</h3>
             <p className="muted">{tr('cloudConsentBody')}</p>
             <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16, flexWrap: 'wrap', gap: 8 }}>

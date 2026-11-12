@@ -81,9 +81,7 @@ export function Layout() {
           </div>
         </header>
       ) : (
-        <header className="topbar inner-topbar">
-          <CloseBtn />
-        </header>
+        <CloseBtn />
       )}
       <Sheet open={discoverOpen} onClose={() => setDiscoverOpen(false)} title={tr('discover')}>
         <div className="discover-grid">

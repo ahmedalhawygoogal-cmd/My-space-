@@ -4,12 +4,18 @@ import { Check, Trash2, X } from 'lucide-react'
 import { t, type I18nKey } from './i18n'
 import { useStore } from './store'
 
-export function CloseBtn({ onClick }: { onClick?: () => void }) {
+export function CloseBtn({
+  onClick,
+  variant = 'page',
+}: {
+  onClick?: () => void
+  variant?: 'page' | 'modal'
+}) {
   const tr = useT()
   const nav = useNavigate()
   return (
     <button
-      className="p-2 rounded-full bg-muted/50 text-foreground hover:bg-muted transition-colors duration-200"
+      className={`close-btn ${variant === 'modal' ? 'close-btn-modal' : 'close-btn-page'} w-11 h-11 rounded-full flex items-center justify-center bg-foreground/5 border border-foreground/10 text-muted-foreground hover:text-foreground hover:bg-foreground/10 backdrop-blur-md active:scale-95 transition-all duration-200`}
       type="button"
       aria-label={tr('close')}
       onClick={() => {
@@ -21,7 +27,7 @@ export function CloseBtn({ onClick }: { onClick?: () => void }) {
         else nav('/')
       }}
     >
-      <X size={18} />
+      <X size={20} strokeWidth={2.5} />
     </button>
   )
 }
@@ -125,6 +131,7 @@ export function Sheet({
   return (
     <div className="sheet-backdrop" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
+        <CloseBtn variant="modal" onClick={onClose} />
         <div className="sheet-handle" />
         {title ? <h3 style={{ margin: '0 0 12px' }}>{title}</h3> : null}
         {children}
@@ -153,6 +160,7 @@ export function Confirm({
   return (
     <div className="sheet-backdrop" onClick={onClose}>
       <div className="dialog" onClick={(e) => e.stopPropagation()}>
+        <CloseBtn variant="modal" onClick={onClose} />
         <h3 style={{ marginTop: 0 }}>{title}</h3>
         {body ? <p className="muted">{body}</p> : null}
         <div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>

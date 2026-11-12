@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check } from 'lucide-react'
 import { useStore } from '../store'
-import { Toast, useT } from '../ui'
+import { CloseBtn, Toast, useT } from '../ui'
 import type { DailyGoal, GoalKind, InputPref, Labeled, Lang, UserLevel } from '../types'
 import {
   DAILY_OPTS,
@@ -50,6 +50,7 @@ export function LanguageSheet({
   return (
     <div className="sheet-backdrop" onClick={onClose}>
       <div className="sheet bg-card border-border text-foreground" onClick={(e) => e.stopPropagation()}>
+        <CloseBtn variant="modal" onClick={onClose} />
         <div className="sheet-handle" />
         <h3 className="page-title" style={{ margin: '0 0 12px' }}>
           {title}

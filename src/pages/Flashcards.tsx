@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeftRight, Ear, Layers, LayoutGrid, Pencil, PenLine, Play, Plus, RefreshCw, Trash2, Volume2 } from 'lucide-react'
 import { useStore } from '../store'
-import { Confirm, Empty, FormActions, Sheet, Toast, useT } from '../ui'
+import { CloseBtn, Confirm, Empty, FormActions, Sheet, Toast, useT } from '../ui'
 import type { ReactNode } from 'react'
 import type { AppSettings, Card, Deck, DeckType, Lang } from '../types'
 import { DECK_TYPES, LEARN_LANGS, NATIVE_LANG_OPTS, TARGET_LANG_OPTS, isRichDeck, labeled } from '../types'
@@ -228,6 +228,7 @@ function EarlyReviewDialog({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
       <div className="dialog max-w-sm w-full rounded-2xl p-6" onClick={(e) => e.stopPropagation()}>
+        <CloseBtn variant="modal" onClick={onClose} />
         <h3 style={{ marginTop: 0 }}>{tr('review')}</h3>
         <p className="muted">{tr('earlyReviewWarn')}</p>
         <label className="check-row">
