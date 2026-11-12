@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import { useStore } from '../store'
 import { AudioPlayer } from '../AudioPlayer'
-import { Confirm, Empty, Sheet, Toast, useT } from '../ui'
+import { Confirm, Empty, FormActions, Sheet, Toast, useT } from '../ui'
 import { contrastInk, fileToDataUrl, firstNoteImage, formatDate } from '../utils'
 import { NOTE_COLORS } from '../types'
 import type { Note } from '../types'
@@ -190,12 +190,6 @@ export function NoteEditorPage() {
 
   return (
     <div className="stack note-surface" style={{ background: color, color: ink, margin: '-16px', padding: 16, minHeight: '100%' }}>
-      <div className="spread">
-        <span />
-        <button className="btn" type="button" onClick={() => void save()}>
-          {tr('save')}
-        </button>
-      </div>
       <input className="note-title" value={title} placeholder={tr('title')} onChange={(e) => setTitle(e.target.value)} style={{ color: ink }} />
       <label className="label">{tr('noteType')}</label>
       <input className="field" value={type} placeholder={tr('noteType')} onChange={(e) => setType(e.target.value)} />
@@ -286,11 +280,12 @@ export function NoteEditorPage() {
           {tr('pickAudio')}
         </button>
       )}
-      {noteId ? (
-        <button className="btn danger block" type="button" onClick={() => setConfirm(true)}>
-          {tr('delete')}
-        </button>
-      ) : null}
+      <FormActions
+        saveLabel={tr('save')}
+        deleteLabel={noteId ? tr('delete') : undefined}
+        onSave={() => void save()}
+        onDelete={noteId ? () => setConfirm(true) : undefined}
+      />
       <Confirm
         open={confirm}
         title={tr('deleteNoteConfirm')}

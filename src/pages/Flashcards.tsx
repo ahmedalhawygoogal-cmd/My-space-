@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeftRight, Ear, Layers, LayoutGrid, Pencil, PenLine, Play, Plus, RefreshCw, Trash2, Volume2 } from 'lucide-react'
 import { useStore } from '../store'
-import { Confirm, Empty, Sheet, Toast, useT } from '../ui'
+import { Confirm, Empty, FormActions, Sheet, Toast, useT } from '../ui'
 import type { ReactNode } from 'react'
 import type { AppSettings, Card, Deck, DeckType, Lang } from '../types'
 import { DECK_TYPES, LEARN_LANGS, NATIVE_LANG_OPTS, TARGET_LANG_OPTS, isRichDeck, labeled } from '../types'
@@ -422,10 +422,11 @@ export function DeckPage() {
     return (
       <Screen title={edit ? tr('editCard') : tr('addCardBtn')}>
         <CardForm form={form} setForm={setForm} rich={rich} frontLabel={frontLabel} backLabel={backLabel} />
-        <button
-          className="btn block"
-          type="button"
-          onClick={async () => {
+        <FormActions
+          saveLabel={tr('save')}
+          deleteLabel={edit ? tr('delete') : undefined}
+          saveDisabled={!form.front.trim() || !form.back.trim()}
+          onSave={async () => {
             if (!form.front.trim() || !form.back.trim()) return
             if (edit) await updateCard(edit.id, payload(form))
             else await addCard(deck.id, payload(form))
@@ -433,9 +434,17 @@ export function DeckPage() {
             setOpen(false)
             setEdit(null)
           }}
-        >
-          {tr('save')}
-        </button>
+          onDelete={
+            edit
+              ? () => {
+                  void deleteCard(edit.id)
+                  setForm(emptyForm)
+                  setOpen(false)
+                  setEdit(null)
+                }
+              : undefined
+          }
+        />
       </Screen>
     )
   }
@@ -499,7 +508,12 @@ export function DeckPage() {
           </div>
         ))
       )}
-      <button className="btn danger block" type="button" onClick={() => setConfirm(true)}>
+      <button
+        className="action-btn action-btn-delete flex-1 h-12 rounded-xl font-bold text-sm bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors duration-200 w-full"
+        type="button"
+        onClick={() => setConfirm(true)}
+      >
+        <Trash2 size={18} />
         {tr('delete')}
       </button>
       <Confirm

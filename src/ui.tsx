@@ -1,17 +1,17 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
+import { Check, Trash2, X } from 'lucide-react'
 import { t, type I18nKey } from './i18n'
 import { useStore } from './store'
 
-export function BackBtn({ onClick }: { onClick?: () => void }) {
+export function CloseBtn({ onClick }: { onClick?: () => void }) {
   const tr = useT()
   const nav = useNavigate()
   return (
     <button
-      className="back-btn"
+      className="p-2 rounded-full bg-muted/50 text-foreground hover:bg-muted transition-colors duration-200"
       type="button"
-      aria-label={tr('back')}
+      aria-label={tr('close')}
       onClick={() => {
         if (onClick) {
           onClick()
@@ -21,9 +21,50 @@ export function BackBtn({ onClick }: { onClick?: () => void }) {
         else nav('/')
       }}
     >
-      <ArrowRight size={16} />
-      {tr('back')}
+      <X size={18} />
     </button>
+  )
+}
+
+export function BackBtn(props: { onClick?: () => void }) {
+  return <CloseBtn {...props} />
+}
+
+export function FormActions({
+  onSave,
+  onDelete,
+  saveLabel,
+  deleteLabel,
+  saveDisabled,
+}: {
+  onSave: () => void
+  onDelete?: () => void
+  saveLabel: string
+  deleteLabel?: string
+  saveDisabled?: boolean
+}) {
+  return (
+    <div className="row gap-3" style={{ marginTop: 12 }}>
+      {onDelete ? (
+        <button
+          className="action-btn action-btn-delete flex-1 h-12 rounded-xl font-bold text-sm bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors duration-200"
+          type="button"
+          onClick={onDelete}
+        >
+          <Trash2 size={18} />
+          {deleteLabel}
+        </button>
+      ) : null}
+      <button
+        className="action-btn action-btn-save flex-1 h-12 rounded-xl font-bold text-sm bg-primary text-primary-foreground transition-colors duration-200"
+        type="button"
+        disabled={saveDisabled}
+        onClick={onSave}
+      >
+        <Check size={18} />
+        {saveLabel}
+      </button>
+    </div>
   )
 }
 

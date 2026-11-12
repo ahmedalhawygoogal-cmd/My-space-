@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { CheckSquare, ChevronDown, ChevronUp, Eye, EyeOff, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
-import { Confirm, DateField, Empty, Segment, Sheet, useT } from '../ui'
+import { Confirm, DateField, Empty, FormActions, Segment, Sheet, useT } from '../ui'
 import { endOfDay, formatDate, startOfDay, uid } from '../utils'
 import type { Priority, Task } from '../types'
 
@@ -373,11 +373,11 @@ function TaskForm({
           </div>
         </>
       )}
-      <button
-        className="btn block"
-        style={{ marginTop: 12 }}
-        type="button"
-        onClick={async () => {
+      <FormActions
+        saveLabel={tr('save')}
+        deleteLabel={task ? tr('delete') : undefined}
+        saveDisabled={!draft.title.trim()}
+        onSave={async () => {
           if (!draft.title.trim()) return
           const payload = {
             title: draft.title.trim(),
@@ -397,14 +397,8 @@ function TaskForm({
           else await addTask(payload)
           onClose()
         }}
-      >
-        {tr('save')}
-      </button>
-      {task ? (
-        <button className="btn danger block" type="button" onClick={() => setConfirm(true)}>
-          {tr('deleteTask')}
-        </button>
-      ) : null}
+        onDelete={task ? () => setConfirm(true) : undefined}
+      />
       <Confirm
         open={confirm}
         title={tr('deleteTaskConfirm')}

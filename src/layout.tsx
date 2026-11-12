@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, BookOpen, CheckSquare, Home, Layers, Mic, Search, Settings, Sparkles, type LucideIcon } from 'lucide-react'
-import { BackBtn, Sheet, useT } from './ui'
+import { CloseBtn, Sheet, useT } from './ui'
 
 function watermarkIcon(path: string): LucideIcon | null {
   if (path === '/') return Home
@@ -82,7 +82,7 @@ export function Layout() {
         </header>
       ) : (
         <header className="topbar inner-topbar">
-          <BackBtn />
+          <CloseBtn />
         </header>
       )}
       <Sheet open={discoverOpen} onClose={() => setDiscoverOpen(false)} title={tr('discover')}>
