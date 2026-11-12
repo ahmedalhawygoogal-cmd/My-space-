@@ -1599,20 +1599,34 @@ img { max-width: 100%; }
 }
 .game-done h2 { margin: 0 0 16px; }
 
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page-transition { animation: fadeInUp 0.3s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .page-transition { animation: none; }
+}
+.app-shell:has(.sheet-backdrop) > .close-btn-page { display: none; }
+
 .habit-week {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   padding-bottom: 8px;
 }
 .habit-week-head,
-.habit-row {
-  display: grid;
-  grid-template-columns: minmax(132px, 1.4fr) repeat(7, 34px);
-  align-items: center;
-  gap: 6px;
+.habit-week > div:not(.habit-week-head) {
   min-width: 390px;
 }
-.habit-week-head { margin-bottom: 8px; }
+.habit-week-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
 .habit-week-name {
   display: flex;
   align-items: center;
@@ -1634,13 +1648,6 @@ img { max-width: 100%; }
   line-height: 1.15;
 }
 .habit-dow.is-today { color: var(--brand); }
-.habit-row {
-  background: color-mix(in srgb, var(--bg-elev) 82%, transparent);
-  border: 1px solid color-mix(in srgb, var(--primary-color) 16%, transparent);
-  border-radius: 16px;
-  padding: 10px 8px;
-  margin-bottom: 8px;
-}
 .habit-ico {
   width: 28px;
   height: 28px;
@@ -1672,7 +1679,6 @@ img { max-width: 100%; }
   place-items: center;
   font-size: 0.75rem;
   font-weight: 800;
-  justify-self: center;
 }
 .habit-dot.on {
   background: var(--primary-color);

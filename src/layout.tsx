@@ -20,6 +20,7 @@ export function Layout() {
   const loc = useLocation()
   const [discoverOpen, setDiscoverOpen] = useState(false)
   const isRoot = loc.pathname === '/'
+  const isDeckDetails = /^\/cards\/[^/]+$/.test(loc.pathname)
   const Mark = watermarkIcon(loc.pathname)
 
   function go(path: string) {
@@ -81,7 +82,7 @@ export function Layout() {
           </div>
         </header>
       ) : (
-        <CloseBtn />
+        <CloseBtn onClick={isDeckDetails ? () => nav('/cards', { replace: true }) : undefined} />
       )}
       <Sheet open={discoverOpen} onClose={() => setDiscoverOpen(false)} title={tr('discover')}>
         <div className="discover-grid">
@@ -103,7 +104,7 @@ export function Layout() {
           <Mark size={250} strokeWidth={1.15} />
         </div>
       )}
-      <main className="main">
+      <main key={loc.pathname} className="main page-transition">
         <Outlet />
       </main>
     </div>

@@ -60,6 +60,22 @@ export function remoteToLog(row: RemoteHabitLog): HabitLog {
   }
 }
 
+function habitRow(habit: Habit, userId: string) {
+  return {
+    id: habit.id,
+    user_id: userId,
+    name: habit.name,
+    is_measurable: habit.isMeasurable,
+    target_count: habit.isMeasurable ? habit.targetCount : null,
+    frequency: habit.frequency,
+    reminder: habit.reminder || null,
+    why: habit.why || null,
+    icon: habit.icon,
+    created_at: new Date(habit.createdAt).toISOString(),
+    updated_at: new Date(habit.updatedAt).toISOString(),
+  }
+}
+
 export async function currentUserId(): Promise<string | null> {
   if (!supabase) return null
   try {
@@ -88,23 +104,33 @@ export async function fetchHabitLogs(habitId?: string): Promise<HabitLog[]> {
   return (data as RemoteHabitLog[]).map(remoteToLog)
 }
 
+export async function createHabit(habit: Habit): Promise<Habit | null> {
+  if (!supabase) {
+    console.error('[Habits] Cannot create a habit because Supabase is unavailable.')
+    return null
+  }
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      console.error('[Habits] Cannot create a habit without an authenticated user.', authError)
+      return null
+    }
+    const { data, error } = await supabase.from('habits').insert(habitRow(habit, user.id)).select('*').single()
+    if (error || !data) {
+      console.error('[Habits] Failed to insert habit.', error)
+      return null
+    }
+    return remoteToHabit(data as RemoteHabit)
+  } catch (error) {
+    console.error('[Habits] Unexpected error while creating a habit.', error)
+    return null
+  }
+}
+
 export async function upsertHabit(habit: Habit): Promise<Habit | null> {
   const uid = await currentUserId()
   if (!supabase || !uid) return null
-  const row = {
-    id: habit.id,
-    user_id: uid,
-    name: habit.name,
-    is_measurable: habit.isMeasurable,
-    target_count: habit.isMeasurable ? habit.targetCount : null,
-    frequency: habit.frequency,
-    reminder: habit.reminder || null,
-    why: habit.why || null,
-    icon: habit.icon,
-    created_at: new Date(habit.createdAt).toISOString(),
-    updated_at: new Date(habit.updatedAt).toISOString(),
-  }
-  const { data, error } = await supabase.from('habits').upsert(row, { onConflict: 'id' }).select('*').single()
+  const { data, error } = await supabase.from('habits').upsert(habitRow(habit, uid), { onConflict: 'id' }).select('*').single()
   if (error || !data) return null
   return remoteToHabit(data as RemoteHabit)
 }
