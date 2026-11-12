@@ -122,11 +122,11 @@ export default function HabitsPage() {
         <Empty icon={<Activity size={36} />} title={tr('noHabits')} hint={tr('noHabitsHint')} />
       ) : (
         <div className="habit-week">
-          <div className="habit-week-head">
-            <div className="habit-week-name flex-1" />
-            <div className="flex gap-1">
+          <div className="habit-week-head flex flex-row items-center justify-between w-full overflow-hidden">
+            <div className="habit-week-name flex-1 min-w-0" />
+            <div className="flex flex-row gap-1">
               {days.map((ts) => (
-                <div key={ts} className={`habit-dow w-7${isoDate(ts) === todayIso ? ' is-today' : ''}`}>
+                <div key={ts} className={`habit-dow w-6${isoDate(ts) === todayIso ? ' is-today' : ''}`}>
                   {new Intl.DateTimeFormat(lang, { weekday: 'narrow' }).format(new Date(ts))}
                   <span>{new Date(ts).getDate()}</span>
                 </div>
@@ -137,7 +137,7 @@ export default function HabitsPage() {
             const Icon = habitIcon(h.icon)
             const streak = currentStreak(h, logs)
             return (
-              <div key={h.id} className="flex items-center justify-between w-full p-3 rounded-2xl bg-card border border-border">
+              <div key={h.id} className="flex flex-row items-center justify-between w-full p-3 rounded-2xl bg-card border border-border overflow-hidden">
                 <button
                   className="habit-week-name pressable flex-1 min-w-0"
                   type="button"
@@ -156,7 +156,7 @@ export default function HabitsPage() {
                     </span>
                   ) : null}
                 </button>
-                <div className="flex gap-1">
+                <div className="flex flex-row gap-1">
                   {days.map((ts) => {
                     const future = isFutureDay(ts)
                     const log = logMap.get(logKey(h.id, isoDate(ts)))
@@ -165,7 +165,7 @@ export default function HabitsPage() {
                       <button
                         key={ts}
                         type="button"
-                        className={`habit-dot w-7 h-7${on ? ' on' : ''}${future ? ' is-future' : ''}`}
+                        className={`habit-dot w-6 h-6${on ? ' on' : ''}${future ? ' is-future' : ''}`}
                         disabled={future}
                         aria-label={`${h.name}, ${new Intl.DateTimeFormat(lang, { dateStyle: 'medium' }).format(new Date(ts))}`}
                         aria-pressed={on}
@@ -298,7 +298,10 @@ export function HabitForm({
           }
           try {
             const saved = habit ? await upsertHabit(payload) : await createHabit(payload)
-            if (!saved) return
+            if (!saved) {
+              console.error('[Habits] Save did not persist; modal stays open.')
+              return
+            }
             await onSaved()
           } catch (error) {
             console.error('[Habits] Failed to save habit', error)

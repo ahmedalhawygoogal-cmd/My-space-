@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, BookOpen, CheckSquare, Home, Layers, Mic, Search, Settings, Sparkles, type LucideIcon } from 'lucide-react'
 import { CloseBtn, Sheet, useT } from './ui'
+import { stopSpeak } from './utils'
 
 function watermarkIcon(path: string): LucideIcon | null {
   if (path === '/') return Home
@@ -20,7 +21,7 @@ export function Layout() {
   const loc = useLocation()
   const [discoverOpen, setDiscoverOpen] = useState(false)
   const isRoot = loc.pathname === '/'
-  const isDeckDetails = /^\/cards\/[^/]+$/.test(loc.pathname)
+  const isCardsInner = loc.pathname.startsWith('/cards/')
   const Mark = watermarkIcon(loc.pathname)
 
   function go(path: string) {
@@ -82,7 +83,16 @@ export function Layout() {
           </div>
         </header>
       ) : (
-        <CloseBtn onClick={isDeckDetails ? () => nav('/cards', { replace: true }) : undefined} />
+        <CloseBtn
+          onClick={
+            isCardsInner
+              ? () => {
+                  stopSpeak()
+                  nav('/cards', { replace: true })
+                }
+              : undefined
+          }
+        />
       )}
       <Sheet open={discoverOpen} onClose={() => setDiscoverOpen(false)} title={tr('discover')}>
         <div className="discover-grid">

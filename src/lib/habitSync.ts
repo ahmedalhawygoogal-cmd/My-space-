@@ -128,11 +128,26 @@ export async function createHabit(habit: Habit): Promise<Habit | null> {
 }
 
 export async function upsertHabit(habit: Habit): Promise<Habit | null> {
-  const uid = await currentUserId()
-  if (!supabase || !uid) return null
-  const { data, error } = await supabase.from('habits').upsert(habitRow(habit, uid), { onConflict: 'id' }).select('*').single()
-  if (error || !data) return null
-  return remoteToHabit(data as RemoteHabit)
+  if (!supabase) {
+    console.error('[Habits] Cannot save a habit because Supabase is unavailable.')
+    return null
+  }
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      console.error('[Habits] Cannot save a habit without an authenticated user.', authError)
+      return null
+    }
+    const { data, error } = await supabase.from('habits').upsert(habitRow(habit, user.id), { onConflict: 'id' }).select('*').single()
+    if (error || !data) {
+      console.error('[Habits] Failed to upsert habit.', error)
+      return null
+    }
+    return remoteToHabit(data as RemoteHabit)
+  } catch (error) {
+    console.error('[Habits] Unexpected error while saving a habit.', error)
+    return null
+  }
 }
 
 export async function removeHabit(id: string): Promise<boolean> {

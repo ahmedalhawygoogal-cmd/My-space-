@@ -305,7 +305,7 @@ function applySm2(card: Card, recalled: boolean): Card {
     repetitions += 1
     if (repetitions === 1) interval = 1
     else if (repetitions === 2) interval = 6
-    else interval = Math.round(interval * easeFactor)
+    else interval = Math.max(1, Math.round(interval * easeFactor))
     easeFactor = Math.min(2.5, easeFactor + 0.1)
     mistakes = Math.max(0, mistakes - 1)
     status = repetitions >= 3 ? 'learned' : 'review'
@@ -855,7 +855,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const next = applyAnswer(cur, correct)
     await db.putOne(STORES.cards, next)
     patchList('cards', id, next)
-    void upsertRemoteCard(next)
+    try {
+      await upsertRemoteCard(next)
+    } catch (error) {
+      console.error('[Cards] Failed to persist SM-2 review', error)
+    }
   }, [state.cards, patchList])
 
   const pickCards = useCallback(
@@ -877,7 +881,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const next = schedule(cur, rating)
     await db.putOne(STORES.cards, next)
     patchList('cards', id, next)
-    void upsertRemoteCard(next)
+    try {
+      await upsertRemoteCard(next)
+    } catch (error) {
+      console.error('[Cards] Failed to persist SM-2 review', error)
+    }
     const key = 'myspace-streak'
     const raw = localStorage.getItem(key)
     const today = startOfDay()

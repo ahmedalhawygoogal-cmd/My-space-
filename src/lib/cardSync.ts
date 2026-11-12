@@ -101,9 +101,10 @@ export async function upsertRemoteCard(card: Card): Promise<void> {
   const uid = await userId()
   if (!supabase || !uid) return
   try {
-    await supabase.from('cards').upsert(localToRemote(card, uid), { onConflict: 'id' })
-  } catch {
-    return
+    const { error } = await supabase.from('cards').upsert(localToRemote(card, uid), { onConflict: 'id' })
+    if (error) console.error('[Cards] Failed to upsert next review date', error)
+  } catch (error) {
+    console.error('[Cards] Failed to upsert next review date', error)
   }
 }
 

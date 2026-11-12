@@ -6,7 +6,7 @@ import { CloseBtn, Confirm, Empty, FormActions, Sheet, Toast, useT } from '../ui
 import type { ReactNode } from 'react'
 import type { AppSettings, Card, Deck, DeckType, Lang } from '../types'
 import { DECK_TYPES, LEARN_LANGS, NATIVE_LANG_OPTS, TARGET_LANG_OPTS, isRichDeck, labeled } from '../types'
-import { fileToDataUrl, normalizeAnswer, shuffle, speakText } from '../utils'
+import { fileToDataUrl, normalizeAnswer, shuffle, speakText, stopSpeak } from '../utils'
 
 function langLabel(code: string, ui: Lang, custom?: string) {
   if (!code) return ''
@@ -549,6 +549,7 @@ function NeedCards({ n, deckId }: { n: number; deckId: string }) {
 }
 
 function GameShell({ title, hint, children }: { title: string; hint: string; children: ReactNode }) {
+  useEffect(() => () => stopSpeak(), [])
   return (
     <div className="stack">
       <h1 className="page-title" style={{ margin: 0, fontSize: '1.15rem' }}>
@@ -949,6 +950,7 @@ export function StudyPage() {
   const [autoForgot, setAutoForgot] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const ratedRef = useRef(false)
+  useEffect(() => () => stopSpeak(), [])
   const swapped = deckSwapped(deck)
   const card = cards.find((c) => c.id === ids[idx])
   const cardRef = useRef(card)

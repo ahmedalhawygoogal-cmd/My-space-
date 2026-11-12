@@ -286,8 +286,8 @@ export function speakLocale(code: string): string {
 let speakHold: SpeechSynthesisUtterance[] = []
 let speakTimer = 0
 let voiceTimer = 0
-let voicesWait: (() => void) | null = null
 let speakGen = 0
+let cachedVoices: SpeechSynthesisVoice[] = []
 
 function normLang(s: string): string {
   return s.replace('_', '-').toLowerCase()
@@ -303,6 +303,26 @@ function pickVoice(voices: SpeechSynthesisVoice[], langCode: string, locale: str
   return voices.find((v) => normLang(v.lang || '') === loc) || voices.find((v) => match(v) && v.localService) || voices.find(match)
 }
 
+function loadVoices(): SpeechSynthesisVoice[] {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return cachedVoices
+  const voices = window.speechSynthesis.getVoices()
+  if (voices.length) cachedVoices = voices
+  return cachedVoices
+}
+
+export function stopSpeak(): void {
+  speakGen += 1
+  if (speakTimer) window.clearTimeout(speakTimer)
+  if (voiceTimer) window.clearTimeout(voiceTimer)
+  speakHold = []
+  if (typeof window === 'undefined' || !window.speechSynthesis) return
+  try {
+    window.speechSynthesis.cancel()
+  } catch {
+    /* ignore */
+  }
+}
+
 export function speakText(text: string, langCode: string, repeats = 1): void {
   if (!text.trim() || typeof window === 'undefined' || !window.speechSynthesis) return
   const synth = window.speechSynthesis
@@ -312,32 +332,21 @@ export function speakText(text: string, langCode: string, repeats = 1): void {
   speakHold = []
   if (speakTimer) window.clearTimeout(speakTimer)
   if (voiceTimer) window.clearTimeout(voiceTimer)
-  if (voicesWait) synth.removeEventListener('voiceschanged', voicesWait)
-  voicesWait = null
 
   try {
     synth.cancel()
   } catch {
     /* ignore */
   }
-  if (synth.paused) {
-    try {
-      synth.resume()
-    } catch {
-      /* ignore */
-    }
+  try {
+    synth.resume()
+  } catch {
+    /* ignore */
   }
 
-  let started = false
-  const start = () => {
-    if (gen !== speakGen || started) return
-    started = true
-    if (voiceTimer) window.clearTimeout(voiceTimer)
-    voiceTimer = 0
-    if (voicesWait) synth.removeEventListener('voiceschanged', voicesWait)
-    voicesWait = null
-
-    const voice = pickVoice(synth.getVoices(), langCode, locale)
+  const playWithVoices = (voices: SpeechSynthesisVoice[]) => {
+    if (gen !== speakGen) return
+    const voice = pickVoice(voices, langCode, locale)
     let left = n
     const play = () => {
       if (gen !== speakGen || left <= 0) return
@@ -354,12 +363,10 @@ export function speakText(text: string, langCode: string, repeats = 1): void {
         if (gen === speakGen) left = 0
       }
       speakHold.push(utterance)
-      if (synth.paused) {
-        try {
-          synth.resume()
-        } catch {
-          /* ignore */
-        }
+      try {
+        synth.resume()
+      } catch {
+        /* ignore */
       }
       try {
         synth.speak(utterance)
@@ -367,23 +374,33 @@ export function speakText(text: string, langCode: string, repeats = 1): void {
         left = 0
       }
     }
-    speakTimer = window.setTimeout(play, 120)
+    play()
   }
 
-  if (synth.getVoices().length) {
-    start()
+  const start = () => {
+    if (gen !== speakGen) return
+    playWithVoices(loadVoices())
+  }
+
+  const onVoices = () => {
+    loadVoices()
+    if (gen === speakGen) start()
+  }
+
+  const voices = loadVoices()
+  if (voices.length) {
+    speakTimer = window.setTimeout(start, 80)
     return
   }
 
-  voicesWait = start
-  synth.addEventListener('voiceschanged', voicesWait)
+  synth.addEventListener('voiceschanged', onVoices, { once: true })
   voiceTimer = window.setTimeout(start, 400)
 }
 
 if (typeof window !== 'undefined' && window.speechSynthesis) {
   window.speechSynthesis.getVoices()
   window.speechSynthesis.addEventListener('voiceschanged', () => {
-    window.speechSynthesis.getVoices()
+    loadVoices()
   })
 }
 
