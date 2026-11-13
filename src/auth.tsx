@@ -21,13 +21,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
     let alive = true
-    void supabase.auth.getSession().then(({ data }) => {
-      if (!alive) return
-      setSession(data.session)
-      setLoading(false)
-    })
+    void (async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession()
+        if (error) throw error
+        if (alive) setSession(data.session)
+      } catch (error) {
+        console.error('Failed to restore Supabase session', error)
+        if (alive) setSession(null)
+      } finally {
+        if (alive) setLoading(false)
+      }
+    })()
     const { data } = supabase.auth.onAuthStateChange((_event, next) => {
-      setSession(next)
+      if (alive) setSession(next)
     })
     return () => {
       alive = false

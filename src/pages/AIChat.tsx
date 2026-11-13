@@ -61,37 +61,6 @@ function previewText(value: string): string {
   return value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120)
 }
 
-async function getActualErrorMessage(error: unknown): Promise<string> {
-  if (error instanceof Error && 'context' in error && error.context instanceof Response) {
-    const response = error.context
-    try {
-      const payload: unknown = await response.clone().json()
-      if (payload && typeof payload === 'object') {
-        const details = payload as Record<string, unknown>
-        for (const key of ['error', 'message', 'details']) {
-          const value = details[key]
-          if (typeof value === 'string' && value.trim()) return value.trim()
-        }
-      }
-    } catch {
-      try {
-        const text = await response.clone().text()
-        if (text.trim()) return text.trim()
-      } catch {
-        return error.message
-      }
-    }
-  }
-
-  if (error instanceof Error) return error.message
-  if (typeof error === 'string') return error
-  try {
-    return JSON.stringify(error) || String(error)
-  } catch {
-    return String(error)
-  }
-}
-
 async function fetchUserSources(recordings: ReturnType<typeof useStore>['recordings']): Promise<SourcesByKind> {
   if (!supabase) throw new Error('Supabase is not configured')
   const { data: authData, error: authError } = await supabase.auth.getUser()
@@ -179,12 +148,20 @@ async function fetchUserSources(recordings: ReturnType<typeof useStore>['recordi
   }
 }
 
-function MessageList({ messages, isLoading }: { messages: ChatMessage[]; isLoading: boolean }) {
+function MessageList({
+  messages,
+  isLoading,
+  errorMessage,
+}: {
+  messages: ChatMessage[]
+  isLoading: boolean
+  errorMessage: string | null
+}) {
   const endOfMessages = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     endOfMessages.current?.scrollIntoView({ behavior: 'auto', block: 'end' })
-  }, [messages, isLoading])
+  }, [messages, isLoading, errorMessage])
 
   return (
     <div className="ai-chat-messages" role="log" aria-live="polite" aria-relevant="additions text">
@@ -200,6 +177,13 @@ function MessageList({ messages, isLoading }: { messages: ChatMessage[]; isLoadi
             </div>
           </article>
         ))}
+        {errorMessage ? (
+          <article className="ai-chat-message assistant is-error" role="alert">
+            <div className="ai-chat-bubble is-error">
+              <p dir="auto">API Error: {errorMessage}</p>
+            </div>
+          </article>
+        ) : null}
         {isLoading ? (
           <article className="ai-chat-message assistant" role="status" aria-label="يفكر في إجابة واضحة">
             <div className="ai-chat-bubble ai-chat-thinking">
@@ -315,6 +299,7 @@ export default function AIChatPage() {
   ])
   const [draft, setDraft] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [pastedContext, setPastedContext] = useState('')
   const [contextDraft, setContextDraft] = useState('')
   const [contextEditorOpen, setContextEditorOpen] = useState(false)
@@ -352,9 +337,10 @@ export default function AIChatPage() {
     if (sourceState === 'idle' || sourceState === 'error') void loadSources()
   }
 
-  async function sendMessage() {
-    const userText = draft.trim()
+  const handleSendMessage = async (userText: string) => {
     if (!userText || isLoading) return
+    setIsLoading(true)
+    setErrorMessage(null)
 
     const source = selectedSource
     const attachedContext = [source?.context, pastedContext.trim()]
@@ -370,27 +356,46 @@ export default function AIChatPage() {
     ])
     setDraft('')
     setSelectedSource(null)
-    setIsLoading(true)
 
     try {
-      if (!supabase) throw new Error('Supabase is not configured')
-      const { data, error } = await supabase.functions.invoke('Gemini-chat', { body: { message: userText, context: attachedContext || "" } });
-      if (error) throw error
-      const response = typeof data?.response === 'string' ? data.response.trim() : ''
-      if (!response) throw new Error('The assistant returned an empty response')
-      setMessages((current) => [...current, { id: crypto.randomUUID(), role: 'assistant', content: response }])
-    } catch (error) {
-      console.error(error)
-      const actualError = await getActualErrorMessage(error)
-      setMessages((current) => [
-        ...current,
-        {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content: `API Error: ${actualError}`,
-          isError: true,
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+      console.log("URL used for Fetch:", supabaseUrl)
+
+      if (!supabaseUrl || !supabaseKey) {
+        throw new Error("VITE_SUPABASE variables are missing or undefined!")
+      }
+
+      const cleanUrl = supabaseUrl.endsWith('/') ? supabaseUrl.slice(0, -1) : supabaseUrl
+      const endpoint = `${cleanUrl}/functions/v1/Gemini-chat`
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
         },
-      ])
+        body: JSON.stringify({
+          message: userText,
+          context: attachedContext || "",
+        }),
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`HTTP ${response.status}: ${errorText}`)
+      }
+
+      const data = await response.json()
+      const assistantText = typeof data?.response === 'string' ? data.response.trim() : ''
+      if (!assistantText) throw new Error('The assistant returned an empty response')
+      setMessages((current) => [...current, { id: crypto.randomUUID(), role: 'assistant', content: assistantText }])
+    } catch (error) {
+      console.error("FETCH ERROR DETAILS:", error)
+      const message = error instanceof Error ? error.message : String(error)
+      setErrorMessage(message || "Unknown fetch error")
     } finally {
       setIsLoading(false)
     }
@@ -398,14 +403,14 @@ export default function AIChatPage() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    void sendMessage()
+    void handleSendMessage(draft.trim())
   }
 
   function handleInputKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key !== 'Enter' || event.shiftKey) return
     if (event.nativeEvent.isComposing || event.keyCode === 229) return
     event.preventDefault()
-    void sendMessage()
+    void handleSendMessage(draft.trim())
   }
 
   return (
@@ -422,7 +427,7 @@ export default function AIChatPage() {
         </button>
       </header>
 
-      <MessageList messages={messages} isLoading={isLoading} />
+      <MessageList messages={messages} isLoading={isLoading} errorMessage={errorMessage} />
 
       <footer className="ai-chat-composer">
         <div className="ai-chat-composer-inner">
