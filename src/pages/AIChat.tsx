@@ -357,6 +357,7 @@ export default function AIChatPage() {
     setDraft('')
     setSelectedSource(null)
 
+    let endpoint = ''
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
       const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -367,11 +368,25 @@ export default function AIChatPage() {
         throw new Error("VITE_SUPABASE variables are missing or undefined!")
       }
 
-      const cleanUrl = supabaseUrl.endsWith('/') ? supabaseUrl.slice(0, -1) : supabaseUrl
-      const endpoint = `${cleanUrl}/functions/v1/Gemini-chat`
+      let parsedSupabaseUrl: URL
+      try {
+        parsedSupabaseUrl = new URL(supabaseUrl.trim())
+      } catch {
+        throw new Error("VITE_SUPABASE_URL is invalid!")
+      }
+      if (parsedSupabaseUrl.protocol !== 'https:' && parsedSupabaseUrl.protocol !== 'http:') {
+        throw new Error("VITE_SUPABASE_URL must use HTTP or HTTPS!")
+      }
+
+      parsedSupabaseUrl.pathname = `${parsedSupabaseUrl.pathname.replace(/\/+$/, '')}/functions/v1/Gemini-chat`
+      parsedSupabaseUrl.search = ''
+      parsedSupabaseUrl.hash = ''
+      endpoint = parsedSupabaseUrl.toString()
+      console.log("Endpoint used for Fetch:", endpoint)
 
       const response = await fetch(endpoint, {
         method: 'POST',
+        mode: 'cors',
         headers: {
           'Content-Type': 'application/json',
           apikey: supabaseKey,
@@ -395,7 +410,12 @@ export default function AIChatPage() {
     } catch (error) {
       console.error("FETCH ERROR DETAILS:", error)
       const message = error instanceof Error ? error.message : String(error)
-      setErrorMessage(message || "Unknown fetch error")
+      if (/failed to fetch/i.test(message)) {
+        const target = endpoint || 'not constructed (Supabase URL is missing or invalid)'
+        setErrorMessage(`Failed to fetch. URL: ${target}`)
+      } else {
+        setErrorMessage(message || "Unknown fetch error")
+      }
     } finally {
       setIsLoading(false)
     }
