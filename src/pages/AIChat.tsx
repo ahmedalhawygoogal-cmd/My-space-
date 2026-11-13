@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Bot, CheckSquare, Code, FileText, LoaderCircle, Mic, Paperclip, Send, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useStore } from '../store'
-import { CloseBtn, Sheet } from '../ui'
+import { Sheet } from '../ui'
 import './AIChat.css'
 
 type SourceKind = 'notes' | 'tasks' | 'recordings'
@@ -19,6 +19,7 @@ type ChatMessage = {
   role: 'user' | 'assistant'
   content: string
   sourceLabel?: string
+  isError?: boolean
 }
 type SourcesByKind = Record<SourceKind, ChatSource[]>
 
@@ -58,6 +59,37 @@ function formatTaskDate(value: string | null): string {
 
 function previewText(value: string): string {
   return value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120)
+}
+
+async function getActualErrorMessage(error: unknown): Promise<string> {
+  if (error instanceof Error && 'context' in error && error.context instanceof Response) {
+    const response = error.context
+    try {
+      const payload: unknown = await response.clone().json()
+      if (payload && typeof payload === 'object') {
+        const details = payload as Record<string, unknown>
+        for (const key of ['error', 'message', 'details']) {
+          const value = details[key]
+          if (typeof value === 'string' && value.trim()) return value.trim()
+        }
+      }
+    } catch {
+      try {
+        const text = await response.clone().text()
+        if (text.trim()) return text.trim()
+      } catch {
+        return error.message
+      }
+    }
+  }
+
+  if (error instanceof Error) return error.message
+  if (typeof error === 'string') return error
+  try {
+    return JSON.stringify(error) || String(error)
+  } catch {
+    return String(error)
+  }
 }
 
 async function fetchUserSources(recordings: ReturnType<typeof useStore>['recordings']): Promise<SourcesByKind> {
@@ -158,32 +190,24 @@ function MessageList({ messages, isLoading }: { messages: ChatMessage[]; isLoadi
     <div className="ai-chat-messages" role="log" aria-live="polite" aria-relevant="additions text">
       <div className="ai-chat-message-list">
         {messages.map((message) => (
-          <article key={message.id} className={`ai-chat-message ${message.role}`}>
-            {message.role === 'assistant' ? (
-              <span className="ai-chat-message-avatar" aria-hidden="true">
-                <Bot size={16} />
-              </span>
-            ) : null}
-            <div className="ai-chat-bubble">
+          <article
+            key={message.id}
+            className={`ai-chat-message ${message.role}${message.isError ? ' is-error' : ''}`}
+          >
+            <div className={`ai-chat-bubble${message.isError ? ' is-error' : ''}`}>
               {message.sourceLabel ? <div className="ai-chat-source-label">مرفق: {message.sourceLabel}</div> : null}
-              <p>{message.content}</p>
+              <p dir="auto">{message.content}</p>
             </div>
           </article>
         ))}
         {isLoading ? (
-          <div className="ai-chat-message assistant" role="status" aria-label="يفكر في إجابة واضحة">
-            <span className="ai-chat-message-avatar" aria-hidden="true">
-              <Bot size={16} />
-            </span>
+          <article className="ai-chat-message assistant" role="status" aria-label="يفكر في إجابة واضحة">
             <div className="ai-chat-bubble ai-chat-thinking">
-              <span className="ai-chat-thinking-dots" aria-hidden="true">
-                <span className="ai-chat-thinking-dot animate-bounce" style={{ animationDelay: '-0.24s' }} />
-                <span className="ai-chat-thinking-dot animate-bounce" style={{ animationDelay: '-0.12s' }} />
-                <span className="ai-chat-thinking-dot animate-bounce" style={{ animationDelay: '0s' }} />
-              </span>
-              <span>يفكر في إجابة واضحة...</span>
+              <span className="ai-chat-thinking-dot animate-bounce" style={{ animationDelay: '-0.24s' }} />
+              <span className="ai-chat-thinking-dot animate-bounce" style={{ animationDelay: '-0.12s' }} />
+              <span className="ai-chat-thinking-dot animate-bounce" style={{ animationDelay: '0s' }} />
             </div>
-          </div>
+          </article>
         ) : null}
         <div ref={endOfMessages} />
       </div>
@@ -286,12 +310,12 @@ export default function AIChatPage() {
     {
       id: 'welcome',
       role: 'assistant',
-      content: 'أهلًا، أنا مساعد مساحتي. اسألني عن ملاحظاتك أو مهامك أو تسجيلاتك، ويمكنك إرفاق مصدر واحد لإضافة سياقه إلى سؤالك.',
+      content: 'أهلًا، أنا مساعد مساحتي. كيف أقدر أساعدك اليوم؟ اسألني عن ملاحظاتك أو مهامك، أو أضف سياقًا مخصصًا لسؤالك.',
     },
   ])
   const [draft, setDraft] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [attachedContext, setAttachedContext] = useState('')
+  const [pastedContext, setPastedContext] = useState('')
   const [contextDraft, setContextDraft] = useState('')
   const [contextEditorOpen, setContextEditorOpen] = useState(false)
   const [sourceOpen, setSourceOpen] = useState(false)
@@ -302,12 +326,12 @@ export default function AIChatPage() {
   const [selectedSource, setSelectedSource] = useState<ChatSource | null>(null)
 
   function openContextEditor() {
-    setContextDraft(attachedContext)
-    setContextEditorOpen(true)
+    if (!contextEditorOpen) setContextDraft(pastedContext)
+    setContextEditorOpen(!contextEditorOpen)
   }
 
   function saveContext() {
-    setAttachedContext(contextDraft.trim())
+    setPastedContext(contextDraft.trim())
     setContextEditorOpen(false)
   }
 
@@ -329,20 +353,20 @@ export default function AIChatPage() {
   }
 
   async function sendMessage() {
-    const message = draft.trim()
-    if (!message || isLoading) return
+    const userText = draft.trim()
+    if (!userText || isLoading) return
 
     const source = selectedSource
-    const context = [source?.context, attachedContext.trim()]
+    const attachedContext = [source?.context, pastedContext.trim()]
       .filter(Boolean)
       .join('\n\n')
       .slice(0, 20000)
-    const sourceLabel = [source?.title, attachedContext.trim() ? 'Context' : undefined]
+    const sourceLabel = [source?.title, pastedContext.trim() ? 'سياق مخصص' : undefined]
       .filter(Boolean)
       .join(' · ')
     setMessages((current) => [
       ...current,
-      { id: crypto.randomUUID(), role: 'user', content: message, sourceLabel: sourceLabel || undefined },
+      { id: crypto.randomUUID(), role: 'user', content: userText, sourceLabel: sourceLabel || undefined },
     ])
     setDraft('')
     setSelectedSource(null)
@@ -350,21 +374,21 @@ export default function AIChatPage() {
 
     try {
       if (!supabase) throw new Error('Supabase is not configured')
-      const { data, error } = await supabase.functions.invoke('Gemini-chat', {
-        body: { message, context },
-      })
+      const { data, error } = await supabase.functions.invoke('Gemini-chat', { body: { message: userText, context: attachedContext || "" } });
       if (error) throw error
       const response = typeof data?.response === 'string' ? data.response.trim() : ''
       if (!response) throw new Error('The assistant returned an empty response')
       setMessages((current) => [...current, { id: crypto.randomUUID(), role: 'assistant', content: response }])
     } catch (error) {
       console.error(error)
+      const actualError = await getActualErrorMessage(error)
       setMessages((current) => [
         ...current,
         {
           id: crypto.randomUUID(),
           role: 'assistant',
-          content: 'تعذّر الحصول على رد الآن. تأكد من نشر دالة Gemini وإعداد مفتاحها في Supabase ثم حاول مجددًا.',
+          content: `API Error: ${actualError}`,
+          isError: true,
         },
       ])
     } finally {
@@ -387,29 +411,67 @@ export default function AIChatPage() {
   return (
     <div className="ai-chat-page" dir="rtl">
       <header className="ai-chat-header">
-        <CloseBtn onClick={() => navigate('/')} />
         <div className="ai-chat-heading">
           <span className="ai-chat-heading-icon" aria-hidden="true">
             <Bot size={20} />
           </span>
-          <div>
-            <h1>مساعد مساحتي</h1>
-            <span>مساعدك لتنظيم أفكارك</span>
-          </div>
+          <h1>مساعد مساحتي</h1>
         </div>
-        <span className="ai-chat-header-spacer" aria-hidden="true" />
+        <button type="button" className="ai-chat-close" aria-label="إغلاق المحادثة" onClick={() => navigate('/')}>
+          <X size={20} />
+        </button>
       </header>
 
       <MessageList messages={messages} isLoading={isLoading} />
 
       <footer className="ai-chat-composer">
         <div className="ai-chat-composer-inner">
-          {attachedContext ? (
-            <div className="ai-chat-context-badge">
-              <span><Code size={14} /> Context Attached</span>
-              <button type="button" aria-label="إزالة السياق المرفق" onClick={() => setAttachedContext('')}>
+          <div className="ai-chat-composer-toolbar">
+            <button
+              type="button"
+              className={`ai-chat-context-pill${pastedContext ? ' has-context' : ''}`}
+              aria-expanded={contextEditorOpen}
+              aria-controls="ai-chat-context-panel"
+              aria-pressed={Boolean(pastedContext)}
+              onClick={openContextEditor}
+            >
+              <Code size={16} />
+              <span>إضافة سياق أو كود</span>
+              {pastedContext ? <span className="ai-chat-context-status">مرفق</span> : null}
+            </button>
+            {pastedContext ? (
+              <button
+                type="button"
+                className="ai-chat-context-remove"
+                aria-label="إزالة السياق المرفق"
+                onClick={() => {
+                  setPastedContext('')
+                  setContextDraft('')
+                }}
+              >
                 <X size={15} />
               </button>
+            ) : null}
+          </div>
+          {contextEditorOpen ? (
+            <div id="ai-chat-context-panel" className="ai-chat-context-panel">
+              <label htmlFor="ai-chat-context-input">الصق السياق أو الكود الذي تريد إرساله</label>
+              <textarea
+                id="ai-chat-context-input"
+                rows={4}
+                maxLength={20000}
+                value={contextDraft}
+                onChange={(event) => setContextDraft(event.target.value)}
+                placeholder="الصق الكود أو النص هنا..."
+              />
+              <div className="ai-chat-context-actions">
+                <button type="button" className="ai-chat-context-cancel" onClick={() => setContextEditorOpen(false)}>
+                  إلغاء
+                </button>
+                <button type="button" className="ai-chat-context-save" onClick={saveContext}>
+                  حفظ السياق
+                </button>
+              </div>
             </div>
           ) : null}
           {selectedSource ? (
@@ -421,46 +483,36 @@ export default function AIChatPage() {
             </div>
           ) : null}
           <form className="ai-chat-form" onSubmit={handleSubmit}>
-            <button
-              type="button"
-              className="ai-chat-attach"
-              aria-label="إرفاق مصدر"
-              title="إرفاق مصدر"
-              onClick={openSources}
-            >
-              <Paperclip size={19} />
-              <span>إرفاق مصدر</span>
-            </button>
-            <button
-              type="button"
-              className={`ai-chat-context-trigger${attachedContext ? ' attached' : ''}`}
-              aria-label="إدراج كود أو سياق"
-              aria-pressed={Boolean(attachedContext)}
-              title="إدراج كود أو سياق"
-              onClick={openContextEditor}
-            >
-              <Code size={18} />
-              <span>Context</span>
-            </button>
-            <textarea
-              aria-label="اكتب رسالتك"
-              rows={1}
-              maxLength={8000}
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              onKeyDown={handleInputKeyDown}
-              placeholder="اكتب سؤالك هنا..."
-              disabled={isLoading}
-            />
-            <button
-              type="submit"
-              className="ai-chat-send"
-              aria-label="إرسال الرسالة"
-              disabled={!draft.trim() || isLoading}
-            >
-              <Send size={18} />
-              <span>إرسال</span>
-            </button>
+            <div className="ai-chat-input-shell">
+              <button
+                type="button"
+                className="ai-chat-source-trigger"
+                aria-label="إرفاق مصدر من مساحتي"
+                title="إرفاق مصدر"
+                onClick={openSources}
+              >
+                <Paperclip size={18} />
+              </button>
+              <textarea
+                aria-label="اكتب رسالتك"
+                rows={1}
+                maxLength={8000}
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+                onKeyDown={handleInputKeyDown}
+                placeholder="اكتب رسالتك..."
+                disabled={isLoading}
+              />
+              <button
+                type="submit"
+                className="ai-chat-send"
+                aria-label="إرسال الرسالة"
+                disabled={!draft.trim() || isLoading}
+              >
+                <Send size={17} />
+                <span>إرسال</span>
+              </button>
+            </div>
           </form>
           <p className="ai-chat-privacy-note">يُرسل السؤال والسياق والمصدر المرفق فقط إلى المساعد.</p>
         </div>
@@ -480,31 +532,6 @@ export default function AIChatPage() {
           setSourceOpen(false)
         }}
       />
-      <Sheet
-        open={contextEditorOpen}
-        onClose={() => setContextEditorOpen(false)}
-        title="إدراج كود أو سياق"
-      >
-        <div className="ai-context-sheet">
-          <p>ألصق كوداً أو نصاً إضافياً ليُرسل مع رسالتك إلى المساعد.</p>
-          <textarea
-            aria-label="الكود أو السياق المرفق"
-            rows={9}
-            maxLength={20000}
-            value={contextDraft}
-            onChange={(event) => setContextDraft(event.target.value)}
-            placeholder="الصق الكود أو النص هنا..."
-          />
-          <div className="ai-context-actions">
-            <button type="button" className="ai-context-cancel" onClick={() => setContextEditorOpen(false)}>
-              إلغاء
-            </button>
-            <button type="button" className="ai-context-save" onClick={saveContext}>
-              حفظ السياق
-            </button>
-          </div>
-        </div>
-      </Sheet>
     </div>
   )
 }
