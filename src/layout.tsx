@@ -155,12 +155,17 @@ function DiscoverTile({
   )
 }
 
-export function Splash() {
+export function Splash({ showResetHint = false }: { showResetHint?: boolean }) {
   return (
     <div className="splash">
       <div className="splash-inner">
         <div className="splash-mark">M</div>
         <div className="splash-spin" aria-hidden="true" />
+        {showResetHint ? (
+          <p className="splash-reset-hint" role="status">
+            إذا استمر التحميل، سيتم إعادة ضبط التطبيق تلقائياً...
+          </p>
+        ) : null}
       </div>
     </div>
   )

@@ -36,6 +36,82 @@ const HabitsPage = lazy(() => import('./pages/Habits'))
 const HabitDetailsPage = lazy(() => import('./pages/HabitDetails'))
 const AIChatPage = lazy(() => import('./pages/AIChat'))
 
+let hardResetInProgress = false
+
+async function hardReset() {
+  if (hardResetInProgress) return
+  hardResetInProgress = true
+
+  try {
+    try {
+      localStorage.clear()
+    } catch {
+      // Storage can be unavailable in restricted browser contexts.
+    }
+    try {
+      sessionStorage.clear()
+    } catch {
+      // Storage can be unavailable in restricted browser contexts.
+    }
+
+    const cleanupTasks: Promise<unknown>[] = []
+
+    if (typeof indexedDB !== 'undefined' && typeof indexedDB.databases === 'function') {
+      cleanupTasks.push(
+        (async () => {
+          const databases = await indexedDB.databases()
+          await Promise.all(
+            databases.map(({ name }) => {
+              if (!name) return Promise.resolve()
+              return new Promise<void>((resolve) => {
+                const finish = () => resolve()
+                try {
+                  const request = indexedDB.deleteDatabase(name)
+                  request.onsuccess = finish
+                  request.onerror = finish
+                  request.onblocked = finish
+                } catch {
+                  finish()
+                }
+              })
+            }),
+          )
+        })(),
+      )
+    }
+
+    try {
+      if ('serviceWorker' in navigator) {
+        cleanupTasks.push(
+          navigator.serviceWorker.getRegistrations().then((registrations) =>
+            Promise.all(registrations.map((registration) => registration.unregister())),
+          ),
+        )
+      }
+    } catch {
+      // Continue to the reload even if service-worker access is blocked.
+    }
+
+    try {
+      if ('caches' in window) {
+        cleanupTasks.push(caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key)))))
+      }
+    } catch {
+      // CacheStorage is optional and may be unavailable in restricted contexts.
+    }
+
+    await Promise.race([
+      Promise.allSettled(cleanupTasks).then(() => undefined),
+      new Promise<void>((resolve) => window.setTimeout(resolve, 1200)),
+    ])
+  } catch (error) {
+    console.error('Failed to clear app data during hard reset', error)
+  } finally {
+    // @ts-expect-error Legacy reload argument requests a fresh document in browsers that support it.
+    window.location.reload(true)
+  }
+}
+
 function NativeBack() {
   useEffect(() => {
     let alive = true
@@ -102,6 +178,15 @@ function Gate() {
   const loc = useLocation()
   const [isAppLoading, setIsAppLoading] = useState(true)
   const [cloudOnboarded, setCloudOnboarded] = useState<boolean | null>(null)
+  const isLoading = isAppLoading || !ready || loading
+
+  useEffect(() => {
+    if (!isLoading) return
+    const timeout = window.setTimeout(() => {
+      void hardReset()
+    }, 3000)
+    return () => window.clearTimeout(timeout)
+  }, [isLoading])
 
   useEffect(() => {
     let alive = true
@@ -112,7 +197,8 @@ function Gate() {
           if (alive) setCloudOnboarded(null)
           return
         }
-        const { data } = await supabase.auth.getSession()
+        const { data, error } = await supabase.auth.getSession()
+        if (error) throw error
         if (!data.session) {
           if (alive) setCloudOnboarded(null)
           return
@@ -120,6 +206,11 @@ function Gate() {
         const row = await fetchProfile()
         if (!alive) return
         setCloudOnboarded(!!row?.onboarding_completed)
+      } catch (error) {
+        if (alive) {
+          console.error('Failed to initialize app session', error)
+          setCloudOnboarded(null)
+        }
       } finally {
         if (alive) setIsAppLoading(false)
       }
@@ -129,7 +220,7 @@ function Gate() {
     }
   }, [user?.id])
 
-  if (isAppLoading || !ready || loading) return <Splash />
+  if (isLoading) return <Splash showResetHint />
   if (!user) {
     if (loc.pathname !== '/auth') return <Navigate to="/auth" replace />
     return <AuthPage />
