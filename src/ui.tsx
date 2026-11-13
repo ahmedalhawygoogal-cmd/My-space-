@@ -130,7 +130,13 @@ export function Sheet({
   if (!open) return null
   return (
     <div className="sheet-backdrop" onClick={onClose}>
-      <div className="sheet" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title ?? 'Dialog'}
+        onClick={(e) => e.stopPropagation()}
+      >
         <CloseBtn variant="modal" onClick={onClose} />
         <div className="sheet-handle" />
         {title ? <h3 style={{ margin: '0 0 12px' }}>{title}</h3> : null}

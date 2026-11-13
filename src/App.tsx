@@ -34,6 +34,7 @@ const DownloadsPage = lazy(() => import('./pages/Downloads'))
 const MotivateMePage = lazy(() => import('./pages/MotivateMe'))
 const HabitsPage = lazy(() => import('./pages/Habits'))
 const HabitDetailsPage = lazy(() => import('./pages/HabitDetails'))
+const AIChatPage = lazy(() => import('./pages/AIChat'))
 
 function NativeBack() {
   useEffect(() => {
@@ -138,6 +139,7 @@ function Gate() {
   return (
     <Suspense fallback={<Splash />}>
       <Routes>
+        <Route path="/ai" element={<AIChatPage />} />
         <Route element={<Layout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/record" element={<RecorderPage />} />

@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Activity, BookOpen, CheckSquare, Home, Layers, Mic, Search, Settings, Sparkles, type LucideIcon } from 'lucide-react'
+import { Activity, BookOpen, Bot, CheckSquare, Home, Layers, Mic, Search, Settings, Sparkles, type LucideIcon } from 'lucide-react'
 import { CloseBtn, Sheet, useT } from './ui'
 import { stopSpeak } from './utils'
 
@@ -106,6 +106,7 @@ export function Layout() {
             hint={tr('motivateSubtitle')}
             onClick={() => go('/motivate')}
           />
+          <DiscoverTile icon={<Bot size={20} />} title="مساعد الذكاء الاصطناعي" onClick={() => go('/ai')} />
           <DiscoverTile icon={<Activity size={20} />} title={tr('habits')} onClick={() => go('/habits')} />
         </div>
       </Sheet>
