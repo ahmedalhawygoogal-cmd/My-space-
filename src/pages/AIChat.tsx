@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bot, CheckSquare, FileText, LoaderCircle, Mic, Paperclip, Send, X } from 'lucide-react'
+import { Bot, CheckSquare, Code, FileText, LoaderCircle, Mic, Paperclip, Send, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useStore } from '../store'
 import { CloseBtn, Sheet } from '../ui'
@@ -147,12 +147,12 @@ async function fetchUserSources(recordings: ReturnType<typeof useStore>['recordi
   }
 }
 
-function MessageList({ messages, sending }: { messages: ChatMessage[]; sending: boolean }) {
+function MessageList({ messages, isLoading }: { messages: ChatMessage[]; isLoading: boolean }) {
   const endOfMessages = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     endOfMessages.current?.scrollIntoView({ behavior: 'auto', block: 'end' })
-  }, [messages, sending])
+  }, [messages, isLoading])
 
   return (
     <div className="ai-chat-messages" role="log" aria-live="polite" aria-relevant="additions text">
@@ -170,13 +170,17 @@ function MessageList({ messages, sending }: { messages: ChatMessage[]; sending: 
             </div>
           </article>
         ))}
-        {sending ? (
-          <div className="ai-chat-message assistant" aria-label="جارٍ تجهيز الرد">
+        {isLoading ? (
+          <div className="ai-chat-message assistant" role="status" aria-label="يفكر في إجابة واضحة">
             <span className="ai-chat-message-avatar" aria-hidden="true">
               <Bot size={16} />
             </span>
             <div className="ai-chat-bubble ai-chat-thinking">
-              <LoaderCircle size={16} className="ai-chat-spinner" />
+              <span className="ai-chat-thinking-dots" aria-hidden="true">
+                <span className="ai-chat-thinking-dot animate-bounce" style={{ animationDelay: '-0.24s' }} />
+                <span className="ai-chat-thinking-dot animate-bounce" style={{ animationDelay: '-0.12s' }} />
+                <span className="ai-chat-thinking-dot animate-bounce" style={{ animationDelay: '0s' }} />
+              </span>
               <span>يفكر في إجابة واضحة...</span>
             </div>
           </div>
@@ -286,13 +290,26 @@ export default function AIChatPage() {
     },
   ])
   const [draft, setDraft] = useState('')
-  const [sending, setSending] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [attachedContext, setAttachedContext] = useState('')
+  const [contextDraft, setContextDraft] = useState('')
+  const [contextEditorOpen, setContextEditorOpen] = useState(false)
   const [sourceOpen, setSourceOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<SourceKind>('notes')
   const [sources, setSources] = useState<SourcesByKind>(emptySources)
   const [sourceState, setSourceState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const [sourceError, setSourceError] = useState('')
   const [selectedSource, setSelectedSource] = useState<ChatSource | null>(null)
+
+  function openContextEditor() {
+    setContextDraft(attachedContext)
+    setContextEditorOpen(true)
+  }
+
+  function saveContext() {
+    setAttachedContext(contextDraft.trim())
+    setContextEditorOpen(false)
+  }
 
   async function loadSources() {
     setSourceState('loading')
@@ -313,28 +330,35 @@ export default function AIChatPage() {
 
   async function sendMessage() {
     const message = draft.trim()
-    if (!message || sending) return
+    if (!message || isLoading) return
 
     const source = selectedSource
-    const context = source?.context
+    const context = [source?.context, attachedContext.trim()]
+      .filter(Boolean)
+      .join('\n\n')
+      .slice(0, 20000)
+    const sourceLabel = [source?.title, attachedContext.trim() ? 'Context' : undefined]
+      .filter(Boolean)
+      .join(' · ')
     setMessages((current) => [
       ...current,
-      { id: crypto.randomUUID(), role: 'user', content: message, sourceLabel: source?.title },
+      { id: crypto.randomUUID(), role: 'user', content: message, sourceLabel: sourceLabel || undefined },
     ])
     setDraft('')
     setSelectedSource(null)
-    setSending(true)
+    setIsLoading(true)
 
     try {
       if (!supabase) throw new Error('Supabase is not configured')
-      const { data, error } = await supabase.functions.invoke('gemini-chat', {
-        body: { message, ...(context ? { context } : {}) },
+      const { data, error } = await supabase.functions.invoke('Gemini-chat', {
+        body: { message, context },
       })
       if (error) throw error
       const response = typeof data?.response === 'string' ? data.response.trim() : ''
       if (!response) throw new Error('The assistant returned an empty response')
       setMessages((current) => [...current, { id: crypto.randomUUID(), role: 'assistant', content: response }])
-    } catch {
+    } catch (error) {
+      console.error(error)
       setMessages((current) => [
         ...current,
         {
@@ -344,7 +368,7 @@ export default function AIChatPage() {
         },
       ])
     } finally {
-      setSending(false)
+      setIsLoading(false)
     }
   }
 
@@ -376,10 +400,18 @@ export default function AIChatPage() {
         <span className="ai-chat-header-spacer" aria-hidden="true" />
       </header>
 
-      <MessageList messages={messages} sending={sending} />
+      <MessageList messages={messages} isLoading={isLoading} />
 
       <footer className="ai-chat-composer">
         <div className="ai-chat-composer-inner">
+          {attachedContext ? (
+            <div className="ai-chat-context-badge">
+              <span><Code size={14} /> Context Attached</span>
+              <button type="button" aria-label="إزالة السياق المرفق" onClick={() => setAttachedContext('')}>
+                <X size={15} />
+              </button>
+            </div>
+          ) : null}
           {selectedSource ? (
             <div className="ai-chat-selected-source">
               <span><FileText size={15} /> مصدر مرفق: {selectedSource.title}</span>
@@ -399,6 +431,17 @@ export default function AIChatPage() {
               <Paperclip size={19} />
               <span>إرفاق مصدر</span>
             </button>
+            <button
+              type="button"
+              className={`ai-chat-context-trigger${attachedContext ? ' attached' : ''}`}
+              aria-label="إدراج كود أو سياق"
+              aria-pressed={Boolean(attachedContext)}
+              title="إدراج كود أو سياق"
+              onClick={openContextEditor}
+            >
+              <Code size={18} />
+              <span>Context</span>
+            </button>
             <textarea
               aria-label="اكتب رسالتك"
               rows={1}
@@ -407,19 +450,19 @@ export default function AIChatPage() {
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={handleInputKeyDown}
               placeholder="اكتب سؤالك هنا..."
-              disabled={sending}
+              disabled={isLoading}
             />
             <button
               type="submit"
               className="ai-chat-send"
               aria-label="إرسال الرسالة"
-              disabled={!draft.trim() || sending}
+              disabled={!draft.trim() || isLoading}
             >
               <Send size={18} />
               <span>إرسال</span>
             </button>
           </form>
-          <p className="ai-chat-privacy-note">يُرسل السؤال والمصدر المرفق فقط إلى المساعد.</p>
+          <p className="ai-chat-privacy-note">يُرسل السؤال والسياق والمصدر المرفق فقط إلى المساعد.</p>
         </div>
       </footer>
 
@@ -437,6 +480,31 @@ export default function AIChatPage() {
           setSourceOpen(false)
         }}
       />
+      <Sheet
+        open={contextEditorOpen}
+        onClose={() => setContextEditorOpen(false)}
+        title="إدراج كود أو سياق"
+      >
+        <div className="ai-context-sheet">
+          <p>ألصق كوداً أو نصاً إضافياً ليُرسل مع رسالتك إلى المساعد.</p>
+          <textarea
+            aria-label="الكود أو السياق المرفق"
+            rows={9}
+            maxLength={20000}
+            value={contextDraft}
+            onChange={(event) => setContextDraft(event.target.value)}
+            placeholder="الصق الكود أو النص هنا..."
+          />
+          <div className="ai-context-actions">
+            <button type="button" className="ai-context-cancel" onClick={() => setContextEditorOpen(false)}>
+              إلغاء
+            </button>
+            <button type="button" className="ai-context-save" onClick={saveContext}>
+              حفظ السياق
+            </button>
+          </div>
+        </div>
+      </Sheet>
     </div>
   )
 }
