@@ -15,7 +15,7 @@ export function CloseBtn({
   const nav = useNavigate()
   return (
     <button
-      className={`close-btn ${variant === 'modal' ? 'close-btn-modal' : 'close-btn-page'} w-11 h-11 rounded-full flex items-center justify-center bg-foreground/5 border border-foreground/10 text-muted-foreground hover:text-foreground hover:bg-foreground/10 backdrop-blur-md active:scale-95 transition-all duration-200`}
+      className={`close-btn ${variant === 'modal' ? 'close-btn-modal' : 'close-btn-page fixed top-4 right-4 z-[50]'} w-11 h-11 rounded-full flex items-center justify-center bg-foreground/5 border border-foreground/10 text-muted-foreground hover:text-foreground hover:bg-foreground/10 backdrop-blur-md active:scale-95 transition-all duration-200`}
       type="button"
       aria-label={tr('close')}
       onClick={() => {
@@ -34,6 +34,29 @@ export function CloseBtn({
 
 export function BackBtn(props: { onClick?: () => void }) {
   return <CloseBtn {...props} />
+}
+
+export function StandardFAB({
+  children,
+  onClick,
+  label,
+  accent = false,
+}: {
+  children: ReactNode
+  onClick: () => void
+  label: string
+  accent?: boolean
+}) {
+  return (
+    <button
+      className={`fab fixed bottom-24 left-6 z-[50]${accent ? ' accent' : ''}`}
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+    >
+      {children}
+    </button>
+  )
 }
 
 export function FormActions({
@@ -164,7 +187,7 @@ export function Confirm({
   const tr = useT()
   if (!open) return null
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
+    <div className="sheet-backdrop fixed inset-0 flex items-center justify-center z-[9999] p-4" onClick={onClose}>
       <div className="dialog" onClick={(e) => e.stopPropagation()}>
         <CloseBtn variant="modal" onClick={onClose} />
         <h3 style={{ marginTop: 0 }}>{title}</h3>

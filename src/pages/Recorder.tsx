@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ChevronDown, CloudUpload, FolderPlus, Loader2, Mic, Pause, Pencil, Play, Sparkles, Square, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
 import { AudioPlayer } from '../AudioPlayer'
-import { Confirm, Empty, Segment, Sheet, SubjectSelect, TagInput, Toast, useT } from '../ui'
+import { Confirm, Empty, Segment, Sheet, StandardFAB, SubjectSelect, TagInput, Toast, useT } from '../ui'
 import type { RecDistance, Recording } from '../types'
 import {
   cancelNativeRecording,
@@ -293,9 +293,9 @@ export default function RecorderPage() {
       ) : (
         list.map((r) => <RecListCard key={r.id} rec={r} />)
       )}
-      <button className="fab accent" type="button" onClick={() => nav('/record/live')} aria-label={tr('record')}>
+      <StandardFAB accent onClick={() => nav('/record/live')} label={tr('record')}>
         <Mic size={22} />
-      </button>
+      </StandardFAB>
       <Sheet open={folderOpen} onClose={() => setFolderOpen(false)} title={tr('newFolder')}>
         <label className="label">{tr('name')}</label>
         <input className="field" value={folderName} onChange={(e) => setFolderName(e.target.value)} />

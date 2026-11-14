@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { CheckSquare, ChevronDown, ChevronUp, Eye, EyeOff, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
-import { Confirm, DateField, Empty, FormActions, Segment, Sheet, useT } from '../ui'
+import { Confirm, DateField, Empty, FormActions, Segment, Sheet, StandardFAB, useT } from '../ui'
 import { endOfDay, formatDate, startOfDay, uid } from '../utils'
 import type { Priority, Task } from '../types'
 
@@ -170,9 +170,9 @@ export default function TasksPage() {
           )
         })
       )}
-      <button className="fab" type="button" onClick={() => setPick(true)} aria-label={tr('newTask')}>
+      <StandardFAB onClick={() => setPick(true)} label={tr('newTask')}>
         <Plus size={22} />
-      </button>
+      </StandardFAB>
       <Sheet open={pick} onClose={() => setPick(false)} title={tr('newTask')}>
         <button
           className="choice"

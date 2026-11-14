@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Activity, Flame, Plus } from 'lucide-react'
 import { useStore } from '../store'
-import { CloseBtn, Confirm, Empty, FormActions, Segment, Sheet, Toast, useT } from '../ui'
+import { CloseBtn, Confirm, Empty, FormActions, Segment, Sheet, StandardFAB, Toast, useT } from '../ui'
 import { quoteField, type Habit, type HabitLog, type QuoteCharacter } from '../types'
 import { DEFAULT_QUOTES } from '../data/defaultQuotes'
 import {
@@ -181,9 +181,9 @@ export default function HabitsPage() {
           })}
         </div>
       )}
-      <button className="fab" type="button" onClick={() => setOpen(true)} aria-label={tr('newHabit')}>
+      <StandardFAB onClick={() => setOpen(true)} label={tr('newHabit')}>
         <Plus size={22} />
-      </button>
+      </StandardFAB>
       <HabitForm
         open={open}
         onClose={() => setOpen(false)}

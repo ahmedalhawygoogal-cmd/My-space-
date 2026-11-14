@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeftRight, Ear, Layers, LayoutGrid, Pencil, PenLine, Play, Plus, RefreshCw, Trash2, Volume2 } from 'lucide-react'
 import { useStore } from '../store'
-import { CloseBtn, Confirm, Empty, FormActions, Sheet, Toast, useT } from '../ui'
+import { CloseBtn, Confirm, Empty, FormActions, Sheet, StandardFAB, Toast, useT } from '../ui'
 import type { ReactNode } from 'react'
 import type { AppSettings, Card, Deck, DeckType, Lang } from '../types'
 import { DECK_TYPES, LEARN_LANGS, NATIVE_LANG_OPTS, TARGET_LANG_OPTS, isRichDeck, labeled } from '../types'
@@ -340,9 +340,9 @@ export default function FlashcardsPage() {
           )
         })
       )}
-      <button className="fab" type="button" onClick={() => setOpen(true)} aria-label={tr('newDeck')}>
+      <StandardFAB onClick={() => setOpen(true)} label={tr('newDeck')}>
         <Plus size={22} />
-      </button>
+      </StandardFAB>
       <Sheet open={open} onClose={() => setOpen(false)} title={tr('newDeck')}>
         <label className="label">{tr('deckType')}</label>
         <select className="field" value={type} onChange={(e) => setType(e.target.value as DeckType)}>

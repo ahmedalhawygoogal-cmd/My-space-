@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import { useStore } from '../store'
 import { AudioPlayer } from '../AudioPlayer'
-import { Confirm, Empty, FormActions, Sheet, Toast, useT } from '../ui'
+import { Confirm, Empty, FormActions, Sheet, StandardFAB, Toast, useT } from '../ui'
 import { contrastInk, fileToDataUrl, firstNoteImage, formatDate } from '../utils'
 import { NOTE_COLORS } from '../types'
 import type { Note } from '../types'
@@ -130,9 +130,9 @@ export default function NotebookPage() {
           )
         })
       )}
-      <button className="fab" type="button" onClick={create} aria-label={tr('newNote')}>
+      <StandardFAB onClick={create} label={tr('newNote')}>
         <Plus size={22} />
-      </button>
+      </StandardFAB>
     </div>
   )
 }

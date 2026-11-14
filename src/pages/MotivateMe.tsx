@@ -5,7 +5,7 @@ import { STORES } from '../db'
 import { useStore } from '../store'
 import { uid } from '../utils'
 import { quoteField, type QuoteCharacter } from '../types'
-import { Empty, Sheet, Toast, useT } from '../ui'
+import { Empty, Sheet, StandardFAB, Toast, useT } from '../ui'
 import { DEFAULT_QUOTES } from '../data/defaultQuotes'
 
 function firstLetter(name: string): string {
@@ -313,9 +313,9 @@ export default function MotivateMePage() {
         </div>
       </Sheet>
 
-      <button className="fab" type="button" onClick={() => setAddOpen(true)} aria-label={tr('addCharacter')}>
+      <StandardFAB onClick={() => setAddOpen(true)} label={tr('addCharacter')}>
         <Plus size={22} />
-      </button>
+      </StandardFAB>
     </div>
   )
 }

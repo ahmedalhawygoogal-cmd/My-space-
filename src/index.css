@@ -243,12 +243,6 @@ img { max-width: 100%; }
   appearance: none;
   -webkit-appearance: none;
 }
-.close-btn-page {
-  position: fixed;
-  top: calc(1.5rem + var(--safe-t));
-  right: 1.5rem;
-  z-index: 50;
-}
 .close-btn-modal {
   position: absolute;
   top: 1rem;
@@ -627,9 +621,6 @@ img { max-width: 100%; }
 }
 
 .fab {
-  position: fixed;
-  inset-inline-end: 18px;
-  bottom: calc(var(--nav-h) + var(--safe-b) + 18px);
   width: 58px;
   height: 58px;
   border: 0;
@@ -639,7 +630,6 @@ img { max-width: 100%; }
   display: grid;
   place-items: center;
   box-shadow: 0 12px 24px color-mix(in srgb, var(--brand) 40%, transparent), var(--glow);
-  z-index: 15;
 }
 .fab.accent { background: var(--primary-color); color: var(--brand-ink); }
 
@@ -1410,7 +1400,13 @@ img { max-width: 100%; }
 .absolute { position: absolute; }
 .inset-0 { inset: 0; }
 .top-0 { top: 0; }
+.top-4 { top: 1rem; }
+.right-4 { right: 1rem; }
 .bottom-0 { bottom: 0; }
+.bottom-24 { bottom: 6rem; }
+.left-6 { left: 1.5rem; }
+.z-\[50\] { z-index: 50; }
+.z-\[9999\] { z-index: 9999; }
 .-left-20 { left: -5rem; }
 .-right-20 { right: -5rem; }
 .-z-10 { z-index: -10; }
