@@ -249,6 +249,12 @@ img { max-width: 100%; }
   right: 1rem;
   z-index: 2;
 }
+.close-btn-page {
+  position: fixed;
+  top: calc(1rem + var(--safe-t));
+  inset-inline-end: 1rem;
+  z-index: 9999;
+}
 .brand {
   display: flex;
   align-items: center;
