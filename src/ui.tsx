@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { Check, Trash2, X } from 'lucide-react'
 import { t, type I18nKey } from './i18n'
@@ -15,7 +16,7 @@ export function CloseBtn({
   const nav = useNavigate()
   return (
     <button
-      className={`close-btn ${variant === 'modal' ? 'close-btn-modal' : 'close-btn-page fixed top-4 right-4 z-[50]'} w-11 h-11 rounded-full flex items-center justify-center bg-foreground/5 border border-foreground/10 text-muted-foreground hover:text-foreground hover:bg-foreground/10 backdrop-blur-md active:scale-95 transition-all duration-200`}
+      className={`close-btn ${variant === 'modal' ? 'close-btn-modal' : 'close-btn-page fixed top-4 right-4 z-[60]'} w-11 h-11 rounded-full flex items-center justify-center bg-foreground/5 border border-foreground/10 text-muted-foreground hover:text-foreground hover:bg-foreground/10 backdrop-blur-md active:scale-95 transition-all duration-200`}
       type="button"
       aria-label={tr('close')}
       onClick={() => {
@@ -47,9 +48,9 @@ export function StandardFAB({
   label: string
   accent?: boolean
 }) {
-  return (
+  const button = (
     <button
-      className={`fab fixed bottom-24 left-6 z-[50]${accent ? ' accent' : ''}`}
+      className={`fab fixed bottom-24 left-6 z-[60]${accent ? ' accent' : ''}`}
       type="button"
       onClick={onClick}
       aria-label={label}
@@ -57,6 +58,8 @@ export function StandardFAB({
       {children}
     </button>
   )
+
+  return createPortal(button, document.getElementById('global-actions') ?? document.body)
 }
 
 export function FormActions({

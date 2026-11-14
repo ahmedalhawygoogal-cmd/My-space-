@@ -115,6 +115,7 @@ export function Layout() {
           <Mark size={250} strokeWidth={1.15} />
         </div>
       )}
+      <div id="global-actions" />
       <main key={loc.pathname} className="main page-transition">
         <Outlet />
       </main>
