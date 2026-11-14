@@ -30,7 +30,7 @@ export function Layout() {
   }
 
   return (
-    <div className={`app-shell${isRoot ? '' : ' hide-chrome'}`}>
+    <div className={`app-shell h-[100dvh] w-full overflow-hidden flex flex-col bg-gray-50 relative${isRoot ? '' : ' hide-chrome'}`}>
       <div className="app-bg" aria-hidden="true">
         <div className="app-bg-beam app-bg-beam-a" />
         <div className="app-bg-beam app-bg-beam-b" />
@@ -116,7 +116,7 @@ export function Layout() {
         </div>
       )}
       <div id="global-actions" />
-      <main key={loc.pathname} className="main page-transition">
+      <main key={loc.pathname} className="flex-1 w-full overflow-y-auto overflow-x-hidden relative main page-transition">
         <Outlet />
       </main>
     </div>
