@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Bot, CheckSquare, Code, FileText, LoaderCircle, Mic, Paperclip, Send, X } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { supabase } from '../lib/supabase'
 import { useStore } from '../store'
 import { Sheet } from '../ui'
@@ -148,6 +150,14 @@ async function fetchUserSources(recordings: ReturnType<typeof useStore>['recordi
   }
 }
 
+function AssistantMarkdown({ content }: { content: string }) {
+  return (
+    <div className="ai-chat-markdown" dir="auto">
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+    </div>
+  )
+}
+
 function MessageList({
   messages,
   isLoading,
@@ -173,7 +183,11 @@ function MessageList({
           >
             <div className={`ai-chat-bubble${message.isError ? ' is-error' : ''}`}>
               {message.sourceLabel ? <div className="ai-chat-source-label">مرفق: {message.sourceLabel}</div> : null}
-              <p dir="auto">{message.content}</p>
+              {message.role === 'assistant' ? (
+                <AssistantMarkdown content={message.content} />
+              ) : (
+                <p dir="auto">{message.content}</p>
+              )}
             </div>
           </article>
         ))}
