@@ -180,7 +180,7 @@ function MessageList({
         {errorMessage ? (
           <article className="ai-chat-message assistant is-error" role="alert">
             <div className="ai-chat-bubble is-error">
-              <p dir="auto">API Error: {errorMessage}</p>
+              <p dir="auto">{errorMessage}</p>
             </div>
           </article>
         ) : null}
@@ -339,8 +339,6 @@ export default function AIChatPage() {
 
   const handleSendMessage = async (userText: string) => {
     if (!userText || isLoading) return
-    setIsLoading(true)
-    setErrorMessage(null)
 
     const source = selectedSource
     const attachedContext = [source?.context, pastedContext.trim()]
@@ -350,72 +348,45 @@ export default function AIChatPage() {
     const sourceLabel = [source?.title, pastedContext.trim() ? 'سياق مخصص' : undefined]
       .filter(Boolean)
       .join(' · ')
-    setMessages((current) => [
-      ...current,
-      { id: crypto.randomUUID(), role: 'user', content: userText, sourceLabel: sourceLabel || undefined },
-    ])
-    setDraft('')
-    setSelectedSource(null)
 
-    let endpoint = ''
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      setIsLoading(true)
+      setErrorMessage(null)
 
-      console.log("URL used for Fetch:", supabaseUrl)
+      setMessages((current) => [
+        ...current,
+        { id: crypto.randomUUID(), role: 'user', content: userText, sourceLabel: sourceLabel || undefined },
+      ])
+      setDraft('')
+      setSelectedSource(null)
 
-      if (!supabaseUrl || !supabaseKey) {
-        throw new Error("VITE_SUPABASE variables are missing or undefined!")
-      }
+      if (!supabase) throw new Error('Supabase is not configured')
 
-      let parsedSupabaseUrl: URL
-      try {
-        parsedSupabaseUrl = new URL(supabaseUrl.trim())
-      } catch {
-        throw new Error("VITE_SUPABASE_URL is invalid!")
-      }
-      if (parsedSupabaseUrl.protocol !== 'https:' && parsedSupabaseUrl.protocol !== 'http:') {
-        throw new Error("VITE_SUPABASE_URL must use HTTP or HTTPS!")
-      }
-
-      parsedSupabaseUrl.pathname = `${parsedSupabaseUrl.pathname.replace(/\/+$/, '')}/functions/v1/Gemini-chat`
-      parsedSupabaseUrl.search = ''
-      parsedSupabaseUrl.hash = ''
-      endpoint = parsedSupabaseUrl.toString()
-      console.log("Endpoint used for Fetch:", endpoint)
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        mode: 'cors',
-        headers: {
-          'Content-Type': 'application/json',
-          apikey: supabaseKey,
-          Authorization: `Bearer ${supabaseKey}`,
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('Gemini-chat', {
+        body: {
           message: userText,
-          context: attachedContext || "",
-        }),
+          context: attachedContext || '',
+        },
       })
 
-      if (!response.ok) {
-        const errorText = await response.text()
-        throw new Error(`HTTP ${response.status}: ${errorText}`)
+      if (error) {
+        console.error("Supabase Error:", error)
+        throw new Error(error.message)
       }
 
-      const data = await response.json()
       const assistantText = typeof data?.response === 'string' ? data.response.trim() : ''
-      if (!assistantText) throw new Error('The assistant returned an empty response')
-      setMessages((current) => [...current, { id: crypto.randomUUID(), role: 'assistant', content: assistantText }])
-    } catch (error) {
-      console.error("FETCH ERROR DETAILS:", error)
-      const message = error instanceof Error ? error.message : String(error)
-      if (/failed to fetch/i.test(message)) {
-        const target = endpoint || 'not constructed (Supabase URL is missing or invalid)'
-        setErrorMessage(`Failed to fetch. URL: ${target}`)
-      } else {
-        setErrorMessage(message || "Unknown fetch error")
+      if (!assistantText) {
+        throw new Error('No response received from AI')
       }
+
+      setMessages((current) => [
+        ...current,
+        { id: crypto.randomUUID(), role: 'assistant', content: assistantText },
+      ])
+    } catch (error) {
+      console.error("Chat Error:", error)
+      const message = error instanceof Error ? error.message : String(error)
+      setErrorMessage(`API Error: ${message}`)
     } finally {
       setIsLoading(false)
     }
