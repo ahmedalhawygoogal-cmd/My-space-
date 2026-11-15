@@ -436,6 +436,7 @@ const ar = {
   deleteHabitConfirm: 'حذف هذه العادة وسجلاتها؟',
   habitRewardTitle: 'أحسنت! سلسلة 7 أيام',
   habitRewardBody: 'استمر، أنت تبني نسخة أفضل من نفسك.',
+  backgrounds: 'الخلفيات',
 }
 
 const en: Record<keyof typeof ar, string> = {
@@ -874,6 +875,7 @@ const en: Record<keyof typeof ar, string> = {
   deleteHabitConfirm: 'Delete this habit and its logs?',
   habitRewardTitle: 'Nice! 7-day streak',
   habitRewardBody: 'Keep going. You are building a better you.',
+  backgrounds: 'Backgrounds',
 }
 
 const fr: Record<keyof typeof ar, string> = {
@@ -1312,6 +1314,7 @@ const fr: Record<keyof typeof ar, string> = {
   deleteHabitConfirm: 'Delete this habit and its logs?',
   habitRewardTitle: 'Nice! 7-day streak',
   habitRewardBody: 'Keep going. You are building a better you.',
+  backgrounds: 'Backgrounds',
 }
 
 const de: Record<keyof typeof ar, string> = {
@@ -1750,6 +1753,7 @@ const de: Record<keyof typeof ar, string> = {
   deleteHabitConfirm: 'Delete this habit and its logs?',
   habitRewardTitle: 'Nice! 7-day streak',
   habitRewardBody: 'Keep going. You are building a better you.',
+  backgrounds: 'Backgrounds',
 }
 
 const es: Record<keyof typeof ar, string> = {
@@ -2188,6 +2192,7 @@ const es: Record<keyof typeof ar, string> = {
   deleteHabitConfirm: 'Delete this habit and its logs?',
   habitRewardTitle: 'Nice! 7-day streak',
   habitRewardBody: 'Keep going. You are building a better you.',
+  backgrounds: 'Backgrounds',
 }
 
 const tr: Record<keyof typeof ar, string> = {
@@ -2626,6 +2631,7 @@ const tr: Record<keyof typeof ar, string> = {
   deleteHabitConfirm: 'Delete this habit and its logs?',
   habitRewardTitle: 'Nice! 7-day streak',
   habitRewardBody: 'Keep going. You are building a better you.',
+  backgrounds: 'Backgrounds',
 }
 
 const it: Record<keyof typeof ar, string> = {
@@ -3064,6 +3070,7 @@ const it: Record<keyof typeof ar, string> = {
   deleteHabitConfirm: 'Delete this habit and its logs?',
   habitRewardTitle: 'Nice! 7-day streak',
   habitRewardBody: 'Keep going. You are building a better you.',
+  backgrounds: 'Backgrounds',
 }
 
 const ru: Record<keyof typeof ar, string> = {
@@ -3502,6 +3509,7 @@ const ru: Record<keyof typeof ar, string> = {
   deleteHabitConfirm: 'Delete this habit and its logs?',
   habitRewardTitle: 'Nice! 7-day streak',
   habitRewardBody: 'Keep going. You are building a better you.',
+  backgrounds: 'Backgrounds',
 }
 
 const zh: Record<keyof typeof ar, string> = {
@@ -3940,6 +3948,7 @@ const zh: Record<keyof typeof ar, string> = {
   deleteHabitConfirm: 'Delete this habit and its logs?',
   habitRewardTitle: 'Nice! 7-day streak',
   habitRewardBody: 'Keep going. You are building a better you.',
+  backgrounds: 'Backgrounds',
 }
 
 const ja: Record<keyof typeof ar, string> = {
@@ -4378,6 +4387,7 @@ const ja: Record<keyof typeof ar, string> = {
   deleteHabitConfirm: 'Delete this habit and its logs?',
   habitRewardTitle: 'Nice! 7-day streak',
   habitRewardBody: 'Keep going. You are building a better you.',
+  backgrounds: 'Backgrounds',
 }
 
 const ko: Record<keyof typeof ar, string> = {
@@ -4816,6 +4826,7 @@ const ko: Record<keyof typeof ar, string> = {
   deleteHabitConfirm: 'Delete this habit and its logs?',
   habitRewardTitle: 'Nice! 7-day streak',
   habitRewardBody: 'Keep going. You are building a better you.',
+  backgrounds: 'Backgrounds',
 }
 
 const pt: Record<keyof typeof ar, string> = {
@@ -5254,6 +5265,7 @@ const pt: Record<keyof typeof ar, string> = {
   deleteHabitConfirm: 'Delete this habit and its logs?',
   habitRewardTitle: 'Nice! 7-day streak',
   habitRewardBody: 'Keep going. You are building a better you.',
+  backgrounds: 'Backgrounds',
 }
 
 const hi: Record<keyof typeof ar, string> = {
@@ -5692,6 +5704,7 @@ const hi: Record<keyof typeof ar, string> = {
   deleteHabitConfirm: 'Delete this habit and its logs?',
   habitRewardTitle: 'Nice! 7-day streak',
   habitRewardBody: 'Keep going. You are building a better you.',
+  backgrounds: 'Backgrounds',
 }
 
 const ur: Record<keyof typeof ar, string> = {
@@ -6130,6 +6143,7 @@ const ur: Record<keyof typeof ar, string> = {
   deleteHabitConfirm: 'Delete this habit and its logs?',
   habitRewardTitle: 'Nice! 7-day streak',
   habitRewardBody: 'Keep going. You are building a better you.',
+  backgrounds: 'Backgrounds',
 }
 
 const fa: Record<keyof typeof ar, string> = {
@@ -6568,6 +6582,7 @@ const fa: Record<keyof typeof ar, string> = {
   deleteHabitConfirm: 'Delete this habit and its logs?',
   habitRewardTitle: 'Nice! 7-day streak',
   habitRewardBody: 'Keep going. You are building a better you.',
+  backgrounds: 'Backgrounds',
 }
 
 const nl: Record<keyof typeof ar, string> = {
@@ -7006,6 +7021,7 @@ const nl: Record<keyof typeof ar, string> = {
   deleteHabitConfirm: 'Delete this habit and its logs?',
   habitRewardTitle: 'Nice! 7-day streak',
   habitRewardBody: 'Keep going. You are building a better you.',
+  backgrounds: 'Backgrounds',
 }
 
 const pl: Record<keyof typeof ar, string> = {
@@ -7444,6 +7460,7 @@ const pl: Record<keyof typeof ar, string> = {
   deleteHabitConfirm: 'Delete this habit and its logs?',
   habitRewardTitle: 'Nice! 7-day streak',
   habitRewardBody: 'Keep going. You are building a better you.',
+  backgrounds: 'Backgrounds',
 }
 
 const id: Record<keyof typeof ar, string> = {
@@ -7882,6 +7899,7 @@ const id: Record<keyof typeof ar, string> = {
   deleteHabitConfirm: 'Delete this habit and its logs?',
   habitRewardTitle: 'Nice! 7-day streak',
   habitRewardBody: 'Keep going. You are building a better you.',
+  backgrounds: 'Backgrounds',
 }
 
 export type I18nKey = keyof typeof ar

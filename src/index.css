@@ -184,7 +184,7 @@ img { max-width: 100%; }
 .close-btn-modal {
   position: absolute;
   top: 1rem;
-  inset-inline-end: 1rem;
+  inset-inline-start: 1rem;
   z-index: 2;
 }
 .close-btn-page {
@@ -587,7 +587,7 @@ img { max-width: 100%; }
 .sheet .page-title,
 .dialog > h3,
 .dialog > p:first-of-type {
-  padding-inline-end: 3rem;
+  padding-inline-start: 3rem;
 }
 .sheet-handle {
   width: 42px;

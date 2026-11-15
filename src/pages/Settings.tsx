@@ -192,7 +192,7 @@ export default function SettingsPage() {
         ]}
       />
       <section className="background-settings" aria-labelledby="background-picker-title">
-        <h3 id="background-picker-title" className="background-picker-title">الخلفيات</h3>
+        <h3 id="background-picker-title" className="background-picker-title">{tr('backgrounds')}</h3>
         <div className="background-picker" role="group" aria-label="اختيار خلفية التطبيق">
           {BACKGROUND_OPTIONS.map((option) => (
             <button
