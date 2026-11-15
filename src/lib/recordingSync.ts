@@ -83,16 +83,6 @@ async function persistCloudUrl(rec: Recording, cloudUrl: string): Promise<Record
   return next
 }
 
-async function hydrateBlob(rec: Recording): Promise<void> {
-  if (!rec.cloudUrl) return
-  const existing = await db.getById<{ id: string; blob: Blob }>(STORES.audioBlobs, rec.id)
-  if (existing?.blob) return
-  const res = await fetch(rec.cloudUrl)
-  if (!res.ok) return
-  const blob = await res.blob()
-  await db.putOne(STORES.audioBlobs, { id: rec.id, blob })
-}
-
 export async function pushRecordingToCloud(rec: Recording, blob?: Blob): Promise<void> {
   if (!isUuid(rec.id)) return
   const uid = await userId()
@@ -176,7 +166,7 @@ export async function syncRecordingsFromCloud(): Promise<boolean> {
       if (!seen.has(r.id)) merged.push(r)
     }
     await db.putMany(STORES.recordings, merged)
-    await Promise.all(merged.map((r) => hydrateBlob(r).catch(() => undefined)))
+    // Audio is hydrated on demand by getAudioBlob() when the user plays a recording.
     await pushLocalRecordings(merged)
     return true
   } catch {

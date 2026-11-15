@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { Component, lazy, Suspense, useEffect, useState, type ErrorInfo, type ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { Layout, Splash } from './layout'
 import { StoreProvider, useStore } from './store'
@@ -38,7 +38,9 @@ const AIChatPage = lazy(() => import('./pages/AIChat'))
 
 let hardResetInProgress = false
 
-async function hardReset() {
+// Manual recovery only. This deletes local data, so it must never be invoked
+// automatically — not on startup, timeouts, slow loads, or network failures.
+export async function hardReset() {
   if (hardResetInProgress) return
   hardResetInProgress = true
 
@@ -181,14 +183,6 @@ function Gate() {
   const isLoading = isAppLoading || !ready || loading
 
   useEffect(() => {
-    if (!isLoading) return
-    const timeout = window.setTimeout(() => {
-      void hardReset()
-    }, 3000)
-    return () => window.clearTimeout(timeout)
-  }, [isLoading])
-
-  useEffect(() => {
     let alive = true
     setIsAppLoading(true)
     void (async () => {
@@ -263,6 +257,37 @@ function Gate() {
   )
 }
 
+class AppErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false }
+
+  static getDerivedStateFromError(): { hasError: boolean } {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo): void {
+    console.error('App render error', error, info)
+  }
+
+  render(): ReactNode {
+    if (!this.state.hasError) return this.props.children
+    return (
+      <div className="splash" role="alert">
+        <div className="splash-inner">
+          <div className="splash-mark">M</div>
+          <p className="splash-reset-hint">
+            حدث خطأ غير متوقع. بياناتك محفوظة ولم يُحذف أي شيء.
+            <br />
+            Something went wrong. Your data is safe.
+          </p>
+          <button className="btn" type="button" onClick={() => window.location.reload()}>
+            Reload App
+          </button>
+        </div>
+      </div>
+    )
+  }
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -271,7 +296,9 @@ export default function App() {
         <BrowserRouter>
           <NativeBack />
           <CardReminders />
-          <Gate />
+          <AppErrorBoundary>
+            <Gate />
+          </AppErrorBoundary>
         </BrowserRouter>
       </StoreProvider>
     </AuthProvider>
