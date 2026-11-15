@@ -1193,6 +1193,7 @@ img { max-width: 100%; }
 .bg-primary { background: var(--primary-color); }
 .bg-primary\/20 { background: color-mix(in srgb, var(--primary-color) 20%, transparent); }
 .bg-cyan-500\/10 { background: rgb(6 182 212 / 0.1); }
+.bg-black\/50 { background: rgb(0 0 0 / 0.5); }
 .bg-black\/60 { background: rgb(0 0 0 / 0.6); }
 .bg-gradient-to-br { background-image: linear-gradient(to bottom right, var(--tw-gradient-from, var(--primary-color)), var(--tw-gradient-to, #06b6d4)); }
 .from-primary { --tw-gradient-from: var(--primary-color); }
@@ -1450,9 +1451,14 @@ img { max-width: 100%; }
   from { transform: translateX(100%); opacity: 1; }
   to { transform: translateX(0); opacity: 1; }
 }
+/* Opacity-only: transform animations and will-change create a stacking
+   context that traps position:fixed children (FAB, portaled modals). */
+@keyframes pageFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 .page-transition {
-  animation: slideInRight 0.2s ease-out forwards;
-  will-change: transform;
+  animation: pageFadeIn 0.2s ease-out both;
 }
 @media (prefers-reduced-motion: reduce) {
   .page-transition { animation: none; }

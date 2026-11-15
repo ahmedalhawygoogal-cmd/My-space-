@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Check, Trash2, X } from 'lucide-react'
 import { t, type I18nKey } from './i18n'
 import { useStore } from './store'
+import { GlobalOverlay } from './components/ui/GlobalOverlay'
 
 export function CloseBtn({
   onClick,
@@ -46,7 +47,7 @@ export function StandardFAB({
 }) {
   const button = (
     <button
-      className={`fab fixed bottom-24 left-6 z-[9999] shadow-lg${accent ? ' accent' : ''}`}
+      className={`fab fixed bottom-24 left-6 z-[100] shadow-lg${accent ? ' accent' : ''}`}
       type="button"
       onClick={onClick}
       aria-label={label}
@@ -133,22 +134,15 @@ export function Sheet({
   title?: string
   children: ReactNode
 }) {
-  if (!open) return null
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
-      <div
-        className="sheet"
-        role="dialog"
-        aria-modal="true"
-        aria-label={title ?? 'Dialog'}
-        onClick={(e) => e.stopPropagation()}
-      >
+    <GlobalOverlay open={open} onClose={onClose} align="bottom" label={title ?? 'Dialog'}>
+      <div className="sheet">
         <CloseBtn variant="modal" onClick={onClose} />
         <div className="sheet-handle" />
         {title ? <h3 style={{ margin: '0 0 12px' }}>{title}</h3> : null}
         {children}
       </div>
-    </div>
+    </GlobalOverlay>
   )
 }
 
@@ -168,10 +162,9 @@ export function Confirm({
   danger?: boolean
 }) {
   const tr = useT()
-  if (!open) return null
   return (
-    <div className="sheet-backdrop fixed inset-0 flex items-center justify-center z-[9999] p-4" onClick={onClose}>
-      <div className="dialog" onClick={(e) => e.stopPropagation()}>
+    <GlobalOverlay open={open} onClose={onClose} label={title}>
+      <div className="dialog">
         <CloseBtn variant="modal" onClick={onClose} />
         <h3 style={{ marginTop: 0 }}>{title}</h3>
         {body ? <p className="muted">{body}</p> : null}
@@ -184,7 +177,7 @@ export function Confirm({
           </button>
         </div>
       </div>
-    </div>
+    </GlobalOverlay>
   )
 }
 
