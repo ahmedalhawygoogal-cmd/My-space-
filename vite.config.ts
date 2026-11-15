@@ -46,8 +46,11 @@ if (!native) {
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,woff2,png,ico,wasm,webp}'],
-        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
+        // RNNoise WASM (4.8 MB) is lazy-loaded on demand, never precached:
+        // no `wasm` glob and a 2 MB cap keep it out of the install payload.
+        globPatterns: ['**/*.{js,css,html,svg,woff2,png,ico,webp}'],
+        globIgnores: ['**/*.wasm', '**/rnnoise-*.js'],
+        maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
         navigateFallback: '/index.html',
         runtimeCaching: [
           {
