@@ -121,11 +121,13 @@ async function uploadAudio(uid: string, id: string, blob: Blob): Promise<string 
 /** Short-lived signed URL for playback/download. Never persisted. */
 export async function signedAudioUrl(rec: Recording): Promise<string | null> {
   if (!supabase) return null
-  // Recordings uploaded before the bucket rename stored a public URL.
-  if (rec.cloudUrl && /^https?:\/\//i.test(rec.cloudUrl)) return rec.cloudUrl
+  const stored = rec.cloudUrl?.trim()
+  // `cloud_url` must be an object path inside the private `recordings_audio`
+  // bucket. A legacy public URL is no longer valid: that bucket was removed.
+  if (stored && /^https?:\/\//i.test(stored)) return null
   const uid = await userId()
   if (!uid) return null
-  const path = rec.cloudUrl || objectPath(uid, rec.id, rec.mimeType)
+  const path = stored || objectPath(uid, rec.id, rec.mimeType)
   try {
     const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, SIGNED_URL_TTL_SECONDS)
     if (error || !data?.signedUrl) return null

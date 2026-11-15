@@ -73,7 +73,6 @@ create policy "card_images_delete_own" on storage.objects
   using (bucket_id = 'card_images' and (storage.foldername(name))[1] = auth.uid()::text);
 
 -- ---------------------------------------------------------------- notes
--- The old public `recordings` bucket is left untouched so existing recordings
--- keep playing: signedAudioUrl() falls back to the stored public URL.
--- Once every client has re-uploaded, it can be migrated (copy objects into
--- recordings_audio) and then deleted from the dashboard.
+-- The old public `recordings` bucket is obsolete: it has been deleted and
+-- signedAudioUrl() no longer accepts a legacy public URL. `cloud_url` must be
+-- an object path inside `recordings_audio`.
