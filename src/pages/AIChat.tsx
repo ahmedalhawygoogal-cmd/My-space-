@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bot, CheckSquare, Code, FileText, LoaderCircle, Mic, Paperclip, Send, X } from 'lucide-react'
+import { Bot, CheckSquare, Code, FileText, LoaderCircle, Mic, Paperclip, Send } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { supabase } from '../lib/supabase'
 import { useStore } from '../store'
-import { Sheet } from '../ui'
+import { Sheet, CloseBtn } from '../ui'
 import './AIChat.css'
 
 type SourceKind = 'notes' | 'tasks' | 'recordings'
@@ -427,9 +427,7 @@ export default function AIChatPage() {
           </span>
           <h1>مساعد مساحتي</h1>
         </div>
-        <button type="button" className="ai-chat-close" aria-label="إغلاق المحادثة" onClick={() => navigate('/')}>
-          <X size={20} />
-        </button>
+        <CloseBtn variant="modal" onClick={() => navigate('/')} />
       </header>
 
       <MessageList messages={messages} isLoading={isLoading} errorMessage={errorMessage} />
@@ -450,17 +448,10 @@ export default function AIChatPage() {
               {pastedContext ? <span className="ai-chat-context-status">مرفق</span> : null}
             </button>
             {pastedContext ? (
-              <button
-                type="button"
-                className="ai-chat-context-remove"
-                aria-label="إزالة السياق المرفق"
-                onClick={() => {
-                  setPastedContext('')
-                  setContextDraft('')
-                }}
-              >
-                <X size={15} />
-              </button>
+              <CloseBtn variant="modal" onClick={() => {
+                setPastedContext('')
+                setContextDraft('')
+              }} />
             ) : null}
           </div>
           {contextEditorOpen ? (
@@ -487,9 +478,7 @@ export default function AIChatPage() {
           {selectedSource ? (
             <div className="ai-chat-selected-source">
               <span><FileText size={15} /> مصدر مرفق: {selectedSource.title}</span>
-              <button type="button" aria-label="إزالة المصدر المرفق" onClick={() => setSelectedSource(null)}>
-                <X size={16} />
-              </button>
+              <CloseBtn variant="modal" onClick={() => setSelectedSource(null)} />
             </div>
           ) : null}
           <form className="ai-chat-form" onSubmit={handleSubmit}>
