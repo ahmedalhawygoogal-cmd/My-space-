@@ -215,10 +215,12 @@ export function HabitForm({
   const [draft, setDraft] = useState<HabitDraft>(emptyHabitDraft)
   const [confirm, setConfirm] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
 
   useEffect(() => {
     if (!open) return
     setConfirm(false)
+    setErr(null)
     setDraft(habit ? draftFromHabit(habit) : emptyHabitDraft())
   }, [open, habit])
 
@@ -299,12 +301,13 @@ export function HabitForm({
           try {
             const saved = habit ? await upsertHabit(payload) : await createHabit(payload)
             if (!saved) {
-              console.error('[Habits] Save did not persist; modal stays open.')
+              setErr(tr('error'))
               return
             }
             await onSaved()
           } catch (error) {
             console.error('[Habits] Failed to save habit', error)
+            setErr(tr('error'))
           } finally {
             setBusy(false)
           }
@@ -318,12 +321,17 @@ export function HabitForm({
         onClose={() => setConfirm(false)}
         onConfirm={async () => {
           if (!habit) return
-          await removeHabit(habit.id)
+          const ok = await removeHabit(habit.id)
+          if (!ok) {
+            setErr(tr('error'))
+            return
+          }
           setConfirm(false)
           if (onDeleted) await onDeleted()
           else await onSaved()
         }}
       />
+      {err ? <Toast text={err} onDone={() => setErr(null)} /> : null}
     </Sheet>
   )
 }

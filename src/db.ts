@@ -4,6 +4,8 @@ import type {
   Card,
   Deck,
   Folder,
+  Habit,
+  HabitLog,
   Link,
   Note,
   Notebook,
@@ -14,7 +16,7 @@ import type {
 import { DEFAULT_SETTINGS } from './types'
 
 const DB_NAME = 'myspace-db'
-const DB_VERSION = 4
+const DB_VERSION = 5
 
 export const STORES = {
   subjects: 'subjects',
@@ -27,6 +29,8 @@ export const STORES = {
   tasks: 'tasks',
   notebooks: 'notebooks',
   notes: 'notes',
+  habits: 'habits',
+  habitLogs: 'habitLogs',
   links: 'links',
   settings: 'settings',
   downloads: 'downloads',
@@ -134,12 +138,14 @@ export interface Snapshot {
   tasks: Task[]
   notebooks: Notebook[]
   notes: Note[]
+  habits?: Habit[]
+  habitLogs?: HabitLog[]
   links: Link[]
   audio: { id: string; mime: string; data: string }[]
 }
 
 export async function exportSnapshot(): Promise<Snapshot> {
-  const [settings, subjects, folders, recordings, decks, cards, tasks, notebooks, notes, links, audioRows] =
+  const [settings, subjects, folders, recordings, decks, cards, tasks, notebooks, notes, habits, habitLogs, links, audioRows] =
     await Promise.all([
       loadSettings(),
       getAll<Subject>(STORES.subjects),
@@ -150,6 +156,8 @@ export async function exportSnapshot(): Promise<Snapshot> {
       getAll<Task>(STORES.tasks),
       getAll<Notebook>(STORES.notebooks),
       getAll<Note>(STORES.notes),
+      getAll<Habit>(STORES.habits),
+      getAll<HabitLog>(STORES.habitLogs),
       getAll<Link>(STORES.links),
       getAll<AudioBlobRecord>(STORES.audioBlobs),
     ])
@@ -176,6 +184,8 @@ export async function exportSnapshot(): Promise<Snapshot> {
     tasks,
     notebooks,
     notes,
+    habits,
+    habitLogs,
     links,
     audio,
   }
@@ -193,6 +203,8 @@ export async function importSnapshot(snap: Snapshot): Promise<void> {
   await putMany(STORES.tasks, snap.tasks ?? [])
   await putMany(STORES.notebooks, snap.notebooks ?? [])
   await putMany(STORES.notes, snap.notes ?? [])
+  await putMany(STORES.habits, snap.habits ?? [])
+  await putMany(STORES.habitLogs, snap.habitLogs ?? [])
   await putMany(STORES.links, snap.links ?? [])
   const blobs: AudioBlobRecord[] = (snap.audio ?? []).map((a) => ({
     id: a.id,

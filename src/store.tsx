@@ -16,6 +16,8 @@ import type {
   Deck,
   DownloadItem,
   Folder,
+  Habit,
+  HabitLog,
   Lang,
   Link,
   Note,
@@ -34,6 +36,7 @@ import { useAuth } from './auth'
 import { removeRemoteCard, syncCardsFromCloud, upsertRemoteCard } from './lib/cardSync'
 import { removeRemoteDeck, syncDecksFromCloud, upsertRemoteDeck } from './lib/deckSync'
 import { removeRemoteNote, syncNotesFromCloud, upsertRemoteNote } from './lib/noteSync'
+import { syncHabitLogsFromCloud, syncHabitsFromCloud } from './lib/habitSync'
 import { migrateLocalDataToCloud } from './lib/migrateLocal'
 import { saveProfile, syncProfileFromCloud } from './lib/profileSync'
 import { pushRecordingToCloud, removeRemoteRecording, syncRecordingsFromCloud, upsertRemoteRecording } from './lib/recordingSync'
@@ -50,6 +53,8 @@ interface StoreState {
   tasks: Task[]
   notebooks: Notebook[]
   notes: Note[]
+  habits: Habit[]
+  habitLogs: HabitLog[]
   links: Link[]
   downloads: DownloadItem[]
 }
@@ -349,6 +354,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     tasks: [],
     notebooks: [],
     notes: [],
+    habits: [],
+    habitLogs: [],
     links: [],
     downloads: [],
   })
@@ -362,10 +369,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         syncDecksFromCloud(),
         syncRecordingsFromCloud(),
         syncTasksFromCloud(),
+        syncHabitsFromCloud(),
+        syncHabitLogsFromCloud(),
       ])
       await syncCardsFromCloud()
     }
-    const [loadedSettings, subjects, folders, recordings, decks, cards, tasks, notebooks, notes, links, downloads] =
+    const [loadedSettings, subjects, folders, recordings, decks, cards, tasks, notebooks, notes, habits, habitLogs, links, downloads] =
       await Promise.all([
         db.loadSettings(),
         db.getAll<Subject>(STORES.subjects),
@@ -376,6 +385,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         db.getAll<Task>(STORES.tasks),
         db.getAll<Notebook>(STORES.notebooks),
         db.getAll<Note>(STORES.notes),
+        db.getAll<Habit>(STORES.habits),
+        db.getAll<HabitLog>(STORES.habitLogs),
         db.getAll<Link>(STORES.links),
         db.getAll<DownloadItem>(STORES.downloads),
       ])
@@ -466,6 +477,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       tasks: tasksN,
       notebooks,
       notes: notesN,
+      habits,
+      habitLogs,
       links,
       downloads,
     })
