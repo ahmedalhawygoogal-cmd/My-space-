@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Download, Languages } from 'lucide-react'
 import { useStore } from '../store'
+import { GlobalOverlay } from '../components/ui/GlobalOverlay'
 import { useAuth } from '../auth'
 import { CloseBtn, Confirm, Segment, Toast, useT } from '../ui'
 import { formatDateTime } from '../utils'
@@ -344,18 +345,16 @@ export default function SettingsPage() {
           {tr('version')} {version}
         </div>
       </div>
-      {prefs ? (
-        <div className="sheet-backdrop" onClick={() => setPrefs(false)}>
-          <div className="sheet bg-card border-border text-foreground" onClick={(e) => e.stopPropagation()}>
-            <CloseBtn variant="modal" onClick={() => setPrefs(false)} />
-            <div className="sheet-handle" />
-            <h3 className="page-title" style={{ margin: '0 0 12px' }}>
-              {tr('changeLang')}
-            </h3>
-            <LanguagePrefs />
-          </div>
+      <GlobalOverlay open={prefs} onClose={() => setPrefs(false)} align="bottom" label={tr('changeLang')}>
+        <div className="sheet bg-card border-border text-foreground">
+          <CloseBtn variant="modal" onClick={() => setPrefs(false)} />
+          <div className="sheet-handle" />
+          <h3 className="page-title" style={{ margin: '0 0 12px' }}>
+            {tr('changeLang')}
+          </h3>
+          <LanguagePrefs />
         </div>
-      ) : null}
+      </GlobalOverlay>
       {exportOpen ? (
         <div
           className="modal-backdrop"

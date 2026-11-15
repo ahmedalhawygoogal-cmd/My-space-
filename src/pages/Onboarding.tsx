@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Check } from 'lucide-react'
 import { useStore } from '../store'
+import { GlobalOverlay } from '../components/ui/GlobalOverlay'
 import { CloseBtn, Toast, useT } from '../ui'
 import type { DailyGoal, GoalKind, InputPref, Labeled, Lang, UserLevel } from '../types'
 import {
@@ -48,8 +49,8 @@ export function LanguageSheet({
 
   if (!open) return null
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
-      <div className="sheet bg-card border-border text-foreground" onClick={(e) => e.stopPropagation()}>
+    <GlobalOverlay open onClose={onClose} align="bottom" label={title}>
+      <div className="sheet bg-card border-border text-foreground">
         <CloseBtn variant="modal" onClick={onClose} />
         <div className="sheet-handle" />
         <h3 className="page-title" style={{ margin: '0 0 12px' }}>
@@ -87,7 +88,7 @@ export function LanguageSheet({
           )}
         </div>
       </div>
-    </div>
+    </GlobalOverlay>
   )
 }
 

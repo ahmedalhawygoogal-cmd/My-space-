@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Activity, Flame, Plus } from 'lucide-react'
 import { useStore } from '../store'
+import { GlobalOverlay } from '../components/ui/GlobalOverlay'
 import { CloseBtn, Confirm, Empty, FormActions, Segment, Sheet, StandardFAB, Toast, useT } from '../ui'
 import { quoteField, type Habit, type HabitLog, type QuoteCharacter } from '../types'
 import { DEFAULT_QUOTES } from '../data/defaultQuotes'
@@ -349,13 +350,13 @@ export function RewardModal({
   const name = quoteField(character.name, lang)
   const quote = quoteField(character.quote, lang)
   return (
-    <div className="sheet-backdrop habit-reward-backdrop" onClick={onClose}>
+    <GlobalOverlay open onClose={onClose} label={tr('habitRewardTitle')}>
       <div className="habit-confetti" aria-hidden="true">
         {Array.from({ length: 18 }, (_, i) => (
           <span key={i} className={`habit-confetti-piece p${i % 6}`} />
         ))}
       </div>
-      <div className="dialog habit-reward" onClick={(e) => e.stopPropagation()}>
+      <div className="dialog habit-reward">
         <CloseBtn variant="modal" onClick={onClose} />
         <div className="habit-sparkles" aria-hidden="true" />
         <h3 style={{ marginTop: 8, textAlign: 'center' }}>{tr('habitRewardTitle')}</h3>
@@ -370,6 +371,6 @@ export function RewardModal({
           {tr('habitRewardBody')}
         </p>
       </div>
-    </div>
+    </GlobalOverlay>
   )
 }
