@@ -33,13 +33,13 @@ import { APP_FONTS, DEFAULT_SETTINGS, RTL_LANGS, SUBJECT_COLORS, isUiLang } from
 import type { AppFont, AppFontSize } from './types'
 import { contrastInk, includesText, now, startOfDay, stripHtml, uid } from './utils'
 import { useAuth } from './auth'
-import { removeRemoteCard, syncCardsFromCloud, upsertRemoteCard } from './lib/cardSync'
+import { removeRemoteCard, syncCardsFromCloud, uploadCardImage, upsertRemoteCard } from './lib/cardSync'
 import { removeRemoteDeck, syncDecksFromCloud, upsertRemoteDeck } from './lib/deckSync'
 import { removeRemoteNote, syncNotesFromCloud, upsertRemoteNote } from './lib/noteSync'
 import { syncHabitLogsFromCloud, syncHabitsFromCloud } from './lib/habitSync'
 import { migrateLocalDataToCloud } from './lib/migrateLocal'
 import { saveProfile, syncProfileFromCloud } from './lib/profileSync'
-import { pushRecordingToCloud, removeRemoteRecording, syncRecordingsFromCloud, upsertRemoteRecording } from './lib/recordingSync'
+import { pushRecordingToCloud, removeRemoteRecording, signedAudioUrl, syncRecordingsFromCloud, upsertRemoteRecording } from './lib/recordingSync'
 import { removeRemoteTask, syncTasksFromCloud, upsertRemoteTask } from './lib/taskSync'
 
 interface StoreState {
@@ -695,9 +695,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const row = await db.getById<{ id: string; blob: Blob }>(STORES.audioBlobs, id)
     if (row?.blob) return row.blob
     const rec = state.recordings.find((x) => x.id === id)
-    if (!rec?.cloudUrl) return undefined
+    if (!rec) return undefined
+    // The bucket is private and signed URLs expire, so mint one per request —
+    // never persist it. Legacy public URLs are returned as-is.
+    const url = await signedAudioUrl(rec)
+    if (!url) return undefined
     try {
-      const res = await fetch(rec.cloudUrl)
+      const res = await fetch(url)
       if (!res.ok) return undefined
       const blob = await res.blob()
       await db.putOne(STORES.audioBlobs, { id, blob })
@@ -792,6 +796,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     void upsertRemoteDeck(next)
   }, [state.decks, patchList])
 
+  // Card images are picked locally as data URLs. Upload the compressed copy and
+  // replace the local value with the storage URL so it syncs to other devices.
+  const persistCardImage = useCallback(
+    async (cardId: string, dataUrl: string) => {
+      const url = await uploadCardImage(cardId, dataUrl)
+      if (!url) return
+      const cur = await db.getById<Card>(STORES.cards, cardId)
+      if (!cur) return
+      const next: Card = { ...cur, imageBlob: url, imageDataUrl: url, updatedAt: now() }
+      await db.putOne(STORES.cards, next)
+      patchList('cards', cardId, next)
+      void upsertRemoteCard(next)
+    },
+    [patchList],
+  )
+
   const addCard = useCallback(async (deckId: string, data: Partial<Card> & { front: string; back: string }) => {
     const t = now()
     const image = data.imageBlob || data.imageDataUrl
@@ -825,8 +845,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, cards: [...s.cards, item] }))
     await bumpDeckCount(deckId, 1)
     void upsertRemoteCard(item)
+    if (image && image.startsWith('data:')) void persistCardImage(item.id, image)
     return item
-  }, [bumpDeckCount])
+  }, [bumpDeckCount, persistCardImage])
 
   const updateCard = useCallback(async (id: string, p: Partial<Card>) => {
     const cur = state.cards.find((x) => x.id === id)
@@ -835,7 +856,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     await db.putOne(STORES.cards, next)
     patchList('cards', id, next)
     void upsertRemoteCard(next)
-  }, [state.cards, patchList])
+    const incomingImage = p.imageBlob ?? p.imageDataUrl
+    if (incomingImage && incomingImage.startsWith('data:')) {
+      void persistCardImage(id, incomingImage)
+    }
+  }, [state.cards, patchList, persistCardImage])
 
   const deleteCard = useCallback(async (id: string) => {
     const cur = state.cards.find((x) => x.id === id)

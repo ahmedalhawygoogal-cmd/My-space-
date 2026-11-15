@@ -187,6 +187,34 @@ export function blobToBase64(blob: Blob): Promise<string> {
   })
 }
 
+/** Downscales and re-encodes a data URL as JPEG so uploads stay small. */
+export function compressImageDataUrl(dataUrl: string, maxEdge = 1024, quality = 0.8): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      try {
+        const scale = Math.min(1, maxEdge / Math.max(img.width, img.height))
+        const width = Math.max(1, Math.round(img.width * scale))
+        const height = Math.max(1, Math.round(img.height * scale))
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')
+        if (!ctx) {
+          resolve(null)
+          return
+        }
+        ctx.drawImage(img, 0, 0, width, height)
+        canvas.toBlob((blob) => resolve(blob), 'image/jpeg', quality)
+      } catch {
+        resolve(null)
+      }
+    }
+    img.onerror = () => resolve(null)
+    img.src = dataUrl
+  })
+}
+
 export function base64ToBlob(b64: string, mime: string): Blob {
   const bin = atob(b64)
   const bytes = new Uint8Array(bin.length)

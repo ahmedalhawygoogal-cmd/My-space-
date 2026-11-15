@@ -6,11 +6,12 @@ import { isCloudSyncEnabled } from './cloudPref'
 import { assertOnline, supabase, throwIfError } from './supabase'
 import { isUuid } from './taskSync'
 
-const BUCKET = 'recordings'
-
-function asDistance(raw: string | null | undefined, fallback: Recording['distance'] = 'medium'): Recording['distance'] {
-  return raw === 'near' || raw === 'medium' || raw === 'far' ? raw : fallback
-}
+// The table and the storage bucket used to share the name `recordings`, which
+// made storage and table calls collide. They are now separate on purpose.
+const TABLE = 'recordings'
+const BUCKET = 'recordings_audio'
+const SIGNED_URL_TTL_SECONDS = 60 * 60
+const AUDIO_EXTENSIONS = ['m4a', 'webm', 'ogg', 'wav', 'mp3', 'aac'] as const
 
 type RemoteRecording = {
   id: string
@@ -30,6 +31,25 @@ type RemoteRecording = {
   enhanced?: boolean | null
   updated_at?: string | null
   deleted_at?: string | null
+}
+
+function asDistance(raw: string | null | undefined, fallback: Recording['distance'] = 'medium'): Recording['distance'] {
+  return raw === 'near' || raw === 'medium' || raw === 'far' ? raw : fallback
+}
+
+/** Maps a blob mime type to a file extension — web recordings are webm, not m4a. */
+function extensionFor(mimeType?: string | null): string {
+  const mime = (mimeType || '').toLowerCase()
+  if (mime.includes('webm')) return 'webm'
+  if (mime.includes('ogg')) return 'ogg'
+  if (mime.includes('wav')) return 'wav'
+  if (mime.includes('mpeg') || mime.includes('mp3')) return 'mp3'
+  if (mime.includes('aac')) return 'aac'
+  return 'm4a'
+}
+
+function objectPath(uid: string, id: string, mimeType?: string | null): string {
+  return `${uid}/${id}.${extensionFor(mimeType)}`
 }
 
 function remoteToLocal(row: RemoteRecording, prev?: Recording): Recording {
@@ -61,6 +81,8 @@ function localToRemote(rec: Recording, userId: string): RemoteRecording {
     user_id: userId,
     name: rec.name ?? '',
     duration: rec.durationMs ?? 0,
+    // `cloud_url` now holds the object path inside the bucket, never a URL:
+    // signed URLs expire and must not be persisted.
     cloud_url: rec.cloudUrl ?? '',
     created_at: new Date(rec.createdAt || now()).toISOString(),
     mime_type: rec.mimeType ?? null,
@@ -86,25 +108,36 @@ async function userId(): Promise<string | null> {
   }
 }
 
-function objectPath(uid: string, id: string): string {
-  return `${uid}/${id}.m4a`
-}
-
 async function uploadAudio(uid: string, id: string, blob: Blob): Promise<string | null> {
   if (!supabase) return null
-  const path = objectPath(uid, id)
+  const path = objectPath(uid, id, blob.type)
   const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
     upsert: true,
     contentType: blob.type || 'audio/mp4',
   })
-  if (error) return null
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path)
-  return data.publicUrl || null
+  return error ? null : path
 }
 
-async function persistCloudUrl(rec: Recording, cloudUrl: string): Promise<Recording> {
-  if (rec.cloudUrl === cloudUrl) return rec
-  const next: Recording = { ...rec, cloudUrl, updatedAt: now() }
+/** Short-lived signed URL for playback/download. Never persisted. */
+export async function signedAudioUrl(rec: Recording): Promise<string | null> {
+  if (!supabase) return null
+  // Recordings uploaded before the bucket rename stored a public URL.
+  if (rec.cloudUrl && /^https?:\/\//i.test(rec.cloudUrl)) return rec.cloudUrl
+  const uid = await userId()
+  if (!uid) return null
+  const path = rec.cloudUrl || objectPath(uid, rec.id, rec.mimeType)
+  try {
+    const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, SIGNED_URL_TTL_SECONDS)
+    if (error || !data?.signedUrl) return null
+    return data.signedUrl
+  } catch {
+    return null
+  }
+}
+
+async function persistStoragePath(rec: Recording, path: string): Promise<Recording> {
+  if (rec.cloudUrl === path) return rec
+  const next: Recording = { ...rec, cloudUrl: path, updatedAt: now() }
   await db.putOne(STORES.recordings, next)
   return next
 }
@@ -117,10 +150,10 @@ export async function pushRecordingToCloud(rec: Recording, blob?: Blob): Promise
     let next = rec
     const file = blob ?? (await db.getById<{ id: string; blob: Blob }>(STORES.audioBlobs, rec.id))?.blob
     if (file) {
-      const url = await uploadAudio(uid, rec.id, file)
-      if (url) next = await persistCloudUrl(rec, url)
+      const path = await uploadAudio(uid, rec.id, file)
+      if (path) next = await persistStoragePath(rec, path)
     }
-    await supabase.from(BUCKET).upsert(localToRemote(next, uid), { onConflict: 'id' })
+    await supabase.from(TABLE).upsert(localToRemote(next, uid), { onConflict: 'id' })
   } catch {
     return
   }
@@ -131,7 +164,7 @@ export async function upsertRemoteRecording(rec: Recording): Promise<void> {
   const uid = await userId()
   if (!supabase || !uid) return
   try {
-    await supabase.from(BUCKET).upsert(localToRemote(rec, uid), { onConflict: 'id' })
+    await supabase.from(TABLE).upsert(localToRemote(rec, uid), { onConflict: 'id' })
   } catch {
     return
   }
@@ -142,11 +175,12 @@ export async function removeRemoteRecording(id: string): Promise<void> {
   const uid = await userId()
   if (!supabase || !uid) return
   try {
-    await supabase.storage.from(BUCKET).remove([objectPath(uid, id)])
+    // The stored extension varies by mime type, so try every known one.
+    await supabase.storage.from(BUCKET).remove(AUDIO_EXTENSIONS.map((ext) => `${uid}/${id}.${ext}`))
     // Soft delete the metadata row; the tombstone stops other devices from re-uploading it.
     const stamp = new Date().toISOString()
     await supabase
-      .from(BUCKET)
+      .from(TABLE)
       .update({ deleted_at: stamp, updated_at: stamp })
       .eq('id', id)
       .eq('user_id', uid)
@@ -164,17 +198,16 @@ export async function pushLocalRecordings(recordings: Recording[]): Promise<void
     let next = rec
     const file = (await db.getById<{ id: string; blob: Blob }>(STORES.audioBlobs, rec.id))?.blob
     if (file) {
-      const path = objectPath(uid, rec.id)
+      const path = objectPath(uid, rec.id, file.type || rec.mimeType)
       throwIfError(
         await supabase.storage.from(BUCKET).upload(path, file, {
           upsert: true,
           contentType: file.type || 'audio/mp4',
         }),
       )
-      const { data } = supabase.storage.from(BUCKET).getPublicUrl(path)
-      if (data.publicUrl) next = await persistCloudUrl(rec, data.publicUrl)
+      next = await persistStoragePath(rec, path)
     }
-    throwIfError(await supabase.from(BUCKET).upsert(localToRemote(next, uid), { onConflict: 'id' }))
+    throwIfError(await supabase.from(TABLE).upsert(localToRemote(next, uid), { onConflict: 'id' }))
   }
 }
 
@@ -183,7 +216,7 @@ export async function syncRecordingsFromCloud(): Promise<boolean> {
   if (!supabase || !uid) return false
   try {
     const { data, error } = await supabase
-      .from(BUCKET)
+      .from(TABLE)
       .select('*')
       .eq('user_id', uid)
       .is('deleted_at', null)
@@ -191,7 +224,7 @@ export async function syncRecordingsFromCloud(): Promise<boolean> {
     // Tombstones are fetched separately so a row deleted elsewhere is also
     // dropped locally — otherwise the merge would push it straight back.
     const { data: tombstones } = await supabase
-      .from(BUCKET)
+      .from(TABLE)
       .select('id')
       .eq('user_id', uid)
       .not('deleted_at', 'is', null)

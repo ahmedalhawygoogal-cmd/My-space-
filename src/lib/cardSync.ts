@@ -1,10 +1,14 @@
 import type { Card } from '../types'
 import * as db from '../db'
 import { STORES } from '../db'
-import { now } from '../utils'
+import { compressImageDataUrl, now } from '../utils'
 import { isCloudSyncEnabled } from './cloudPref'
 import { assertOnline, supabase, throwIfError } from './supabase'
 import { isUuid } from './taskSync'
+
+const IMAGE_BUCKET = 'card_images'
+const IMAGE_MAX_EDGE = 1024
+const IMAGE_QUALITY = 0.8
 
 type RemoteCard = {
   id: string
@@ -51,7 +55,10 @@ function remoteToLocal(row: RemoteCard, prev?: Card): Card {
   const updatedAt = row.updated_at ? Date.parse(row.updated_at) : NaN
   const due = parseTime(row.next_review_date) ?? prev?.nextReviewDate ?? prev?.dueAt ?? now()
   const imageUrl = row.image_url || undefined
-  const image = prev?.imageBlob || prev?.imageDataUrl || imageUrl
+  const prevImage = prev?.imageBlob || prev?.imageDataUrl
+  const prevIsUrl = !!prevImage && /^https?:\/\//i.test(prevImage)
+  // A URL set on another device wins; an empty remote value means it was removed.
+  const image = imageUrl ?? (prevIsUrl ? undefined : prevImage)
   const ease = row.ease_factor ?? prev?.easeFactor ?? prev?.ease ?? 2.5
   const reps = row.repetitions ?? prev?.repetitions ?? 0
   return {
@@ -117,6 +124,32 @@ async function userId(): Promise<string | null> {
   try {
     const { data } = await supabase.auth.getSession()
     return data.session?.user.id ?? null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Compresses a picked image and uploads it to the `card_images` bucket, so cards
+ * sync without shipping base64 data URLs through the database.
+ * Returns the public URL, or null when offline / not signed in.
+ */
+export async function uploadCardImage(cardId: string, dataUrl: string): Promise<string | null> {
+  if (!supabase || !dataUrl.startsWith('data:')) return null
+  const uid = await userId()
+  if (!uid) return null
+  try {
+    const blob = await compressImageDataUrl(dataUrl, IMAGE_MAX_EDGE, IMAGE_QUALITY)
+    if (!blob) return null
+    const path = `${uid}/${cardId}.jpg`
+    const { error } = await supabase.storage.from(IMAGE_BUCKET).upload(path, blob, {
+      upsert: true,
+      contentType: blob.type || 'image/jpeg',
+      cacheControl: '31536000',
+    })
+    if (error) return null
+    const { data } = supabase.storage.from(IMAGE_BUCKET).getPublicUrl(path)
+    return data.publicUrl || null
   } catch {
     return null
   }
