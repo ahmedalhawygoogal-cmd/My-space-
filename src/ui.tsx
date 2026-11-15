@@ -33,10 +33,6 @@ export function CloseBtn({
   )
 }
 
-export function BackBtn(props: { onClick?: () => void }) {
-  return <CloseBtn {...props} />
-}
-
 export function StandardFAB({
   children,
   onClick,
@@ -103,22 +99,6 @@ export function FormActions({
 export function useT() {
   const { lang } = useStore()
   return (key: I18nKey, vars?: Record<string, string | number>) => t(lang, key, vars)
-}
-
-export function IconBtn({
-  children,
-  onClick,
-  label,
-}: {
-  children: ReactNode
-  onClick?: () => void
-  label: string
-}) {
-  return (
-    <button className="icon-btn" onClick={onClick} aria-label={label} type="button">
-      {children}
-    </button>
-  )
 }
 
 export function Empty({

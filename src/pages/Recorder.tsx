@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ChevronDown, CloudUpload, FolderPlus, Loader2, Mic, Pause, Pencil, Play, Sparkles, Square, Trash2 } from 'lucide-react'
+import { ChevronDown, FolderPlus, Loader2, Mic, Pause, Pencil, Play, Sparkles, Square, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
 import { AudioPlayer } from '../AudioPlayer'
 import { Confirm, Empty, Segment, Sheet, StandardFAB, SubjectSelect, TagInput, Toast, useT } from '../ui'
@@ -55,14 +55,12 @@ function RecDistanceSeg({
 function RecListCard({ rec }: { rec: Recording }) {
   const tr = useT()
   const nav = useNavigate()
-  const { subjects, lang, getAudioBlob, getOriginalAudioBlob, enhanceRecordingAudio, updateRecording, deleteRecording, addDownload } = useStore()
+  const { subjects, lang, getAudioBlob, getOriginalAudioBlob, enhanceRecordingAudio, deleteRecording, addDownload } = useStore()
   const [open, setOpen] = useState(false)
   const [url, setUrl] = useState<string>()
   const [confirm, setConfirm] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [enhancing, setEnhancing] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const [cloudStep, setCloudStep] = useState<'upload' | 'process'>('upload')
   const [playerKey, setPlayerKey] = useState(0)
   const sub = subjects.find((s) => s.id === rec.subjectId)
 
@@ -100,34 +98,6 @@ function RecListCard({ rec }: { rec: Recording }) {
       setToast(tr('enhanceAudioError'))
     } finally {
       setEnhancing(false)
-    }
-  }
-
-  async function uploadCloud() {
-    if (uploading || enhancing) return
-    setUploading(true)
-    setCloudStep('upload')
-    try {
-      const src = (await getOriginalAudioBlob(rec.id)) || (await getAudioBlob(rec.id))
-      if (!src) throw new Error('missing')
-      const { uploadRecordingToCloud } = await import('../utils/cloudUpload')
-      const { url: cloudUrl } = await uploadRecordingToCloud(rec.id, src)
-      await updateRecording(rec.id, { cloudUrl })
-      setCloudStep('process')
-      const { enhanceAudioWithNVIDIA } = await import('../utils/nvidiaAI')
-      const enhanced = await enhanceAudioWithNVIDIA(src)
-      await enhanceRecordingAudio(rec.id, enhanced, {
-        mimeType: enhanced.type || 'audio/wav',
-        sizeBytes: enhanced.size,
-        cloudUrl,
-      })
-      setPlayerKey((k) => k + 1)
-      setToast(tr('cloudEnhanceDone'))
-    } catch {
-      setToast(tr('cloudEnhanceError'))
-    } finally {
-      setUploading(false)
-      setCloudStep('upload')
     }
   }
 
@@ -176,23 +146,11 @@ function RecListCard({ rec }: { rec: Recording }) {
               className="btn accent"
               type="button"
               onClick={() => void enhance()}
-              disabled={enhancing || uploading}
+              disabled={enhancing}
               style={{ marginTop: 12, width: '100%' }}
             >
               {enhancing ? <Loader2 size={16} className="spin" /> : <Sparkles size={16} />}
               {enhancing ? tr('enhanceAudioBusy') : tr('enhanceAudio')}
-            </button>
-            <button
-              className="btn secondary"
-              type="button"
-              onClick={() => void uploadCloud()}
-              disabled={enhancing || uploading}
-              style={{ marginTop: 8, width: '100%' }}
-            >
-              {uploading ? <Loader2 size={16} className="spin" /> : <CloudUpload size={16} />}
-              {uploading
-                ? tr(cloudStep === 'process' ? 'cloudEnhanceProcessing' : 'cloudEnhanceBusy')
-                : tr('cloudEnhance')}
             </button>
           </div>
           <div className="rec-card-meta">

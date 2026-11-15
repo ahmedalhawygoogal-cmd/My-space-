@@ -17,13 +17,6 @@ export function isNative(): boolean {
   return typeof cap?.isNativePlatform === 'function' && cap.isNativePlatform()
 }
 
-export function parseReminderTime(value?: string): { hour: number; minute: number } | null {
-  if (!value || !/^\d{1,2}:\d{2}$/.test(value)) return null
-  const [h, m] = value.split(':').map(Number)
-  if (h == null || m == null || h > 23 || m > 59) return null
-  return { hour: h, minute: m }
-}
-
 export async function getNative(): Promise<NativeApis | null> {
   if (cached !== undefined) return cached
   if (!isNative()) {
