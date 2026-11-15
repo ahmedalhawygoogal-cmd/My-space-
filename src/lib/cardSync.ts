@@ -20,6 +20,22 @@ type RemoteCard = {
   ease_factor: number | null
   repetitions: number | null
   created_at: string | null
+  reviews?: number | null
+  translation?: string | null
+  definition?: string | null
+  example_translation?: string | null
+  explanation?: string | null
+  status?: string | null
+  lapses?: number | null
+  mistakes?: number | null
+  updated_at?: string | null
+  deleted_at?: string | null
+}
+
+function asStatus(raw: string | null | undefined, fallback: Card['status'] = 'new'): Card['status'] {
+  return raw === 'new' || raw === 'learning' || raw === 'review' || raw === 'learned'
+    ? raw
+    : fallback
 }
 
 function parseTime(raw: string | null): number | undefined {
@@ -32,6 +48,7 @@ function parseTime(raw: string | null): number | undefined {
 
 function remoteToLocal(row: RemoteCard, prev?: Card): Card {
   const createdAt = row.created_at ? Date.parse(row.created_at) : NaN
+  const updatedAt = row.updated_at ? Date.parse(row.updated_at) : NaN
   const due = parseTime(row.next_review_date) ?? prev?.nextReviewDate ?? prev?.dueAt ?? now()
   const imageUrl = row.image_url || undefined
   const image = prev?.imageBlob || prev?.imageDataUrl || imageUrl
@@ -45,23 +62,23 @@ function remoteToLocal(row: RemoteCard, prev?: Card): Card {
     example: row.example ?? prev?.example ?? '',
     note: row.note ?? prev?.note ?? '',
     imageBlob: image,
-    reviews: prev?.reviews ?? reps,
+    reviews: row.reviews ?? prev?.reviews ?? reps,
     nextReviewDate: due,
-    translation: prev?.translation ?? '',
-    definition: prev?.definition ?? '',
-    exampleTranslation: prev?.exampleTranslation ?? '',
-    explanation: prev?.explanation ?? '',
+    translation: row.translation ?? prev?.translation ?? '',
+    definition: row.definition ?? prev?.definition ?? '',
+    exampleTranslation: row.example_translation ?? prev?.exampleTranslation ?? '',
+    explanation: row.explanation ?? prev?.explanation ?? '',
     imageDataUrl: image,
-    status: prev?.status ?? 'new',
+    status: asStatus(row.status, prev?.status),
     ease,
     easeFactor: ease,
     interval: row.interval ?? prev?.interval ?? 0,
     repetitions: reps,
     dueAt: due,
-    lapses: prev?.lapses ?? 0,
-    mistakes: prev?.mistakes ?? 0,
+    lapses: row.lapses ?? prev?.lapses ?? 0,
+    mistakes: row.mistakes ?? prev?.mistakes ?? 0,
     createdAt: Number.isFinite(createdAt) ? createdAt : prev?.createdAt ?? now(),
-    updatedAt: prev?.updatedAt ?? now(),
+    updatedAt: Number.isFinite(updatedAt) ? updatedAt : prev?.updatedAt ?? now(),
   }
 }
 
@@ -83,6 +100,15 @@ function localToRemote(card: Card, userId: string): RemoteCard {
     ease_factor: card.easeFactor ?? card.ease ?? 2.5,
     repetitions: card.repetitions ?? 0,
     created_at: new Date(card.createdAt || now()).toISOString(),
+    reviews: card.reviews ?? 0,
+    translation: card.translation ?? '',
+    definition: card.definition ?? '',
+    example_translation: card.exampleTranslation ?? '',
+    explanation: card.explanation ?? '',
+    status: card.status ?? 'new',
+    lapses: card.lapses ?? 0,
+    mistakes: card.mistakes ?? 0,
+    updated_at: new Date(card.updatedAt || now()).toISOString(),
   }
 }
 
@@ -113,7 +139,13 @@ export async function removeRemoteCard(id: string): Promise<void> {
   const uid = await userId()
   if (!supabase || !uid) return
   try {
-    await supabase.from('cards').delete().eq('id', id).eq('user_id', uid)
+    // Soft delete: the tombstone stops other devices from re-uploading this row.
+    const stamp = new Date().toISOString()
+    await supabase
+      .from('cards')
+      .update({ deleted_at: stamp, updated_at: stamp })
+      .eq('id', id)
+      .eq('user_id', uid)
   } catch {
     return
   }
@@ -132,8 +164,20 @@ export async function syncCardsFromCloud(): Promise<boolean> {
   const uid = await userId()
   if (!supabase || !uid) return false
   try {
-    const { data, error } = await supabase.from('cards').select('*').eq('user_id', uid)
+    const { data, error } = await supabase
+      .from('cards')
+      .select('*')
+      .eq('user_id', uid)
+      .is('deleted_at', null)
     if (error || !data) return false
+    // Tombstones are fetched separately so a row deleted elsewhere is also
+    // dropped locally — otherwise the merge would push it straight back.
+    const { data: tombstones } = await supabase
+      .from('cards')
+      .select('id')
+      .eq('user_id', uid)
+      .not('deleted_at', 'is', null)
+    const deletedIds = new Set((tombstones ?? []).map((r) => (r as { id: string }).id))
     const local = await db.getAll<Card>(STORES.cards)
     const localById = new Map(local.map((c) => [c.id, c]))
     const remote = data as RemoteCard[]
@@ -145,8 +189,10 @@ export async function syncCardsFromCloud(): Promise<boolean> {
       merged.push(remoteToLocal(row, localById.get(row.id)))
     }
     for (const c of local) {
-      if (!seen.has(c.id)) merged.push(c)
+      if (seen.has(c.id) || deletedIds.has(c.id)) continue
+      merged.push(c)
     }
+    for (const id of deletedIds) await db.deleteById(STORES.cards, id)
     await db.putMany(STORES.cards, merged)
     await pushLocalCards(merged)
     return true

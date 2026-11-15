@@ -1,4 +1,4 @@
-import type { Priority, Task } from '../types'
+import type { Priority, Recurrence, Subtask, Task } from '../types'
 import * as db from '../db'
 import { STORES } from '../db'
 import { now } from '../utils'
@@ -23,6 +23,18 @@ type RemoteTask = {
   parent_id: string | null
   completed: boolean | null
   created_at: string | null
+  start_date?: string | null
+  due_date?: string | null
+  subject_id?: string | null
+  note_id?: string | null
+  recording_id?: string | null
+  deck_id?: string | null
+  remind?: boolean | null
+  recurring?: string | null
+  subtasks?: Subtask[] | null
+  completed_at?: string | null
+  updated_at?: string | null
+  deleted_at?: string | null
 }
 
 function parseDate(raw: string | null): number | undefined {
@@ -37,9 +49,22 @@ function asPriority(raw: string | null | undefined, fallback: Priority = 'medium
   return raw === 'low' || raw === 'high' || raw === 'medium' ? raw : fallback
 }
 
+function asRecurrence(raw: string | null | undefined, fallback: Recurrence = 'none'): Recurrence {
+  return raw === 'daily' || raw === 'weekly' || raw === 'none' ? raw : fallback
+}
+
+function isoOrNull(ms?: number | null): string | null {
+  return ms != null && Number.isFinite(ms) ? new Date(ms).toISOString() : null
+}
+
+function asSubtasks(raw: Subtask[] | null | undefined, fallback: Subtask[]): Subtask[] {
+  return Array.isArray(raw) ? raw : fallback
+}
+
 function remoteToLocal(row: RemoteTask, prev?: Task): Task {
   const date = parseDate(row.date) ?? prev?.date
   const createdAt = row.created_at ? Date.parse(row.created_at) : NaN
+  const updatedAt = row.updated_at ? Date.parse(row.updated_at) : NaN
   return {
     id: row.id,
     title: row.title ?? prev?.title ?? '',
@@ -47,20 +72,22 @@ function remoteToLocal(row: RemoteTask, prev?: Task): Task {
     completed: !!row.completed,
     priority: asPriority(row.priority, prev?.priority),
     date,
-    startDate: prev?.startDate,
-    dueDate: prev?.dueDate ?? date,
+    startDate: parseDate(row.start_date ?? null) ?? prev?.startDate,
+    dueDate: parseDate(row.due_date ?? null) ?? prev?.dueDate ?? date,
     category: row.category ?? prev?.category ?? '',
-    subjectId: prev?.subjectId,
-    noteId: prev?.noteId,
-    recordingId: prev?.recordingId,
-    deckId: prev?.deckId,
+    subjectId: row.subject_id ?? prev?.subjectId,
+    noteId: row.note_id ?? prev?.noteId,
+    recordingId: row.recording_id ?? prev?.recordingId,
+    deckId: row.deck_id ?? prev?.deckId,
     parentId: row.parent_id || prev?.parentId,
-    remind: prev?.remind ?? false,
-    recurring: prev?.recurring ?? 'none',
-    subtasks: prev?.subtasks ?? [],
+    remind: row.remind ?? prev?.remind ?? false,
+    recurring: asRecurrence(row.recurring, prev?.recurring),
+    subtasks: asSubtasks(row.subtasks, prev?.subtasks ?? []),
     createdAt: Number.isFinite(createdAt) ? createdAt : prev?.createdAt ?? now(),
-    updatedAt: prev?.updatedAt ?? now(),
-    completedAt: row.completed ? prev?.completedAt ?? now() : undefined,
+    updatedAt: Number.isFinite(updatedAt) ? updatedAt : prev?.updatedAt ?? now(),
+    completedAt:
+      parseDate(row.completed_at ?? null) ??
+      (row.completed ? prev?.completedAt ?? now() : undefined),
   }
 }
 
@@ -77,6 +104,17 @@ function localToRemote(task: Task, userId: string): RemoteTask {
     parent_id: isUuid(task.parentId) ? task.parentId : null,
     completed: !!task.completed,
     created_at: new Date(task.createdAt || now()).toISOString(),
+    start_date: isoOrNull(task.startDate),
+    due_date: isoOrNull(task.dueDate),
+    subject_id: task.subjectId ?? null,
+    note_id: task.noteId ?? null,
+    recording_id: task.recordingId ?? null,
+    deck_id: task.deckId ?? null,
+    remind: !!task.remind,
+    recurring: task.recurring ?? 'none',
+    subtasks: task.subtasks ?? [],
+    completed_at: isoOrNull(task.completedAt),
+    updated_at: new Date(task.updatedAt || now()).toISOString(),
   }
 }
 
@@ -114,7 +152,13 @@ export async function removeRemoteTask(id: string): Promise<void> {
   const uid = await userId()
   if (!supabase || !uid) return
   try {
-    await supabase.from('tasks').delete().eq('id', id).eq('user_id', uid)
+    // Soft delete: the tombstone stops other devices from re-uploading this row.
+    const stamp = new Date().toISOString()
+    await supabase
+      .from('tasks')
+      .update({ deleted_at: stamp, updated_at: stamp })
+      .eq('id', id)
+      .eq('user_id', uid)
   } catch {
     return
   }
@@ -135,8 +179,20 @@ export async function syncTasksFromCloud(): Promise<boolean> {
   const uid = await userId()
   if (!supabase || !uid) return false
   try {
-    const { data, error } = await supabase.from('tasks').select('*').eq('user_id', uid)
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('user_id', uid)
+      .is('deleted_at', null)
     if (error || !data) return false
+    // Tombstones are fetched separately so a row deleted elsewhere is also
+    // dropped locally — otherwise the merge would push it straight back.
+    const { data: tombstones } = await supabase
+      .from('tasks')
+      .select('id')
+      .eq('user_id', uid)
+      .not('deleted_at', 'is', null)
+    const deletedIds = new Set((tombstones ?? []).map((r) => (r as { id: string }).id))
     const local = await db.getAll<Task>(STORES.tasks)
     const localById = new Map(local.map((t) => [t.id, t]))
     const remote = data as RemoteTask[]
@@ -149,8 +205,10 @@ export async function syncTasksFromCloud(): Promise<boolean> {
       merged.push(remoteToLocal(row, prev))
     }
     for (const t of local) {
-      if (!seen.has(t.id)) merged.push(t)
+      if (seen.has(t.id) || deletedIds.has(t.id)) continue
+      merged.push(t)
     }
+    for (const id of deletedIds) await db.deleteById(STORES.tasks, id)
     await db.putMany(STORES.tasks, merged)
     await pushLocalTasks(merged)
     return true

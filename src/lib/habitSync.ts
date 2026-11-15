@@ -89,7 +89,12 @@ export async function currentUserId(): Promise<string | null> {
 export async function fetchHabits(): Promise<Habit[]> {
   const uid = await currentUserId()
   if (!supabase || !uid) return []
-  const { data, error } = await supabase.from('habits').select('*').eq('user_id', uid).order('created_at', { ascending: true })
+  const { data, error } = await supabase
+    .from('habits')
+    .select('*')
+    .eq('user_id', uid)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: true })
   if (error || !data) return []
   return (data as RemoteHabit[]).map(remoteToHabit)
 }
@@ -97,7 +102,7 @@ export async function fetchHabits(): Promise<Habit[]> {
 export async function fetchHabitLogs(habitId?: string): Promise<HabitLog[]> {
   const uid = await currentUserId()
   if (!supabase || !uid) return []
-  let q = supabase.from('habit_logs').select('*').eq('user_id', uid)
+  let q = supabase.from('habit_logs').select('*').eq('user_id', uid).is('deleted_at', null)
   if (habitId) q = q.eq('habit_id', habitId)
   const { data, error } = await q
   if (error || !data) return []
@@ -153,8 +158,18 @@ export async function upsertHabit(habit: Habit): Promise<Habit | null> {
 export async function removeHabit(id: string): Promise<boolean> {
   const uid = await currentUserId()
   if (!supabase || !uid) return false
-  await supabase.from('habit_logs').delete().eq('habit_id', id).eq('user_id', uid)
-  const { error } = await supabase.from('habits').delete().eq('id', id).eq('user_id', uid)
+  // Soft delete: tombstone the habit and its logs so another device cannot re-upload them.
+  const stamp = new Date().toISOString()
+  await supabase
+    .from('habit_logs')
+    .update({ deleted_at: stamp, updated_at: stamp })
+    .eq('habit_id', id)
+    .eq('user_id', uid)
+  const { error } = await supabase
+    .from('habits')
+    .update({ deleted_at: stamp, updated_at: stamp })
+    .eq('id', id)
+    .eq('user_id', uid)
   return !error
 }
 
@@ -177,6 +192,11 @@ export async function upsertHabitLog(log: HabitLog): Promise<HabitLog | null> {
 export async function removeHabitLog(id: string): Promise<boolean> {
   const uid = await currentUserId()
   if (!supabase || !uid) return false
-  const { error } = await supabase.from('habit_logs').delete().eq('id', id).eq('user_id', uid)
+  const stamp = new Date().toISOString()
+  const { error } = await supabase
+    .from('habit_logs')
+    .update({ deleted_at: stamp, updated_at: stamp })
+    .eq('id', id)
+    .eq('user_id', uid)
   return !error
 }

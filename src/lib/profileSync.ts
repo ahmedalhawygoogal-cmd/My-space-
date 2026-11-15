@@ -69,9 +69,19 @@ export async function fetchProfile(): Promise<ProfileRow | null> {
   const uid = await sessionUserId()
   if (!uid) return null
   try {
-    const byId = await supabase.from('profiles').select(PROFILE_COLS).eq('id', uid).maybeSingle()
+    const byId = await supabase
+      .from('profiles')
+      .select(PROFILE_COLS)
+      .eq('id', uid)
+      .is('deleted_at', null)
+      .maybeSingle()
     if (!byId.error && byId.data) return byId.data as ProfileRow
-    const byUser = await supabase.from('profiles').select(PROFILE_COLS).eq('user_id', uid).maybeSingle()
+    const byUser = await supabase
+      .from('profiles')
+      .select(PROFILE_COLS)
+      .eq('user_id', uid)
+      .is('deleted_at', null)
+      .maybeSingle()
     if (!byUser.error && byUser.data) return byUser.data as ProfileRow
     return null
   } catch {

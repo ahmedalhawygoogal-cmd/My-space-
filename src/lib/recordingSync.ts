@@ -8,6 +8,10 @@ import { isUuid } from './taskSync'
 
 const BUCKET = 'recordings'
 
+function asDistance(raw: string | null | undefined, fallback: Recording['distance'] = 'medium'): Recording['distance'] {
+  return raw === 'near' || raw === 'medium' || raw === 'far' ? raw : fallback
+}
+
 type RemoteRecording = {
   id: string
   user_id: string
@@ -15,27 +19,39 @@ type RemoteRecording = {
   duration: number | null
   cloud_url: string | null
   created_at: string | null
+  mime_type?: string | null
+  size_bytes?: number | null
+  folder_id?: string | null
+  subject_id?: string | null
+  description?: string | null
+  tags?: string[] | null
+  note_ids?: string[] | null
+  distance?: string | null
+  enhanced?: boolean | null
+  updated_at?: string | null
+  deleted_at?: string | null
 }
 
 function remoteToLocal(row: RemoteRecording, prev?: Recording): Recording {
   const createdAt = row.created_at ? Date.parse(row.created_at) : NaN
+  const updatedAt = row.updated_at ? Date.parse(row.updated_at) : NaN
   const durationMs = row.duration ?? prev?.durationMs ?? 0
   return {
     id: row.id,
     name: row.name ?? prev?.name ?? '',
     durationMs,
-    mimeType: prev?.mimeType ?? 'audio/mp4',
-    sizeBytes: prev?.sizeBytes ?? 0,
-    folderId: prev?.folderId,
-    subjectId: prev?.subjectId,
-    description: prev?.description ?? '',
-    tags: prev?.tags ?? [],
-    noteIds: prev?.noteIds ?? [],
-    distance: prev?.distance ?? 'medium',
-    enhanced: prev?.enhanced ?? false,
+    mimeType: row.mime_type || prev?.mimeType || 'audio/mp4',
+    sizeBytes: row.size_bytes ?? prev?.sizeBytes ?? 0,
+    folderId: row.folder_id ?? prev?.folderId,
+    subjectId: row.subject_id ?? prev?.subjectId,
+    description: row.description ?? prev?.description ?? '',
+    tags: Array.isArray(row.tags) ? row.tags : prev?.tags ?? [],
+    noteIds: Array.isArray(row.note_ids) ? row.note_ids : prev?.noteIds ?? [],
+    distance: asDistance(row.distance, prev?.distance),
+    enhanced: row.enhanced ?? prev?.enhanced ?? false,
     cloudUrl: row.cloud_url || prev?.cloudUrl,
     createdAt: Number.isFinite(createdAt) ? createdAt : prev?.createdAt ?? now(),
-    updatedAt: prev?.updatedAt ?? now(),
+    updatedAt: Number.isFinite(updatedAt) ? updatedAt : prev?.updatedAt ?? now(),
   }
 }
 
@@ -47,6 +63,16 @@ function localToRemote(rec: Recording, userId: string): RemoteRecording {
     duration: rec.durationMs ?? 0,
     cloud_url: rec.cloudUrl ?? '',
     created_at: new Date(rec.createdAt || now()).toISOString(),
+    mime_type: rec.mimeType ?? null,
+    size_bytes: rec.sizeBytes ?? 0,
+    folder_id: rec.folderId ?? null,
+    subject_id: rec.subjectId ?? null,
+    description: rec.description ?? '',
+    tags: rec.tags ?? [],
+    note_ids: rec.noteIds ?? [],
+    distance: rec.distance ?? 'medium',
+    enhanced: !!rec.enhanced,
+    updated_at: new Date(rec.updatedAt || now()).toISOString(),
   }
 }
 
@@ -117,7 +143,13 @@ export async function removeRemoteRecording(id: string): Promise<void> {
   if (!supabase || !uid) return
   try {
     await supabase.storage.from(BUCKET).remove([objectPath(uid, id)])
-    await supabase.from(BUCKET).delete().eq('id', id).eq('user_id', uid)
+    // Soft delete the metadata row; the tombstone stops other devices from re-uploading it.
+    const stamp = new Date().toISOString()
+    await supabase
+      .from(BUCKET)
+      .update({ deleted_at: stamp, updated_at: stamp })
+      .eq('id', id)
+      .eq('user_id', uid)
   } catch {
     return
   }
@@ -150,8 +182,20 @@ export async function syncRecordingsFromCloud(): Promise<boolean> {
   const uid = await userId()
   if (!supabase || !uid) return false
   try {
-    const { data, error } = await supabase.from(BUCKET).select('*').eq('user_id', uid)
+    const { data, error } = await supabase
+      .from(BUCKET)
+      .select('*')
+      .eq('user_id', uid)
+      .is('deleted_at', null)
     if (error || !data) return false
+    // Tombstones are fetched separately so a row deleted elsewhere is also
+    // dropped locally — otherwise the merge would push it straight back.
+    const { data: tombstones } = await supabase
+      .from(BUCKET)
+      .select('id')
+      .eq('user_id', uid)
+      .not('deleted_at', 'is', null)
+    const deletedIds = new Set((tombstones ?? []).map((r) => (r as { id: string }).id))
     const local = await db.getAll<Recording>(STORES.recordings)
     const localById = new Map(local.map((r) => [r.id, r]))
     const remote = data as RemoteRecording[]
@@ -163,8 +207,10 @@ export async function syncRecordingsFromCloud(): Promise<boolean> {
       merged.push(remoteToLocal(row, localById.get(row.id)))
     }
     for (const r of local) {
-      if (!seen.has(r.id)) merged.push(r)
+      if (seen.has(r.id) || deletedIds.has(r.id)) continue
+      merged.push(r)
     }
+    for (const id of deletedIds) await db.deleteById(STORES.recordings, id)
     await db.putMany(STORES.recordings, merged)
     // Audio is hydrated on demand by getAudioBlob() when the user plays a recording.
     await pushLocalRecordings(merged)

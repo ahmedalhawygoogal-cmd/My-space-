@@ -12,6 +12,16 @@ type RemoteDeck = {
   name: string | null
   type: string | null
   created_at: string | null
+  description?: string | null
+  subject_id?: string | null
+  note_id?: string | null
+  tags?: string[] | null
+  native_lang?: string | null
+  target_lang?: string | null
+  swapped?: boolean | null
+  card_count?: number | null
+  updated_at?: string | null
+  deleted_at?: string | null
 }
 
 function asDeckType(raw: string | null | undefined, fallback: Deck['type'] = 'vocab'): Deck['type'] {
@@ -21,20 +31,21 @@ function asDeckType(raw: string | null | undefined, fallback: Deck['type'] = 'vo
 
 function remoteToLocal(row: RemoteDeck, prev?: Deck): Deck {
   const createdAt = row.created_at ? Date.parse(row.created_at) : NaN
+  const updatedAt = row.updated_at ? Date.parse(row.updated_at) : NaN
   return {
     id: row.id,
     name: row.name ?? prev?.name ?? '',
     type: asDeckType(row.type, prev?.type),
-    cardCount: prev?.cardCount ?? 0,
-    description: prev?.description ?? '',
-    subjectId: prev?.subjectId,
-    tags: prev?.tags ?? [],
-    noteId: prev?.noteId,
-    nativeLang: prev?.nativeLang || 'ar',
-    targetLang: prev?.targetLang || 'en',
-    swapped: prev?.swapped ?? false,
+    cardCount: row.card_count ?? prev?.cardCount ?? 0,
+    description: row.description ?? prev?.description ?? '',
+    subjectId: row.subject_id ?? prev?.subjectId,
+    tags: Array.isArray(row.tags) ? row.tags : prev?.tags ?? [],
+    noteId: row.note_id ?? prev?.noteId,
+    nativeLang: row.native_lang || prev?.nativeLang || 'ar',
+    targetLang: row.target_lang || prev?.targetLang || 'en',
+    swapped: row.swapped ?? prev?.swapped ?? false,
     createdAt: Number.isFinite(createdAt) ? createdAt : prev?.createdAt ?? now(),
-    updatedAt: prev?.updatedAt ?? now(),
+    updatedAt: Number.isFinite(updatedAt) ? updatedAt : prev?.updatedAt ?? now(),
   }
 }
 
@@ -45,6 +56,15 @@ function localToRemote(deck: Deck, userId: string): RemoteDeck {
     name: deck.name ?? '',
     type: deck.type ?? 'vocab',
     created_at: new Date(deck.createdAt || now()).toISOString(),
+    description: deck.description ?? '',
+    subject_id: deck.subjectId ?? null,
+    note_id: deck.noteId ?? null,
+    tags: deck.tags ?? [],
+    native_lang: deck.nativeLang ?? null,
+    target_lang: deck.targetLang ?? null,
+    swapped: !!deck.swapped,
+    card_count: deck.cardCount ?? 0,
+    updated_at: new Date(deck.updatedAt || now()).toISOString(),
   }
 }
 
@@ -74,7 +94,13 @@ export async function removeRemoteDeck(id: string): Promise<void> {
   const uid = await userId()
   if (!supabase || !uid) return
   try {
-    await supabase.from('decks').delete().eq('id', id).eq('user_id', uid)
+    // Soft delete: the tombstone stops other devices from re-uploading this row.
+    const stamp = new Date().toISOString()
+    await supabase
+      .from('decks')
+      .update({ deleted_at: stamp, updated_at: stamp })
+      .eq('id', id)
+      .eq('user_id', uid)
   } catch {
     return
   }
@@ -93,8 +119,20 @@ export async function syncDecksFromCloud(): Promise<boolean> {
   const uid = await userId()
   if (!supabase || !uid) return false
   try {
-    const { data, error } = await supabase.from('decks').select('*').eq('user_id', uid)
+    const { data, error } = await supabase
+      .from('decks')
+      .select('*')
+      .eq('user_id', uid)
+      .is('deleted_at', null)
     if (error || !data) return false
+    // Tombstones are fetched separately so a row deleted elsewhere is also
+    // dropped locally — otherwise the merge would push it straight back.
+    const { data: tombstones } = await supabase
+      .from('decks')
+      .select('id')
+      .eq('user_id', uid)
+      .not('deleted_at', 'is', null)
+    const deletedIds = new Set((tombstones ?? []).map((r) => (r as { id: string }).id))
     const local = await db.getAll<Deck>(STORES.decks)
     const localById = new Map(local.map((d) => [d.id, d]))
     const remote = data as RemoteDeck[]
@@ -106,8 +144,10 @@ export async function syncDecksFromCloud(): Promise<boolean> {
       merged.push(remoteToLocal(row, localById.get(row.id)))
     }
     for (const d of local) {
-      if (!seen.has(d.id)) merged.push(d)
+      if (seen.has(d.id) || deletedIds.has(d.id)) continue
+      merged.push(d)
     }
+    for (const id of deletedIds) await db.deleteById(STORES.decks, id)
     await db.putMany(STORES.decks, merged)
     await pushLocalDecks(merged)
     return true
