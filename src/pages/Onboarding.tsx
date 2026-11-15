@@ -49,7 +49,7 @@ export function LanguageSheet({
 
   if (!open) return null
   return (
-    <GlobalOverlay open onClose={onClose} align="bottom" label={title}>
+    <GlobalOverlay open onClose={onClose} label={title}>
       <div className="sheet bg-card border-border text-foreground">
         <CloseBtn variant="modal" onClick={onClose} />
         <div className="sheet-handle" />

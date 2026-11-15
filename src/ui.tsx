@@ -17,7 +17,7 @@ export function CloseBtn({
   const nav = useNavigate()
   return (
     <button
-      className={`close-btn ${variant === 'modal' ? 'close-btn-modal' : 'close-btn-page'} w-11 h-11 rounded-full flex items-center justify-center bg-foreground/5 border border-foreground/10 text-muted-foreground hover:text-foreground hover:bg-foreground/10 backdrop-blur-md active:scale-95 transition-all duration-200`}
+      className={`close-btn ${variant === 'modal' ? 'close-btn-modal' : 'close-btn-page'} w-9 h-9 rounded-lg flex items-center justify-center bg-foreground/5 text-muted-foreground hover:text-foreground hover:bg-foreground/10 transition-all duration-200 active:scale-95`}
       type="button"
       aria-label={tr('close')}
       onClick={() => {
@@ -29,7 +29,7 @@ export function CloseBtn({
         else nav('/')
       }}
     >
-      <X size={20} strokeWidth={2.5} />
+      <X size={20} strokeWidth={2} />
     </button>
   )
 }
@@ -135,7 +135,7 @@ export function Sheet({
   children: ReactNode
 }) {
   return (
-    <GlobalOverlay open={open} onClose={onClose} align="bottom" label={title ?? 'Dialog'}>
+    <GlobalOverlay open={open} onClose={onClose} label={title ?? 'Dialog'}>
       <div className="sheet">
         <CloseBtn variant="modal" onClick={onClose} />
         <div className="sheet-handle" />

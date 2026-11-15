@@ -345,7 +345,7 @@ export default function SettingsPage() {
           {tr('version')} {version}
         </div>
       </div>
-      <GlobalOverlay open={prefs} onClose={() => setPrefs(false)} align="bottom" label={tr('changeLang')}>
+      <GlobalOverlay open={prefs} onClose={() => setPrefs(false)} label={tr('changeLang')}>
         <div className="sheet bg-card border-border text-foreground">
           <CloseBtn variant="modal" onClick={() => setPrefs(false)} />
           <div className="sheet-handle" />
