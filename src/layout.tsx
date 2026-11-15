@@ -31,34 +31,7 @@ export function Layout() {
 
   return (
     <div className={`app-shell h-[100dvh] w-full overflow-hidden flex flex-col bg-gray-50 relative${isRoot ? '' : ' hide-chrome'}`}>
-      <div className="app-bg" aria-hidden="true">
-        <div className="app-bg-beam app-bg-beam-a" />
-        <div className="app-bg-beam app-bg-beam-b" />
-        <div className="app-bg-orb app-bg-orb-tl" />
-        <div className="app-bg-orb app-bg-orb-br" />
-        <svg className="app-bg-wave" viewBox="0 0 390 180" preserveAspectRatio="none">
-          <path
-            d="M0 92 C 48 132, 96 48, 156 78 C 216 108, 258 38, 312 70 C 348 90, 372 118, 390 132 L 390 180 L 0 180 Z"
-            fill="url(#waveFill)"
-          />
-          <path
-            d="M0 108 C 54 148, 110 62, 168 94 C 226 126, 270 58, 324 86 C 356 102, 376 128, 390 146"
-            fill="none"
-            stroke="url(#waveStroke)"
-            strokeWidth="2.2"
-          />
-          <defs>
-            <linearGradient id="waveFill" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="var(--primary-color)" stopOpacity="0.16" />
-              <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.08" />
-            </linearGradient>
-            <linearGradient id="waveStroke" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="var(--primary-color)" stopOpacity="0.55" />
-              <stop offset="100%" stopColor="#22d3ee" stopOpacity="0.9" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
+      <div className="app-bg" aria-hidden="true" />
       {isRoot ? (
         <header className="topbar">
           <div className="brand">
