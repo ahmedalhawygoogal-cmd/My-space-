@@ -268,6 +268,8 @@ img { max-width: 100%; }
   overflow-x: hidden;
   padding: 4px 16px calc(28px + var(--safe-b));
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
 }
 .app-shell.hide-chrome .main {
   padding-top: calc(4.75rem + var(--safe-t));
