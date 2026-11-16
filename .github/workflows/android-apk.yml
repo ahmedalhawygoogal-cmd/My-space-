@@ -36,6 +36,11 @@ jobs:
           java-version: '21'
           cache: gradle
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.14.3'
+
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         with:
@@ -57,6 +62,10 @@ jobs:
 
       - name: Sync Capacitor Android
         run: npx cap sync android
+
+      - name: Generate Gradle wrapper
+        working-directory: android
+        run: gradle wrapper --gradle-version 8.14.3 --distribution-type all
 
       - name: Make Gradle wrapper executable
         run: chmod +x android/gradlew
