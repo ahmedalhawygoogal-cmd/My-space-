@@ -120,6 +120,7 @@ function applyTheme(theme: Theme) {
 function applyLang(lang: Lang) {
   document.documentElement.lang = lang
   document.documentElement.dir = RTL_LANGS.has(lang) ? 'rtl' : 'ltr'
+  localStorage.setItem('myspace-lang', lang)
 }
 
 const APPEAR_KEY = 'myspace-appear'
