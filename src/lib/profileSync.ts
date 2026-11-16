@@ -3,7 +3,7 @@ import * as db from '../db'
 import { supabase } from './supabase'
 import { isUiLang, uiLangFromNative } from '../types'
 
-export type ProfileRow = {
+type ProfileRow = {
   native_language: string | null
   target_language: string | null
   goal: string | null
@@ -36,7 +36,7 @@ function parseFields(raw: string | null | undefined): { fields: string[]; fieldO
   return { fields: parts, fieldOther: '' }
 }
 
-export function profileToSettings(row: ProfileRow, prev: AppSettings): AppSettings {
+function profileToSettings(row: ProfileRow, prev: AppSettings): AppSettings {
   const native = row.native_language?.trim() || prev.nativeLang
   const target = row.target_language?.trim()
   const goal = asGoal(row.goal) ?? prev.goal

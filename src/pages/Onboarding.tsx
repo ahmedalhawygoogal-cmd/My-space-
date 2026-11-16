@@ -22,7 +22,7 @@ function langName(code: string, ui: Lang) {
   return row ? labeled(ui, row) : code
 }
 
-export function LanguageSheet({
+function LanguageSheet({
   open,
   title,
   selected,

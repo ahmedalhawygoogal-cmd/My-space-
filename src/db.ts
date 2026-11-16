@@ -107,7 +107,7 @@ export async function deleteById(store: string, id: string): Promise<void> {
   await txDone(tx)
 }
 
-export async function clearStore(store: string): Promise<void> {
+async function clearStore(store: string): Promise<void> {
   const db = await openDb()
   const tx = db.transaction(store, 'readwrite')
   tx.objectStore(store).clear()
@@ -213,6 +213,3 @@ export async function importSnapshot(snap: Snapshot): Promise<void> {
   await putMany(STORES.audioBlobs, blobs)
 }
 
-export async function wipeAll(): Promise<void> {
-  await Promise.all(Object.values(STORES).map((s) => clearStore(s)))
-}

@@ -13,7 +13,7 @@ export const WEB_AUDIO_CONSTRAINTS: MediaTrackConstraints = {
   sampleRate: 48000,
 }
 
-export function nativeRecordOpts() {
+function nativeRecordOpts() {
   return {
     format: 'm4a' as const,
     sampleRate: 48000,
@@ -25,8 +25,6 @@ export function nativeRecordOpts() {
     audioSource: 'VOICE_RECOGNITION' as const,
   }
 }
-
-export const NATIVE_RECORD_OPTS = nativeRecordOpts()
 
 export const NATIVE_AUDIO_MIME = 'audio/mp4'
 
@@ -40,7 +38,7 @@ function denied(): DOMException {
   return err
 }
 
-export async function ensureMicPermission(): Promise<void> {
+async function ensureMicPermission(): Promise<void> {
   const cur = await AudioRecorder.checkPermissions()
   if (cur.recordAudio === 'granted') return
   const next = await AudioRecorder.requestPermissions()
@@ -60,7 +58,7 @@ export async function startNativeRecording(): Promise<void> {
   }
 }
 
-export interface ProcessedRecordingGraph {
+interface ProcessedRecordingGraph {
   context: AudioContext
   stream: MediaStream
   analyser: AnalyserNode
@@ -125,7 +123,7 @@ function stripB64(data: string): string {
   return i >= 0 ? data.slice(i + 1) : data
 }
 
-export async function recordingToBlob(result: {
+async function recordingToBlob(result: {
   blob?: Blob
   uri?: string
   base64?: string

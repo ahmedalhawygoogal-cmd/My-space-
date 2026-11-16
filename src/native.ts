@@ -1,4 +1,4 @@
-export type NativeApis = {
+type NativeApis = {
   exitApp: () => Promise<void>
   onBack: (handler: (canGoBack: boolean) => void) => Promise<() => void>
   requestNotify: () => Promise<boolean>
@@ -11,7 +11,7 @@ export type NativeApis = {
 
 let cached: NativeApis | null | undefined
 
-export function isNative(): boolean {
+function isNative(): boolean {
   if (typeof window === 'undefined') return false
   const cap = (window as Window & { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor
   return typeof cap?.isNativePlatform === 'function' && cap.isNativePlatform()

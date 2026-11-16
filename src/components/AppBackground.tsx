@@ -3,7 +3,7 @@ import type { I18nKey } from '../i18n'
 
 export type BackgroundChoice = 'none' | 'bg1' | 'bg2' | 'bg3'
 
-export const BACKGROUND_STORAGE_KEY = 'myspace-selected-background'
+const BACKGROUND_STORAGE_KEY = 'myspace-selected-background'
 export const BACKGROUND_OPTIONS: Array<{ id: BackgroundChoice; labelKey: I18nKey }> = [
   { id: 'none', labelKey: 'bgDefault' },
   { id: 'bg1', labelKey: 'bg1' },

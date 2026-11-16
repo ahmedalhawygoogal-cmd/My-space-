@@ -211,14 +211,6 @@ export function Segment({
   )
 }
 
-export function Progress({ value }: { value: number }) {
-  return (
-    <div className="progress" aria-valuenow={Math.round(value)} role="progressbar">
-      <span style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
-    </div>
-  )
-}
-
 export function Ring({ value, size = 88 }: { value: number; size?: number }) {
   const r = 28
   const c = 2 * Math.PI * r

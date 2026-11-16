@@ -140,7 +140,7 @@ function loadAppear(): { fontFamily: AppFont; fontSize: AppFontSize; accentColor
   }
 }
 
-export function applyAppearance(p: { fontFamily?: AppFont; fontSize?: AppFontSize; accentColor?: string }) {
+function applyAppearance(p: { fontFamily?: AppFont; fontSize?: AppFontSize; accentColor?: string }) {
   const root = document.documentElement
   const font = APP_FONTS.find((f) => f.id === p.fontFamily) ?? APP_FONTS[0]
   if (p.fontFamily) root.style.setProperty('--font', font.stack)

@@ -52,19 +52,19 @@ export function isoDate(ts = Date.now()): string {
   return `${y}-${m}-${day}`
 }
 
-export function parseIsoDate(iso: string): number {
+function parseIsoDate(iso: string): number {
   const [y, m, d] = iso.split('-').map(Number)
   return new Date(y || 1970, (m || 1) - 1, d || 1).getTime()
 }
 
-export function addCalendarDays(ts: number, days: number): number {
+function addCalendarDays(ts: number, days: number): number {
   const d = new Date(ts)
   d.setDate(d.getDate() + days)
   d.setHours(12, 0, 0, 0)
   return d.getTime()
 }
 
-export function startOfWeekSunday(ts = Date.now()): number {
+function startOfWeekSunday(ts = Date.now()): number {
   const d = new Date(ts)
   d.setHours(12, 0, 0, 0)
   d.setDate(d.getDate() - d.getDay())

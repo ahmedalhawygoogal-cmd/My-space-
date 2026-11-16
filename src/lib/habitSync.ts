@@ -8,7 +8,7 @@ import { supabase } from './supabase'
 // Supabase is a background replica. Every mutation writes to IndexedDB before
 // it touches the network, so the feature keeps working fully offline.
 
-export type RemoteHabit = {
+type RemoteHabit = {
   id: string
   user_id: string
   name: string | null
@@ -23,7 +23,7 @@ export type RemoteHabit = {
   deleted_at?: string | null
 }
 
-export type RemoteHabitLog = {
+type RemoteHabitLog = {
   id: string
   user_id: string
   habit_id: string
@@ -44,7 +44,7 @@ function parseTs(raw: string | null | undefined, fallback = now()): number {
   return Number.isFinite(t) ? t : fallback
 }
 
-export function remoteToHabit(row: RemoteHabit): Habit {
+function remoteToHabit(row: RemoteHabit): Habit {
   return {
     id: row.id,
     name: row.name ?? '',
@@ -59,7 +59,7 @@ export function remoteToHabit(row: RemoteHabit): Habit {
   }
 }
 
-export function remoteToLog(row: RemoteHabitLog): HabitLog {
+function remoteToLog(row: RemoteHabitLog): HabitLog {
   return {
     id: row.id,
     habitId: row.habit_id,
@@ -97,7 +97,7 @@ function logRow(log: HabitLog, userId: string) {
   }
 }
 
-export async function currentUserId(): Promise<string | null> {
+async function currentUserId(): Promise<string | null> {
   if (!supabase) return null
   try {
     const { data } = await supabase.auth.getSession()
@@ -109,11 +109,11 @@ export async function currentUserId(): Promise<string | null> {
 
 // ------------------------------------------------------------------ cache
 
-export async function cachedHabits(): Promise<Habit[]> {
+async function cachedHabits(): Promise<Habit[]> {
   return db.getAll<Habit>(STORES.habits)
 }
 
-export async function cachedHabitLogs(habitId?: string): Promise<HabitLog[]> {
+async function cachedHabitLogs(habitId?: string): Promise<HabitLog[]> {
   const rows = await db.getAll<HabitLog>(STORES.habitLogs)
   return habitId ? rows.filter((r) => r.habitId === habitId) : rows
 }

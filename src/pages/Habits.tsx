@@ -337,7 +337,7 @@ export function HabitForm({
   )
 }
 
-export function RewardModal({
+function RewardModal({
   character,
   lang,
   onClose,

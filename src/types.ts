@@ -18,7 +18,7 @@ export type Lang =
   | 'pl'
   | 'id'
 
-export const UI_LANGS: Lang[] = [
+const UI_LANGS: Lang[] = [
   'ar',
   'en',
   'fr',
@@ -55,8 +55,8 @@ export type Theme = 'light' | 'dark' | 'system'
 export type Priority = 'low' | 'medium' | 'high'
 export type Recurrence = 'none' | 'daily' | 'weekly'
 export type CardRating = 'again' | 'hard' | 'good' | 'easy'
-export type CardStatus = 'new' | 'learning' | 'review' | 'learned'
-export type FolderKind = 'recording' | 'note' | 'mixed'
+type CardStatus = 'new' | 'learning' | 'review' | 'learned'
+type FolderKind = 'recording' | 'note' | 'mixed'
 export type EntityType = 'recording' | 'note' | 'task' | 'deck' | 'card' | 'subject' | 'notebook'
 
 export interface Subject {
@@ -117,7 +117,7 @@ export interface DownloadItem {
   createdAt: number
 }
 
-export type QuoteField = string | Labeled
+type QuoteField = string | Labeled
 
 export function quoteField(value: QuoteField | undefined, lang: string): string {
   if (!value) return ''
@@ -279,7 +279,7 @@ export interface HabitLog {
   createdAt: number
 }
 
-export type NotifySound = 'default' | 'chime' | 'bell'
+type NotifySound = 'default' | 'chime' | 'bell'
 export type DeckType = 'vocab' | 'phrases' | 'synonyms' | 'definitions' | 'antonyms'
 export type DailyGoal = '10' | '30' | '60'
 export type GoalKind = 'study' | 'productivity' | 'record' | 'all'
@@ -367,16 +367,6 @@ export const GOAL_OPTS: ({ id: GoalKind } & Labeled)[] = [
   { id: 'all', ar: 'الكل', en: 'All', fr: 'Tout', de: 'Alles', es: 'Todo', tr: 'Tümü', it: 'Tutto', ru: 'Все', zh: '全部', ja: 'すべて', ko: '전체', pt: 'Tudo', hi: 'सभी', ur: 'سب', fa: 'همه', nl: 'Alles', pl: 'Wszystko', ind: 'Semua' },
 ]
 
-export const FIELD_OPTS: ({ id: string } & Labeled)[] = [
-  { id: 'languages', ar: 'لغات', en: 'Languages', fr: 'Langues', de: 'Sprachen', es: 'Idiomas', tr: 'Diller', it: 'Lingue', ru: 'Языки', zh: '语言', ja: '言語', ko: '언어', pt: 'Idiomas', hi: 'भाषाएँ', ur: 'زبانیں', fa: 'زبان‌ها', nl: 'Talen', pl: 'Języki', ind: 'Bahasa' },
-  { id: 'science', ar: 'علوم', en: 'Science', fr: 'Sciences', de: 'Wissenschaft', es: 'Ciencia', tr: 'Bilim', it: 'Scienza', ru: 'Наука', zh: '科学', ja: '科学', ko: '과학', pt: 'Ciência', hi: 'विज्ञान', ur: 'سائنس', fa: 'علوم', nl: 'Wetenschap', pl: 'Nauka', ind: 'Sains' },
-  { id: 'coding', ar: 'برمجة', en: 'Coding', fr: 'Programmation', de: 'Programmieren', es: 'Programación', tr: 'Kodlama', it: 'Programmazione', ru: 'Программирование', zh: '编程', ja: 'プログラミング', ko: '코딩', pt: 'Programação', hi: 'कोडिंग', ur: 'کوڈنگ', fa: 'برنامه‌نویسی', nl: 'Programmeren', pl: 'Programowanie', ind: 'Pemrograman' },
-  { id: 'business', ar: 'أعمال', en: 'Business', fr: 'Affaires', de: 'Wirtschaft', es: 'Negocios', tr: 'İş', it: 'Business', ru: 'Бизнес', zh: '商务', ja: 'ビジネス', ko: '비즈니스', pt: 'Negócios', hi: 'व्यवसाय', ur: 'کاروبار', fa: 'کسب‌وکار', nl: 'Zakelijk', pl: 'Biznes', ind: 'Bisnis' },
-  { id: 'medicine', ar: 'طب', en: 'Medicine', fr: 'Médecine', de: 'Medizin', es: 'Medicina', tr: 'Tıp', it: 'Medicina', ru: 'Медицина', zh: '医学', ja: '医学', ko: '의학', pt: 'Medicina', hi: 'चिकित्सा', ur: 'طب', fa: 'پزشکی', nl: 'Geneeskunde', pl: 'Medycyna', ind: 'Kedokteran' },
-  { id: 'arts', ar: 'فنون', en: 'Arts', fr: 'Arts', de: 'Kunst', es: 'Artes', tr: 'Sanat', it: 'Arti', ru: 'Искусство', zh: '艺术', ja: '芸術', ko: '예술', pt: 'Artes', hi: 'कला', ur: 'فنون', fa: 'هنر', nl: 'Kunst', pl: 'Sztuka', ind: 'Seni' },
-  { id: 'other', ar: 'أخرى', en: 'Other', fr: 'Autre', de: 'Andere', es: 'Otro', tr: 'Diğer', it: 'Altro', ru: 'Другое', zh: '其他', ja: 'その他', ko: '기타', pt: 'Outro', hi: 'अन्य', ur: 'دیگر', fa: 'سایر', nl: 'Overig', pl: 'Inne', ind: 'Lainnya' },
-]
-
 export const DAILY_OPTS: ({ id: DailyGoal } & Labeled)[] = [
   { id: '10', ar: '5–10 دقائق', en: '5–10 min', fr: '5–10 min', de: '5–10 Min.', es: '5–10 min', tr: '5–10 dk', it: '5–10 min', ru: '5–10 мин', zh: '5–10 分钟', ja: '5–10分', ko: '5–10분', pt: '5–10 min', hi: '5–10 मिनट', ur: '5–10 منٹ', fa: '۵–۱۰ دقیقه', nl: '5–10 min', pl: '5–10 min', ind: '5–10 mnt' },
   { id: '30', ar: '15–30 دقيقة', en: '15–30 min', fr: '15–30 min', de: '15–30 Min.', es: '15–30 min', tr: '15–30 dk', it: '15–30 min', ru: '15–30 мин', zh: '15–30 分钟', ja: '15–30分', ko: '15–30분', pt: '15–30 min', hi: '15–30 मिनट', ur: '15–30 منٹ', fa: '۱۵–۳۰ دقیقه', nl: '15–30 min', pl: '15–30 min', ind: '15–30 mnt' },
@@ -405,12 +395,6 @@ export const APP_FONTS: { id: AppFont; label: string; stack: string }[] = [
   { id: 'cairo', label: 'Cairo', stack: "'Cairo', 'IBM Plex Sans Arabic', 'Inter', sans-serif" },
   { id: 'tajawal', label: 'Tajawal', stack: "'Tajawal', 'IBM Plex Sans Arabic', 'Inter', sans-serif" },
   { id: 'almarai', label: 'Almarai', stack: "'Almarai', 'IBM Plex Sans Arabic', 'Inter', sans-serif" },
-]
-
-export const NOTIFY_SOUNDS: ({ id: NotifySound } & Labeled)[] = [
-  { id: 'default', ar: 'الافتراضية', en: 'Default', fr: 'Par défaut', de: 'Standard', es: 'Predeterminado', tr: 'Varsayılan', it: 'Predefinito', ru: 'По умолчанию', zh: '默认', ja: 'デフォルト', ko: '기본', pt: 'Padrão', hi: 'डिफ़ॉल्ट', ur: 'طے شدہ', fa: 'پیش‌فرض', nl: 'Standaard', pl: 'Domyślny', ind: 'Default' },
-  { id: 'chime', ar: 'رنين خفيف', en: 'Chime', fr: 'Carillon', de: 'Glockenspiel', es: 'Campanilla', tr: 'Çan', it: 'Campanello', ru: 'Перезвон', zh: '风铃', ja: 'チャイム', ko: '차임', pt: 'Sino', hi: 'घंटी', ur: 'چائم', fa: 'زنگ ملایم', nl: 'Beltoon', pl: 'Dzwonek', ind: 'Lonceng' },
-  { id: 'bell', ar: 'جرس', en: 'Bell', fr: 'Cloche', de: 'Glocke', es: 'Campana', tr: 'Zil', it: 'Campana', ru: 'Колокол', zh: '铃声', ja: 'ベル', ko: '벨', pt: 'Campainha', hi: 'घंटा', ur: 'گھنٹی', fa: 'زنگ', nl: 'Bel', pl: 'Dzwon', ind: 'Bel' },
 ]
 
 export function uiLangFromNative(code: string): Lang {

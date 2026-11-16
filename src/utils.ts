@@ -6,10 +6,6 @@ export function now(): number {
   return Date.now()
 }
 
-export function clamp(n: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, n))
-}
-
 export function formatDuration(ms: number): string {
   const total = Math.max(0, Math.floor(ms / 1000))
   const h = Math.floor(total / 3600)
@@ -29,14 +25,6 @@ export function endOfDay(ts = Date.now()): number {
   const d = new Date(ts)
   d.setHours(23, 59, 59, 999)
   return d.getTime()
-}
-
-export function addDays(ts: number, days: number): number {
-  return ts + days * 24 * 60 * 60 * 1000
-}
-
-export function isSameDay(a: number, b: number): boolean {
-  return startOfDay(a) === startOfDay(b)
 }
 
 const AR_COLOR_BASE: [string, string][] = [
@@ -165,14 +153,6 @@ export function formatDateTime(ts: number, lang: string): string {
 
 export function weekdayLong(ts: number, lang: string): string {
   return new Intl.DateTimeFormat(dateLocale(lang), { weekday: 'long' }).format(new Date(ts))
-}
-
-export function debounce<A extends unknown[]>(fn: (...args: A) => void, ms: number): (...args: A) => void {
-  let t: ReturnType<typeof setTimeout> | undefined
-  return (...args: A) => {
-    if (t) clearTimeout(t)
-    t = setTimeout(() => fn(...args), ms)
-  }
 }
 
 export function blobToBase64(blob: Blob): Promise<string> {
@@ -307,7 +287,7 @@ const SPEAK_LOCALES: Record<string, string> = {
   id: 'id-ID',
 }
 
-export function speakLocale(code: string): string {
+function speakLocale(code: string): string {
   return SPEAK_LOCALES[code] || code || 'en-US'
 }
 
@@ -451,9 +431,3 @@ export function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
-export function relativeDay(ts: number, lang: string, todayLabel: string, yesterdayLabel: string): string {
-  const diff = startOfDay() - startOfDay(ts)
-  if (diff === 0) return todayLabel
-  if (diff === 24 * 60 * 60 * 1000) return yesterdayLabel
-  return formatDate(ts, lang, { day: 'numeric', month: 'short', year: 'numeric' })
-}
