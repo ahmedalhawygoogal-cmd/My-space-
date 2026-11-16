@@ -79,7 +79,7 @@ export function Layout() {
             hint={tr('motivateSubtitle')}
             onClick={() => go('/motivate')}
           />
-          <DiscoverTile icon={<Bot size={20} />} title="مساعد الذكاء الاصطناعي" onClick={() => go('/ai')} />
+          <DiscoverTile icon={<Bot size={20} />} title={tr('aiAssistant')} onClick={() => go('/ai')} />
           <DiscoverTile icon={<Activity size={20} />} title={tr('habits')} onClick={() => go('/habits')} />
         </div>
       </Sheet>

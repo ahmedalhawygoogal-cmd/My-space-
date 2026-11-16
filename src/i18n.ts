@@ -438,6 +438,8 @@ const ar = {
   habitRewardBody: 'استمر، أنت تبني نسخة أفضل من نفسك.',
   backgrounds: 'الخلفيات',
   saving: 'جاري الحفظ...',
+  aiAssistant: 'المساعد الذكي',
+  chooseBackground: 'اختيار خلفية التطبيق',
 }
 
 const en: Record<keyof typeof ar, string> = {
@@ -878,6 +880,8 @@ const en: Record<keyof typeof ar, string> = {
   habitRewardBody: 'Keep going. You are building a better you.',
   backgrounds: 'Backgrounds',
   saving: 'Saving...',
+  aiAssistant: 'AI Assistant',
+  chooseBackground: 'Choose app background',
 }
 
 const fr: Record<keyof typeof ar, string> = {
@@ -1318,6 +1322,8 @@ const fr: Record<keyof typeof ar, string> = {
   habitRewardBody: 'Keep going. You are building a better you.',
   backgrounds: 'Backgrounds',
   saving: 'Saving...',
+  aiAssistant: 'AI Assistant',
+  chooseBackground: 'Choose app background',
 }
 
 const de: Record<keyof typeof ar, string> = {
@@ -1758,6 +1764,8 @@ const de: Record<keyof typeof ar, string> = {
   habitRewardBody: 'Keep going. You are building a better you.',
   backgrounds: 'Backgrounds',
   saving: 'Saving...',
+  aiAssistant: 'AI Assistant',
+  chooseBackground: 'Choose app background',
 }
 
 const es: Record<keyof typeof ar, string> = {
@@ -2198,6 +2206,8 @@ const es: Record<keyof typeof ar, string> = {
   habitRewardBody: 'Keep going. You are building a better you.',
   backgrounds: 'Backgrounds',
   saving: 'Saving...',
+  aiAssistant: 'AI Assistant',
+  chooseBackground: 'Choose app background',
 }
 
 const tr: Record<keyof typeof ar, string> = {
@@ -2638,6 +2648,8 @@ const tr: Record<keyof typeof ar, string> = {
   habitRewardBody: 'Keep going. You are building a better you.',
   backgrounds: 'Backgrounds',
   saving: 'Saving...',
+  aiAssistant: 'AI Assistant',
+  chooseBackground: 'Choose app background',
 }
 
 const it: Record<keyof typeof ar, string> = {
@@ -3078,6 +3090,8 @@ const it: Record<keyof typeof ar, string> = {
   habitRewardBody: 'Keep going. You are building a better you.',
   backgrounds: 'Backgrounds',
   saving: 'Saving...',
+  aiAssistant: 'AI Assistant',
+  chooseBackground: 'Choose app background',
 }
 
 const ru: Record<keyof typeof ar, string> = {
@@ -3518,6 +3532,8 @@ const ru: Record<keyof typeof ar, string> = {
   habitRewardBody: 'Keep going. You are building a better you.',
   backgrounds: 'Backgrounds',
   saving: 'Saving...',
+  aiAssistant: 'AI Assistant',
+  chooseBackground: 'Choose app background',
 }
 
 const zh: Record<keyof typeof ar, string> = {
@@ -3958,6 +3974,8 @@ const zh: Record<keyof typeof ar, string> = {
   habitRewardBody: 'Keep going. You are building a better you.',
   backgrounds: 'Backgrounds',
   saving: 'Saving...',
+  aiAssistant: 'AI Assistant',
+  chooseBackground: 'Choose app background',
 }
 
 const ja: Record<keyof typeof ar, string> = {
@@ -4398,6 +4416,8 @@ const ja: Record<keyof typeof ar, string> = {
   habitRewardBody: 'Keep going. You are building a better you.',
   backgrounds: 'Backgrounds',
   saving: 'Saving...',
+  aiAssistant: 'AI Assistant',
+  chooseBackground: 'Choose app background',
 }
 
 const ko: Record<keyof typeof ar, string> = {
@@ -4838,6 +4858,8 @@ const ko: Record<keyof typeof ar, string> = {
   habitRewardBody: 'Keep going. You are building a better you.',
   backgrounds: 'Backgrounds',
   saving: 'Saving...',
+  aiAssistant: 'AI Assistant',
+  chooseBackground: 'Choose app background',
 }
 
 const pt: Record<keyof typeof ar, string> = {
@@ -5278,6 +5300,8 @@ const pt: Record<keyof typeof ar, string> = {
   habitRewardBody: 'Keep going. You are building a better you.',
   backgrounds: 'Backgrounds',
   saving: 'Saving...',
+  aiAssistant: 'AI Assistant',
+  chooseBackground: 'Choose app background',
 }
 
 const hi: Record<keyof typeof ar, string> = {
@@ -5718,6 +5742,8 @@ const hi: Record<keyof typeof ar, string> = {
   habitRewardBody: 'Keep going. You are building a better you.',
   backgrounds: 'Backgrounds',
   saving: 'Saving...',
+  aiAssistant: 'AI Assistant',
+  chooseBackground: 'Choose app background',
 }
 
 const ur: Record<keyof typeof ar, string> = {
@@ -6158,6 +6184,8 @@ const ur: Record<keyof typeof ar, string> = {
   habitRewardBody: 'Keep going. You are building a better you.',
   backgrounds: 'Backgrounds',
   saving: 'Saving...',
+  aiAssistant: 'AI Assistant',
+  chooseBackground: 'Choose app background',
 }
 
 const fa: Record<keyof typeof ar, string> = {
@@ -6598,6 +6626,8 @@ const fa: Record<keyof typeof ar, string> = {
   habitRewardBody: 'Keep going. You are building a better you.',
   backgrounds: 'Backgrounds',
   saving: 'Saving...',
+  aiAssistant: 'AI Assistant',
+  chooseBackground: 'Choose app background',
 }
 
 const nl: Record<keyof typeof ar, string> = {
@@ -7038,6 +7068,8 @@ const nl: Record<keyof typeof ar, string> = {
   habitRewardBody: 'Keep going. You are building a better you.',
   backgrounds: 'Backgrounds',
   saving: 'Saving...',
+  aiAssistant: 'AI Assistant',
+  chooseBackground: 'Choose app background',
 }
 
 const pl: Record<keyof typeof ar, string> = {
@@ -7478,6 +7510,8 @@ const pl: Record<keyof typeof ar, string> = {
   habitRewardBody: 'Keep going. You are building a better you.',
   backgrounds: 'Backgrounds',
   saving: 'Saving...',
+  aiAssistant: 'AI Assistant',
+  chooseBackground: 'Choose app background',
 }
 
 const id: Record<keyof typeof ar, string> = {
@@ -7918,6 +7952,8 @@ const id: Record<keyof typeof ar, string> = {
   habitRewardBody: 'Keep going. You are building a better you.',
   backgrounds: 'Backgrounds',
   saving: 'Saving...',
+  aiAssistant: 'AI Assistant',
+  chooseBackground: 'Choose app background',
 }
 
 export type I18nKey = keyof typeof ar

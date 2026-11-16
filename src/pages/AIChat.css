@@ -23,9 +23,19 @@
   background: #fff;
 }
 
+.ai-chat-header .close-btn-modal {
+  position: static;
+  top: auto;
+  inset-inline-start: auto;
+  order: -1;
+}
+
 .ai-chat-heading {
   display: flex;
+  flex: 1;
+  min-width: 0;
   align-items: center;
+  justify-content: center;
   gap: 10px;
 }
 
@@ -42,10 +52,14 @@
 
 .ai-chat-heading h1 {
   margin: 0;
+  min-width: 0;
+  overflow: hidden;
   color: #111827;
   font-size: 16px;
   font-weight: 700;
   line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ai-chat-close {

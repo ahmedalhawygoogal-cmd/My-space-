@@ -303,7 +303,7 @@ function SourceSheet({
 
 export default function AIChatPage() {
   const navigate = useNavigate()
-  const { recordings } = useStore()
+  const { recordings, lang } = useStore()
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
@@ -380,6 +380,7 @@ export default function AIChatPage() {
         body: {
           message: userText,
           context: attachedContext,
+          lang,
         },
       })
 
