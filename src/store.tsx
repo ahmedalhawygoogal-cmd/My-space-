@@ -32,6 +32,7 @@ import type {
 import { APP_FONTS, DEFAULT_SETTINGS, RTL_LANGS, SUBJECT_COLORS, isUiLang } from './types'
 import type { AppFont, AppFontSize } from './types'
 import { contrastInk, includesText, now, startOfDay, stripHtml, uid } from './utils'
+import { loadLocale } from './i18n'
 import { useAuth } from './auth'
 import { removeRemoteCard, syncCardsFromCloud, uploadCardImage, upsertRemoteCard } from './lib/cardSync'
 import { removeRemoteDeck, syncDecksFromCloud, upsertRemoteDeck } from './lib/deckSync'
@@ -121,6 +122,7 @@ function applyLang(lang: Lang) {
   document.documentElement.lang = lang
   document.documentElement.dir = RTL_LANGS.has(lang) ? 'rtl' : 'ltr'
   localStorage.setItem('myspace-lang', lang)
+  void loadLocale(lang)
 }
 
 const APPEAR_KEY = 'myspace-appear'
@@ -467,6 +469,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     ) {
       await db.saveSettings(settingsN)
     }
+    await loadLocale(settingsN.language)
     setState({
       ready: true,
       settings: settingsN,
@@ -529,6 +532,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const setSettings = useCallback(async (p: Partial<AppSettings>) => {
+    if (p.language) await loadLocale(p.language)
     const next = { ...state.settings, ...p }
     await db.saveSettings(next)
     setState((s) => ({ ...s, settings: next }))

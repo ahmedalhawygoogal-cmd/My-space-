@@ -1,8 +1,8 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, useSyncExternalStore, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { Check, Trash2, X } from 'lucide-react'
-import { t, type I18nKey } from './i18n'
+import { getI18nVersion, subscribeI18n, t, type I18nKey } from './i18n'
 import { useStore } from './store'
 import { GlobalOverlay } from './components/ui/GlobalOverlay'
 
@@ -99,6 +99,8 @@ export function FormActions({
 
 export function useT() {
   const { lang } = useStore()
+  // Re-render once a lazily loaded locale chunk arrives.
+  useSyncExternalStore(subscribeI18n, getI18nVersion, getI18nVersion)
   return (key: I18nKey, vars?: Record<string, string | number>) => t(lang, key, vars)
 }
 
