@@ -34,12 +34,15 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-          cache: gradle
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: '8.14.3'
+          # The Gradle distribution cache is currently returning HTTP 400
+          # from GitHub's cache service; disable the restore so setup-gradle
+          # still installs Gradle 8.14.3 directly.
+          cache-disabled: true
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -72,7 +75,7 @@ jobs:
 
       - name: Build debug APK
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: ./gradlew assembleDebug --no-daemon --stacktrace --info
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
