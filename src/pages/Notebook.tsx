@@ -152,6 +152,9 @@ export function NoteEditorPage() {
   const [audioOpen, setAudioOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [noteId, setNoteId] = useState(existing?.id ?? '')
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const [contentVersion, setContentVersion] = useState(0)
+  const skipAutosave = useRef(true)
   const inited = useRef(false)
   const ink = noteInk(color)
 
@@ -166,7 +169,7 @@ export function NoteEditorPage() {
     document.execCommand(cmd, false, val)
   }
 
-  async function save() {
+  async function persist(manual: boolean) {
     const content = editor.current?.innerHTML ?? ''
     const book = notebooks[0]
     if (!book) return
@@ -178,6 +181,7 @@ export function NoteEditorPage() {
       audioId: audioId || undefined,
       recordingIds: audioId ? [audioId] : [],
     }
+    setSaveState('saving')
     if (noteId) {
       await updateNote(noteId, patch)
     } else {
@@ -185,12 +189,38 @@ export function NoteEditorPage() {
       setNoteId(created.id)
       nav(`/notes/${created.id}/edit`, { replace: true })
     }
-    setToast(tr('noteSaved'))
+    setSaveState('saved')
+    if (manual) setToast(tr('noteSaved'))
   }
+
+  async function save() {
+    await persist(true)
+  }
+
+  const persistRef = useRef(persist)
+  persistRef.current = persist
+
+  useEffect(() => {
+    if (skipAutosave.current) {
+      skipAutosave.current = false
+      return
+    }
+    const id = window.setTimeout(() => {
+      void persistRef.current(false)
+    }, 600)
+    return () => window.clearTimeout(id)
+  }, [title, type, color, audioId, contentVersion])
 
   return (
     <div className="stack note-surface" style={{ background: color, color: ink, margin: '-16px', padding: 16, minHeight: '100%' }}>
-      <input className="note-title" value={title} placeholder={tr('title')} onChange={(e) => setTitle(e.target.value)} style={{ color: ink }} />
+      <div className="row" style={{ gap: 8 }}>
+        <input className="note-title" value={title} placeholder={tr('title')} onChange={(e) => setTitle(e.target.value)} style={{ color: ink, flex: 1, minWidth: 0, width: 'auto' }} />
+        {saveState !== 'idle' ? (
+          <span className="muted" style={{ fontSize: 12, color: ink, opacity: 0.65, whiteSpace: 'nowrap' }}>
+            {saveState === 'saving' ? tr('saving') : tr('noteSaved')}
+          </span>
+        ) : null}
+      </div>
       <label className="label">{tr('noteType')}</label>
       <input className="field" value={type} placeholder={tr('noteType')} onChange={(e) => setType(e.target.value)} />
       <label className="label">{tr('noteColor')}</label>
@@ -264,7 +294,7 @@ export function NoteEditorPage() {
             />
           </label>
         </div>
-        <div ref={editor} className="editor" contentEditable data-placeholder={tr('writing')} style={{ color: ink }} />
+        <div ref={editor} className="editor" contentEditable data-placeholder={tr('writing')} style={{ color: ink }} onInput={() => setContentVersion((v) => v + 1)} />
       </div>
       <label className="label">{tr('attachAudio')}</label>
       {audioId ? (

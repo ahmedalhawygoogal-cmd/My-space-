@@ -970,9 +970,6 @@ export function StudyPage() {
 
   useQuestionTimer(!!card && !flipped, idx, () => {
     setFlipped(true)
-    setAutoForgot(true)
-    void markForgot()
-    setToast(tr('forgot'))
     if (cardRef.current) speakTarget(cardRef.current, deck)
   })
 

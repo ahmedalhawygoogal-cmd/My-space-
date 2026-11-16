@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ChevronDown, FolderPlus, Loader2, Mic, Pause, Pencil, Play, Sparkles, Square, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
@@ -52,7 +52,7 @@ function RecDistanceSeg({
   )
 }
 
-function RecListCard({ rec }: { rec: Recording }) {
+function RecListCardBase({ rec }: { rec: Recording }) {
   const tr = useT()
   const nav = useNavigate()
   const { subjects, lang, getAudioBlob, getOriginalAudioBlob, enhanceRecordingAudio, deleteRecording, addDownload } = useStore()
@@ -188,6 +188,8 @@ function RecListCard({ rec }: { rec: Recording }) {
     </div>
   )
 }
+
+const RecListCard = memo(RecListCardBase)
 
 export default function RecorderPage() {
   const tr = useT()

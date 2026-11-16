@@ -20,6 +20,11 @@
     <meta property="og:image" content="/favicon.svg">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:image" content="/favicon.svg">
+    <script>
+      const lang = localStorage.getItem('myspace-lang') || 'ar';
+      document.documentElement.lang = lang;
+      document.documentElement.dir = (lang === 'ar' || lang === 'ur' || lang === 'fa') ? 'rtl' : 'ltr';
+    </script>
   </head>
   <body>
     <div id="root"></div>

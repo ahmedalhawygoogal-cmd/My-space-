@@ -879,14 +879,14 @@ img { max-width: 100%; }
 .toast {
   position: fixed;
   left: 50%;
-  bottom: calc(var(--nav-h) + 28px);
+  bottom: 80px;
   transform: translateX(-50%);
   background: var(--ink);
   color: var(--bg);
   padding: 10px 16px;
   border-radius: 999px;
   font-size: 0.85rem;
-  z-index: 50;
+  z-index: 10000;
   white-space: nowrap;
 }
 
