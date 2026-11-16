@@ -199,7 +199,7 @@ export default function SettingsPage() {
               key={option.id}
               className={`background-option${selectedBackground === option.id ? ' selected' : ''}`}
               type="button"
-              aria-label={option.label}
+              aria-label={tr(option.labelKey)}
               aria-pressed={selectedBackground === option.id}
               onClick={() => {
                 setBackground(option.id)
@@ -211,7 +211,7 @@ export default function SettingsPage() {
                 className="background-option-art"
                 idPrefix={`settings-${option.id}`}
               />
-              <span>{option.label}</span>
+              <span>{tr(option.labelKey)}</span>
             </button>
           ))}
         </div>

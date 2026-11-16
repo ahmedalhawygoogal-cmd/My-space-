@@ -21,15 +21,19 @@ function asDaily(raw: string | null | undefined): DailyGoal | undefined {
 }
 
 function fieldOfStudy(s: AppSettings): string {
-  const parts = [...(s.fields ?? []), s.fieldOther].map((x) => x.trim()).filter(Boolean)
-  return parts.join(', ')
+  // `fieldOther` may repeat values already present in `fields`; split and
+  // de-duplicate so a cloud round-trip never grows the list.
+  const parts = [...(s.fields ?? []), ...(s.fieldOther ?? '').split(',')]
+    .map((x) => x.trim())
+    .filter(Boolean)
+  return [...new Set(parts)].join(', ')
 }
 
 function parseFields(raw: string | null | undefined): { fields: string[]; fieldOther: string } {
   const text = (raw ?? '').trim()
   if (!text) return { fields: [], fieldOther: '' }
-  const parts = text.split(',').map((x) => x.trim()).filter(Boolean)
-  return { fields: parts, fieldOther: text }
+  const parts = [...new Set(text.split(',').map((x) => x.trim()).filter(Boolean))]
+  return { fields: parts, fieldOther: '' }
 }
 
 export function profileToSettings(row: ProfileRow, prev: AppSettings): AppSettings {

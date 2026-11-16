@@ -381,7 +381,7 @@ export default function AIChatPage() {
 
       if (!supabase) throw new Error('Supabase is not configured')
 
-      const { data, error } = await supabase.functions.invoke('Gemini-chat-', {
+      const { data, error } = await supabase.functions.invoke('gemini-chat', {
         body: {
           message: userText,
           context: attachedContext,

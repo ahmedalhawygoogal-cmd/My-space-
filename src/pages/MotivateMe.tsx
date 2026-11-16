@@ -176,7 +176,7 @@ export default function MotivateMePage() {
       setAddOpen(false)
       setToast(tr('saved'))
     } catch {
-      setToast(tr('noCharacters'))
+      setToast(tr('error'))
     }
   }
 

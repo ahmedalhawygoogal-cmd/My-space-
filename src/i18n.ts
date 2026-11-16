@@ -472,6 +472,11 @@ const ar = {
   aiNoRecordingDescription: 'لا يتوفر وصف نصي لهذا التسجيل.',
   aiTranscriptUnavailable: 'ملاحظة: لا يتوفر نص مفرغ من الصوت؛ هذه بيانات التسجيل ووصفه فقط.',
   aiSourceAttachedLabel: 'مصدر مرفق',
+  bgDefault: 'الافتراضي',
+  bg1: 'خلفية 1',
+  bg2: 'خلفية 2',
+  bg3: 'خلفية 3',
+  splashResetHint: 'إذا استمر التحميل، سيتم إعادة ضبط التطبيق تلقائياً...',
 }
 
 const en: Record<keyof typeof ar, string> = {
@@ -946,6 +951,11 @@ const en: Record<keyof typeof ar, string> = {
   aiNoRecordingDescription: 'No text description is available for this recording.',
   aiTranscriptUnavailable: 'Note: no audio transcript is available; this is only the recording data and description.',
   aiSourceAttachedLabel: 'Attached source',
+  bgDefault: 'Default',
+  bg1: 'Background 1',
+  bg2: 'Background 2',
+  bg3: 'Background 3',
+  splashResetHint: 'If loading continues, the app will reset automatically...',
 }
 
 const fr: Record<keyof typeof ar, string> = {
@@ -1420,6 +1430,11 @@ const fr: Record<keyof typeof ar, string> = {
   aiNoRecordingDescription: 'No text description is available for this recording.',
   aiTranscriptUnavailable: 'Note: no audio transcript is available; this is only the recording data and description.',
   aiSourceAttachedLabel: 'Attached source',
+  bgDefault: 'Default',
+  bg1: 'Background 1',
+  bg2: 'Background 2',
+  bg3: 'Background 3',
+  splashResetHint: 'If loading continues, the app will reset automatically...',
 }
 
 const de: Record<keyof typeof ar, string> = {
@@ -1894,6 +1909,11 @@ const de: Record<keyof typeof ar, string> = {
   aiNoRecordingDescription: 'No text description is available for this recording.',
   aiTranscriptUnavailable: 'Note: no audio transcript is available; this is only the recording data and description.',
   aiSourceAttachedLabel: 'Attached source',
+  bgDefault: 'Default',
+  bg1: 'Background 1',
+  bg2: 'Background 2',
+  bg3: 'Background 3',
+  splashResetHint: 'If loading continues, the app will reset automatically...',
 }
 
 const es: Record<keyof typeof ar, string> = {
@@ -2368,6 +2388,11 @@ const es: Record<keyof typeof ar, string> = {
   aiNoRecordingDescription: 'No text description is available for this recording.',
   aiTranscriptUnavailable: 'Note: no audio transcript is available; this is only the recording data and description.',
   aiSourceAttachedLabel: 'Attached source',
+  bgDefault: 'Default',
+  bg1: 'Background 1',
+  bg2: 'Background 2',
+  bg3: 'Background 3',
+  splashResetHint: 'If loading continues, the app will reset automatically...',
 }
 
 const tr: Record<keyof typeof ar, string> = {
@@ -2842,6 +2867,11 @@ const tr: Record<keyof typeof ar, string> = {
   aiNoRecordingDescription: 'No text description is available for this recording.',
   aiTranscriptUnavailable: 'Note: no audio transcript is available; this is only the recording data and description.',
   aiSourceAttachedLabel: 'Attached source',
+  bgDefault: 'Default',
+  bg1: 'Background 1',
+  bg2: 'Background 2',
+  bg3: 'Background 3',
+  splashResetHint: 'If loading continues, the app will reset automatically...',
 }
 
 const it: Record<keyof typeof ar, string> = {
@@ -3316,6 +3346,11 @@ const it: Record<keyof typeof ar, string> = {
   aiNoRecordingDescription: 'No text description is available for this recording.',
   aiTranscriptUnavailable: 'Note: no audio transcript is available; this is only the recording data and description.',
   aiSourceAttachedLabel: 'Attached source',
+  bgDefault: 'Default',
+  bg1: 'Background 1',
+  bg2: 'Background 2',
+  bg3: 'Background 3',
+  splashResetHint: 'If loading continues, the app will reset automatically...',
 }
 
 const ru: Record<keyof typeof ar, string> = {
@@ -3790,6 +3825,11 @@ const ru: Record<keyof typeof ar, string> = {
   aiNoRecordingDescription: 'No text description is available for this recording.',
   aiTranscriptUnavailable: 'Note: no audio transcript is available; this is only the recording data and description.',
   aiSourceAttachedLabel: 'Attached source',
+  bgDefault: 'Default',
+  bg1: 'Background 1',
+  bg2: 'Background 2',
+  bg3: 'Background 3',
+  splashResetHint: 'If loading continues, the app will reset automatically...',
 }
 
 const zh: Record<keyof typeof ar, string> = {
@@ -4264,6 +4304,11 @@ const zh: Record<keyof typeof ar, string> = {
   aiNoRecordingDescription: 'No text description is available for this recording.',
   aiTranscriptUnavailable: 'Note: no audio transcript is available; this is only the recording data and description.',
   aiSourceAttachedLabel: 'Attached source',
+  bgDefault: 'Default',
+  bg1: 'Background 1',
+  bg2: 'Background 2',
+  bg3: 'Background 3',
+  splashResetHint: 'If loading continues, the app will reset automatically...',
 }
 
 const ja: Record<keyof typeof ar, string> = {
@@ -4738,6 +4783,11 @@ const ja: Record<keyof typeof ar, string> = {
   aiNoRecordingDescription: 'No text description is available for this recording.',
   aiTranscriptUnavailable: 'Note: no audio transcript is available; this is only the recording data and description.',
   aiSourceAttachedLabel: 'Attached source',
+  bgDefault: 'Default',
+  bg1: 'Background 1',
+  bg2: 'Background 2',
+  bg3: 'Background 3',
+  splashResetHint: 'If loading continues, the app will reset automatically...',
 }
 
 const ko: Record<keyof typeof ar, string> = {
@@ -5212,6 +5262,11 @@ const ko: Record<keyof typeof ar, string> = {
   aiNoRecordingDescription: 'No text description is available for this recording.',
   aiTranscriptUnavailable: 'Note: no audio transcript is available; this is only the recording data and description.',
   aiSourceAttachedLabel: 'Attached source',
+  bgDefault: 'Default',
+  bg1: 'Background 1',
+  bg2: 'Background 2',
+  bg3: 'Background 3',
+  splashResetHint: 'If loading continues, the app will reset automatically...',
 }
 
 const pt: Record<keyof typeof ar, string> = {
@@ -5686,6 +5741,11 @@ const pt: Record<keyof typeof ar, string> = {
   aiNoRecordingDescription: 'No text description is available for this recording.',
   aiTranscriptUnavailable: 'Note: no audio transcript is available; this is only the recording data and description.',
   aiSourceAttachedLabel: 'Attached source',
+  bgDefault: 'Default',
+  bg1: 'Background 1',
+  bg2: 'Background 2',
+  bg3: 'Background 3',
+  splashResetHint: 'If loading continues, the app will reset automatically...',
 }
 
 const hi: Record<keyof typeof ar, string> = {
@@ -6160,6 +6220,11 @@ const hi: Record<keyof typeof ar, string> = {
   aiNoRecordingDescription: 'No text description is available for this recording.',
   aiTranscriptUnavailable: 'Note: no audio transcript is available; this is only the recording data and description.',
   aiSourceAttachedLabel: 'Attached source',
+  bgDefault: 'Default',
+  bg1: 'Background 1',
+  bg2: 'Background 2',
+  bg3: 'Background 3',
+  splashResetHint: 'If loading continues, the app will reset automatically...',
 }
 
 const ur: Record<keyof typeof ar, string> = {
@@ -6634,6 +6699,11 @@ const ur: Record<keyof typeof ar, string> = {
   aiNoRecordingDescription: 'No text description is available for this recording.',
   aiTranscriptUnavailable: 'Note: no audio transcript is available; this is only the recording data and description.',
   aiSourceAttachedLabel: 'Attached source',
+  bgDefault: 'Default',
+  bg1: 'Background 1',
+  bg2: 'Background 2',
+  bg3: 'Background 3',
+  splashResetHint: 'If loading continues, the app will reset automatically...',
 }
 
 const fa: Record<keyof typeof ar, string> = {
@@ -7108,6 +7178,11 @@ const fa: Record<keyof typeof ar, string> = {
   aiNoRecordingDescription: 'No text description is available for this recording.',
   aiTranscriptUnavailable: 'Note: no audio transcript is available; this is only the recording data and description.',
   aiSourceAttachedLabel: 'Attached source',
+  bgDefault: 'Default',
+  bg1: 'Background 1',
+  bg2: 'Background 2',
+  bg3: 'Background 3',
+  splashResetHint: 'If loading continues, the app will reset automatically...',
 }
 
 const nl: Record<keyof typeof ar, string> = {
@@ -7582,6 +7657,11 @@ const nl: Record<keyof typeof ar, string> = {
   aiNoRecordingDescription: 'No text description is available for this recording.',
   aiTranscriptUnavailable: 'Note: no audio transcript is available; this is only the recording data and description.',
   aiSourceAttachedLabel: 'Attached source',
+  bgDefault: 'Default',
+  bg1: 'Background 1',
+  bg2: 'Background 2',
+  bg3: 'Background 3',
+  splashResetHint: 'If loading continues, the app will reset automatically...',
 }
 
 const pl: Record<keyof typeof ar, string> = {
@@ -8056,6 +8136,11 @@ const pl: Record<keyof typeof ar, string> = {
   aiNoRecordingDescription: 'No text description is available for this recording.',
   aiTranscriptUnavailable: 'Note: no audio transcript is available; this is only the recording data and description.',
   aiSourceAttachedLabel: 'Attached source',
+  bgDefault: 'Default',
+  bg1: 'Background 1',
+  bg2: 'Background 2',
+  bg3: 'Background 3',
+  splashResetHint: 'If loading continues, the app will reset automatically...',
 }
 
 const id: Record<keyof typeof ar, string> = {
@@ -8530,6 +8615,11 @@ const id: Record<keyof typeof ar, string> = {
   aiNoRecordingDescription: 'No text description is available for this recording.',
   aiTranscriptUnavailable: 'Note: no audio transcript is available; this is only the recording data and description.',
   aiSourceAttachedLabel: 'Attached source',
+  bgDefault: 'Default',
+  bg1: 'Background 1',
+  bg2: 'Background 2',
+  bg3: 'Background 3',
+  splashResetHint: 'If loading continues, the app will reset automatically...',
 }
 
 export type I18nKey = keyof typeof ar
