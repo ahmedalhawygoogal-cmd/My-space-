@@ -5,7 +5,9 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { supabase } from '../lib/supabase'
 import { useStore } from '../store'
-import { Sheet, CloseBtn } from '../ui'
+import { t } from '../i18n'
+import type { Lang } from '../types'
+import { Sheet, CloseBtn, useT } from '../ui'
 import './AIChat.css'
 
 type SourceKind = 'notes' | 'tasks' | 'recordings'
@@ -37,11 +39,7 @@ type TaskRow = {
 }
 type RecordingRow = { id: string; name: string | null; duration: number | null; created_at: string | null }
 
-const sourceTabs: { id: SourceKind; label: string }[] = [
-  { id: 'notes', label: 'ملاحظات' },
-  { id: 'tasks', label: 'مهام' },
-  { id: 'recordings', label: 'تسجيلات' },
-]
+const sourceTabs: SourceKind[] = ['notes', 'tasks', 'recordings']
 
 const emptySources: SourcesByKind = { notes: [], tasks: [], recordings: [] }
 
@@ -52,18 +50,18 @@ function formatDuration(milliseconds: number): string {
   return `${minutes}:${String(seconds).padStart(2, '0')}`
 }
 
-function formatTaskDate(value: string | null): string {
-  if (!value) return 'غير محدد'
+function formatTaskDate(value: string | null, lang: Lang): string {
+  if (!value) return t(lang, 'aiNotSet')
   const numeric = Number(value)
   const date = new Date(Number.isFinite(numeric) ? numeric : value)
-  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('ar')
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString(lang)
 }
 
 function previewText(value: string): string {
   return value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120)
 }
 
-async function fetchUserSources(recordings: ReturnType<typeof useStore>['recordings']): Promise<SourcesByKind> {
+async function fetchUserSources(recordings: ReturnType<typeof useStore>['recordings'], lang: Lang): Promise<SourcesByKind> {
   if (!supabase) throw new Error('Supabase is not configured')
   const { data: authData, error: authError } = await supabase.auth.getUser()
   if (authError || !authData.user) throw new Error('An authenticated session is required')
@@ -100,50 +98,50 @@ async function fetchUserSources(recordings: ReturnType<typeof useStore>['recordi
 
   return {
     notes: notes.map((note) => {
-      const title = note.title?.trim() || 'بدون عنوان'
-      const content = note.content?.trim() || 'لا يوجد محتوى نصي.'
+      const title = note.title?.trim() || t(lang, 'untitled')
+      const content = note.content?.trim() || t(lang, 'aiNoTextContent')
       return {
         id: note.id,
         kind: 'notes',
         title,
-        preview: previewText(content) || 'لا يوجد محتوى نصي.',
-        context: `عنوان الملاحظة: ${title}\nالمحتوى:\n${content}`,
+        preview: previewText(content) || t(lang, 'aiNoTextContent'),
+        context: `${t(lang, 'aiNoteTitleLabel')}: ${title}\n${t(lang, 'aiContentLabel')}:\n${content}`,
       }
     }),
     tasks: tasks.map((task) => {
-      const title = task.title?.trim() || 'مهمة بدون عنوان'
-      const description = task.description?.trim() || 'لا يوجد وصف إضافي.'
-      const status = task.completed ? 'مكتملة' : 'غير مكتملة'
-      const dueDate = formatTaskDate(task.date)
+      const title = task.title?.trim() || t(lang, 'aiTaskUntitled')
+      const description = task.description?.trim() || t(lang, 'aiNoDescription')
+      const status = task.completed ? t(lang, 'completed') : t(lang, 'aiIncomplete')
+      const dueDate = formatTaskDate(task.date, lang)
       return {
         id: task.id,
         kind: 'tasks',
         title,
         preview: `${status} · ${description}`.slice(0, 120),
         context: [
-          `عنوان المهمة: ${title}`,
-          `الحالة: ${status}`,
-          `الأولوية: ${task.priority || 'غير محددة'}`,
-          `تاريخ المهمة: ${dueDate}`,
-          `الوصف: ${description}`,
+          `${t(lang, 'taskTitle')}: ${title}`,
+          `${t(lang, 'aiStatusLabel')}: ${status}`,
+          `${t(lang, 'priority')}: ${task.priority || t(lang, 'aiNotSpecified')}`,
+          `${t(lang, 'date')}: ${dueDate}`,
+          `${t(lang, 'description')}: ${description}`,
         ].join('\n'),
       }
     }),
     recordings: remoteRecordings.map((recording) => {
       const local = localRecordings.get(recording.id)
-      const title = recording.name?.trim() || 'تسجيل بدون اسم'
-      const description = local?.description?.trim() || 'لا يتوفر وصف نصي لهذا التسجيل.'
+      const title = recording.name?.trim() || t(lang, 'aiRecordingUntitled')
+      const description = local?.description?.trim() || t(lang, 'aiNoRecordingDescription')
       const duration = formatDuration(recording.duration ?? 0)
       return {
         id: recording.id,
         kind: 'recordings',
         title,
-        preview: local?.description?.trim() || `مدة التسجيل ${duration}`,
+        preview: local?.description?.trim() || `${t(lang, 'duration')}: ${duration}`,
         context: [
-          `اسم التسجيل: ${title}`,
-          `الوصف: ${description}`,
-          `المدة: ${duration}`,
-          'ملاحظة: لا يتوفر نص مفرغ من الصوت؛ هذه بيانات التسجيل ووصفه فقط.',
+          `${t(lang, 'recName')}: ${title}`,
+          `${t(lang, 'description')}: ${description}`,
+          `${t(lang, 'duration')}: ${duration}`,
+          t(lang, 'aiTranscriptUnavailable'),
         ].join('\n'),
       }
     }),
@@ -167,6 +165,7 @@ function MessageList({
   isLoading: boolean
   errorMessage: string | null
 }) {
+  const tr = useT()
   const endOfMessages = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -182,7 +181,7 @@ function MessageList({
             className={`ai-chat-message ${message.role}${message.isError ? ' is-error' : ''}`}
           >
             <div className={`ai-chat-bubble${message.isError ? ' is-error' : ''}`}>
-              {message.sourceLabel ? <div className="ai-chat-source-label">مرفق: {message.sourceLabel}</div> : null}
+              {message.sourceLabel ? <div className="ai-chat-source-label">{tr('aiAttached')}: {message.sourceLabel}</div> : null}
               {message.role === 'assistant' ? (
                 <AssistantMarkdown content={message.content} />
               ) : (
@@ -199,7 +198,7 @@ function MessageList({
           </article>
         ) : null}
         {isLoading ? (
-          <article className="ai-chat-message assistant" role="status" aria-label="يفكر في إجابة واضحة">
+          <article className="ai-chat-message assistant" role="status" aria-label={tr('aiThinking')}>
             <div className="ai-chat-bubble ai-chat-thinking">
               <span className="ai-chat-thinking-dot animate-bounce" style={{ animationDelay: '-0.24s' }} />
               <span className="ai-chat-thinking-dot animate-bounce" style={{ animationDelay: '-0.12s' }} />
@@ -234,25 +233,26 @@ function SourceSheet({
   onRetry: () => void
   onSelect: (source: ChatSource) => void
 }) {
+  const tr = useT()
   const items = sources[activeTab]
   const Icon = activeTab === 'notes' ? FileText : activeTab === 'tasks' ? CheckSquare : Mic
 
   return (
-    <Sheet open={open} onClose={onClose} title="اختر مصدراً واحداً">
+    <Sheet open={open} onClose={onClose} title={tr('aiChooseSource')}>
       <div className="ai-source-sheet">
-        <div className="ai-source-tabs" role="tablist" aria-label="نوع المصدر">
+        <div className="ai-source-tabs" role="tablist" aria-label={tr('aiSourceType')}>
           {sourceTabs.map((tab) => (
             <button
-              key={tab.id}
-              id={`ai-source-tab-${tab.id}`}
+              key={tab}
+              id={`ai-source-tab-${tab}`}
               type="button"
               role="tab"
-              aria-selected={activeTab === tab.id}
+              aria-selected={activeTab === tab}
               aria-controls="ai-source-panel"
-              className={activeTab === tab.id ? 'active' : ''}
-              onClick={() => onTabChange(tab.id)}
+              className={activeTab === tab ? 'active' : ''}
+              onClick={() => onTabChange(tab)}
             >
-              {tab.label}
+              {tr(tab)}
             </button>
           ))}
         </div>
@@ -266,17 +266,17 @@ function SourceSheet({
           {sourceState === 'loading' ? (
             <div className="ai-source-status" role="status">
               <LoaderCircle size={18} className="ai-chat-spinner" />
-              <span>جارٍ تحميل مصادرك...</span>
+              <span>{tr('aiLoadingSources')}</span>
             </div>
           ) : sourceState === 'error' ? (
             <div className="ai-source-status error" role="alert">
               <p>{sourceError}</p>
               <button type="button" className="ai-source-retry" onClick={onRetry}>
-                إعادة المحاولة
+                {tr('retry')}
               </button>
             </div>
           ) : items.length === 0 ? (
-            <div className="ai-source-status">لا توجد مصادر هنا بعد.</div>
+            <div className="ai-source-status">{tr('aiNoSources')}</div>
           ) : (
             items.map((source) => (
               <button
@@ -302,13 +302,14 @@ function SourceSheet({
 }
 
 export default function AIChatPage() {
+  const tr = useT()
   const navigate = useNavigate()
   const { recordings, lang } = useStore()
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
       role: 'assistant',
-      content: 'أهلًا، أنا مساعد مساحتي. كيف أقدر أساعدك اليوم؟ اسألني عن ملاحظاتك أو مهامك، أو أضف سياقًا مخصصًا لسؤالك.',
+      content: tr('aiWelcome'),
     },
   ])
   const [draft, setDraft] = useState('')
@@ -324,6 +325,10 @@ export default function AIChatPage() {
   const [sourceError, setSourceError] = useState('')
   const [selectedSource, setSelectedSource] = useState<ChatSource | null>(null)
 
+  useEffect(() => {
+    setMessages((current) => current.map((m) => (m.id === 'welcome' ? { ...m, content: tr('aiWelcome') } : m)))
+  }, [lang])
+
   function openContextEditor() {
     if (!contextEditorOpen) setContextDraft(pastedContext)
     setContextEditorOpen(!contextEditorOpen)
@@ -338,10 +343,10 @@ export default function AIChatPage() {
     setSourceState('loading')
     setSourceError('')
     try {
-      setSources(await fetchUserSources(recordings))
+      setSources(await fetchUserSources(recordings, lang))
       setSourceState('ready')
     } catch {
-      setSourceError('تعذّر تحميل المصادر من مساحتي. تحقق من اتصالك وحاول مجددًا.')
+      setSourceError(tr('aiLoadSourcesError'))
       setSourceState('error')
     }
   }
@@ -359,7 +364,7 @@ export default function AIChatPage() {
       .filter(Boolean)
       .join('\n\n')
       .slice(0, 20000)
-    const sourceLabel = [source?.title, pastedContext.trim() ? 'سياق مخصص' : undefined]
+    const sourceLabel = [source?.title, pastedContext.trim() ? tr('aiCustomContext') : undefined]
       .filter(Boolean)
       .join(' · ')
 
@@ -401,7 +406,7 @@ export default function AIChatPage() {
     } catch (error) {
       console.error("Chat Error:", error)
       const message = error instanceof Error ? error.message : String(error)
-      setErrorMessage(`API Error: ${message}`)
+      setErrorMessage(`${tr('error')}: ${message}`)
     } finally {
       setIsLoading(false)
     }
@@ -420,13 +425,13 @@ export default function AIChatPage() {
   }
 
   return (
-    <div className="ai-chat-page" dir="rtl">
+    <div className="ai-chat-page">
       <header className="ai-chat-header">
         <div className="ai-chat-heading">
           <span className="ai-chat-heading-icon" aria-hidden="true">
             <Bot size={20} />
           </span>
-          <h1>مساعد مساحتي</h1>
+          <h1>{tr('aiAssistant')}</h1>
         </div>
         <CloseBtn variant="modal" onClick={() => navigate('/')} />
       </header>
@@ -445,8 +450,8 @@ export default function AIChatPage() {
               onClick={openContextEditor}
             >
               <Code size={16} />
-              <span>إضافة سياق أو كود</span>
-              {pastedContext ? <span className="ai-chat-context-status">مرفق</span> : null}
+              <span>{tr('aiAddContext')}</span>
+              {pastedContext ? <span className="ai-chat-context-status">{tr('aiAttached')}</span> : null}
             </button>
             {pastedContext ? (
               <CloseBtn variant="modal" onClick={() => {
@@ -457,28 +462,28 @@ export default function AIChatPage() {
           </div>
           {contextEditorOpen ? (
             <div id="ai-chat-context-panel" className="ai-chat-context-panel">
-              <label htmlFor="ai-chat-context-input">الصق السياق أو الكود الذي تريد إرساله</label>
+              <label htmlFor="ai-chat-context-input">{tr('aiPasteContext')}</label>
               <textarea
                 id="ai-chat-context-input"
                 rows={4}
                 maxLength={20000}
                 value={contextDraft}
                 onChange={(event) => setContextDraft(event.target.value)}
-                placeholder="الصق الكود أو النص هنا..."
+                placeholder={tr('aiPasteContextPlaceholder')}
               />
               <div className="ai-chat-context-actions">
                 <button type="button" className="ai-chat-context-cancel" onClick={() => setContextEditorOpen(false)}>
-                  إلغاء
+                  {tr('cancel')}
                 </button>
                 <button type="button" className="ai-chat-context-save" onClick={saveContext}>
-                  حفظ السياق
+                  {tr('aiSaveContext')}
                 </button>
               </div>
             </div>
           ) : null}
           {selectedSource ? (
             <div className="ai-chat-selected-source">
-              <span><FileText size={15} /> مصدر مرفق: {selectedSource.title}</span>
+              <span><FileText size={15} /> {tr('aiSourceAttachedLabel')}: {selectedSource.title}</span>
               <CloseBtn variant="modal" onClick={() => setSelectedSource(null)} />
             </div>
           ) : null}
@@ -487,34 +492,34 @@ export default function AIChatPage() {
               <button
                 type="button"
                 className="ai-chat-source-trigger"
-                aria-label="إرفاق مصدر من مساحتي"
-                title="إرفاق مصدر"
+                aria-label={tr('aiAttachSource')}
+                title={tr('aiAttachSourceTitle')}
                 onClick={openSources}
               >
                 <Paperclip size={18} />
               </button>
               <textarea
-                aria-label="اكتب رسالتك"
+                aria-label={tr('aiMessageLabel')}
                 rows={1}
                 maxLength={8000}
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
                 onKeyDown={handleInputKeyDown}
-                placeholder="اكتب رسالتك..."
+                placeholder={tr('aiMessagePlaceholder')}
                 disabled={isLoading}
               />
               <button
                 type="submit"
                 className="ai-chat-send"
-                aria-label="إرسال الرسالة"
+                aria-label={tr('aiSend')}
                 disabled={!draft.trim() || isLoading}
               >
                 <Send size={17} />
-                <span>إرسال</span>
+                <span>{tr('aiSend')}</span>
               </button>
             </div>
           </form>
-          <p className="ai-chat-privacy-note">يُرسل السؤال والسياق والمصدر المرفق فقط إلى المساعد.</p>
+          <p className="ai-chat-privacy-note">{tr('aiPrivacyNote')}</p>
         </div>
       </footer>
 

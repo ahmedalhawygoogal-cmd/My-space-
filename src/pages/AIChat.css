@@ -119,11 +119,11 @@
 }
 
 .ai-chat-message.user {
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .ai-chat-message.assistant {
-  margin-right: auto;
+  margin-inline-end: auto;
 }
 
 .ai-chat-bubble {
@@ -138,13 +138,13 @@
 
 .ai-chat-message.user .ai-chat-bubble {
   border-color: transparent;
-  border-top-right-radius: 4px;
+  border-start-end-radius: 4px;
   color: #fff;
   background: #8b0000;
 }
 
 .ai-chat-message.assistant .ai-chat-bubble {
-  border-top-left-radius: 4px;
+  border-start-start-radius: 4px;
   color: #1f2937;
   background: #fff;
   box-shadow: 0 1px 3px rgb(17 24 39 / 7%);
@@ -450,7 +450,8 @@
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 8px;
-  padding: 3px 8px 3px 10px;
+  padding-block: 3px;
+  padding-inline: 10px 8px;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   color: #4b5563;
@@ -644,7 +645,7 @@
   border-radius: 13px;
   color: #1f2937;
   background: #fff;
-  text-align: right;
+  text-align: start;
   cursor: pointer;
 }
 
