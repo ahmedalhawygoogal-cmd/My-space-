@@ -49,7 +49,31 @@ if (!native) {
         // RNNoise WASM (4.8 MB) is lazy-loaded on demand, never precached:
         // no `wasm` glob and a 2 MB cap keep it out of the install payload.
         globPatterns: ['**/*.{js,css,html,svg,woff2,png,ico,webp}'],
-        globIgnores: ['**/*.wasm', '**/rnnoise-*.js'],
+        // Locale chunks are fetched on demand by loadLocale(), so keep them out
+        // of the install payload instead of precaching every language.
+        globIgnores: [
+          '**/*.wasm',
+          '**/rnnoise-*.js',
+          '**/fr-*.js',
+          '**/de-*.js',
+          '**/es-*.js',
+          '**/tr-*.js',
+          '**/it-*.js',
+          '**/ru-*.js',
+          '**/zh-*.js',
+          '**/ja-*.js',
+          '**/ko-*.js',
+          '**/pt-*.js',
+          '**/hi-*.js',
+          '**/ur-*.js',
+          '**/fa-*.js',
+          '**/nl-*.js',
+          '**/pl-*.js',
+          '**/id-*.js',
+          // AI chat is network-only, so it is fetched when opened instead of
+          // inflating every installation by ~170 KB.
+          '**/AIChat-*.js',
+        ],
         maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
         navigateFallback: '/index.html',
         runtimeCaching: [
