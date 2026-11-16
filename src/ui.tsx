@@ -47,7 +47,7 @@ export function StandardFAB({
 }) {
   const button = (
     <button
-      className={`fab fixed bottom-24 left-6 z-[100] shadow-lg${accent ? ' accent' : ''}`}
+      className={`fab fixed bottom-24 start-6 z-[100] shadow-lg${accent ? ' accent' : ''}`}
       type="button"
       onClick={onClick}
       aria-label={label}

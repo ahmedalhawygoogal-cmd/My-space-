@@ -190,7 +190,7 @@ img { max-width: 100%; }
 .close-btn-page {
   position: fixed;
   top: calc(1rem + var(--safe-t));
-  inset-inline-end: 1rem;
+  inset-inline-start: 1rem;
   z-index: 9999;
 }
 .brand {
@@ -600,8 +600,7 @@ img { max-width: 100%; }
   position: relative;
   width: 90%;
   max-width: 24rem;
-  margin-left: auto;
-  margin-right: auto;
+  margin-inline: auto;
   max-height: 80vh;
   overflow-y: auto;
   background: color-mix(in srgb, var(--bg-elev) 88%, transparent);
@@ -623,8 +622,7 @@ img { max-width: 100%; }
 .modal-panel {
   width: 90%;
   max-width: 24rem;
-  margin-left: auto;
-  margin-right: auto;
+  margin-inline: auto;
   max-height: 80vh;
   overflow-y: auto;
 }
@@ -878,16 +876,19 @@ img { max-width: 100%; }
 
 .toast {
   position: fixed;
-  left: 50%;
+  inset-inline: 0;
   bottom: 80px;
-  transform: translateX(-50%);
+  width: fit-content;
+  max-width: calc(100vw - 32px);
+  margin-inline: auto;
   background: var(--ink);
   color: var(--bg);
   padding: 10px 16px;
   border-radius: 999px;
   font-size: 0.85rem;
   z-index: 10000;
-  white-space: nowrap;
+  white-space: normal;
+  text-align: center;
 }
 
 .seg {
@@ -980,8 +981,7 @@ img { max-width: 100%; }
 .info-tip-pop {
   width: 90%;
   max-width: 24rem;
-  margin-left: auto;
-  margin-right: auto;
+  margin-inline: auto;
   max-height: 80vh;
   overflow-y: auto;
   background: var(--bg-elev);
@@ -1269,11 +1269,11 @@ img { max-width: 100%; }
 .inset-0 { inset: 0; }
 
 .bottom-24 { bottom: 6rem; }
-.left-6 { left: 1.5rem; }
+.start-6 { inset-inline-start: 1.5rem; }
 
 .z-\[9999\] { z-index: 9999; }
-.-left-20 { left: -5rem; }
-.-right-20 { right: -5rem; }
+.-left-20 { inset-inline-start: -5rem; }
+.-right-20 { inset-inline-end: -5rem; }
 .-z-10 { z-index: -10; }
 .z-\[100\] { z-index: 100; }
 .blur-\[100px\] { filter: blur(100px); }
@@ -1631,24 +1631,24 @@ img { max-width: 100%; }
 .habit-confetti-piece.p3 { background: #3b82f6; }
 .habit-confetti-piece.p4 { background: #a855f7; }
 .habit-confetti-piece.p5 { background: #ec4899; }
-.habit-confetti-piece:nth-child(1) { left: 6%; animation-delay: 0s; }
-.habit-confetti-piece:nth-child(2) { left: 12%; animation-delay: 0.12s; }
-.habit-confetti-piece:nth-child(3) { left: 18%; animation-delay: 0.24s; }
-.habit-confetti-piece:nth-child(4) { left: 24%; animation-delay: 0.05s; }
-.habit-confetti-piece:nth-child(5) { left: 32%; animation-delay: 0.3s; }
-.habit-confetti-piece:nth-child(6) { left: 40%; animation-delay: 0.18s; }
-.habit-confetti-piece:nth-child(7) { left: 46%; animation-delay: 0.08s; }
-.habit-confetti-piece:nth-child(8) { left: 52%; animation-delay: 0.36s; }
-.habit-confetti-piece:nth-child(9) { left: 58%; animation-delay: 0.22s; }
-.habit-confetti-piece:nth-child(10) { left: 64%; animation-delay: 0.14s; }
-.habit-confetti-piece:nth-child(11) { left: 70%; animation-delay: 0.4s; }
-.habit-confetti-piece:nth-child(12) { left: 76%; animation-delay: 0.28s; }
-.habit-confetti-piece:nth-child(13) { left: 82%; animation-delay: 0.1s; }
-.habit-confetti-piece:nth-child(14) { left: 88%; animation-delay: 0.32s; }
-.habit-confetti-piece:nth-child(15) { left: 94%; animation-delay: 0.16s; }
-.habit-confetti-piece:nth-child(16) { left: 28%; animation-delay: 0.44s; }
-.habit-confetti-piece:nth-child(17) { left: 48%; animation-delay: 0.2s; }
-.habit-confetti-piece:nth-child(18) { left: 78%; animation-delay: 0.06s; }
+.habit-confetti-piece:nth-child(1) { inset-inline-start: 6%; animation-delay: 0s; }
+.habit-confetti-piece:nth-child(2) { inset-inline-start: 12%; animation-delay: 0.12s; }
+.habit-confetti-piece:nth-child(3) { inset-inline-start: 18%; animation-delay: 0.24s; }
+.habit-confetti-piece:nth-child(4) { inset-inline-start: 24%; animation-delay: 0.05s; }
+.habit-confetti-piece:nth-child(5) { inset-inline-start: 32%; animation-delay: 0.3s; }
+.habit-confetti-piece:nth-child(6) { inset-inline-start: 40%; animation-delay: 0.18s; }
+.habit-confetti-piece:nth-child(7) { inset-inline-start: 46%; animation-delay: 0.08s; }
+.habit-confetti-piece:nth-child(8) { inset-inline-start: 52%; animation-delay: 0.36s; }
+.habit-confetti-piece:nth-child(9) { inset-inline-start: 58%; animation-delay: 0.22s; }
+.habit-confetti-piece:nth-child(10) { inset-inline-start: 64%; animation-delay: 0.14s; }
+.habit-confetti-piece:nth-child(11) { inset-inline-start: 70%; animation-delay: 0.4s; }
+.habit-confetti-piece:nth-child(12) { inset-inline-start: 76%; animation-delay: 0.28s; }
+.habit-confetti-piece:nth-child(13) { inset-inline-start: 82%; animation-delay: 0.1s; }
+.habit-confetti-piece:nth-child(14) { inset-inline-start: 88%; animation-delay: 0.32s; }
+.habit-confetti-piece:nth-child(15) { inset-inline-start: 94%; animation-delay: 0.16s; }
+.habit-confetti-piece:nth-child(16) { inset-inline-start: 28%; animation-delay: 0.44s; }
+.habit-confetti-piece:nth-child(17) { inset-inline-start: 48%; animation-delay: 0.2s; }
+.habit-confetti-piece:nth-child(18) { inset-inline-start: 78%; animation-delay: 0.06s; }
 @keyframes habit-fall {
   0% { transform: translateY(0) rotate(0deg); opacity: 1; }
   100% { transform: translateY(110vh) rotate(240deg); opacity: 0.2; }
