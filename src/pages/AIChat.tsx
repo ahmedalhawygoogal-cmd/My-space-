@@ -43,6 +43,11 @@ const sourceTabs: SourceKind[] = ['notes', 'tasks', 'recordings']
 
 const emptySources: SourcesByKind = { notes: [], tasks: [], recordings: [] }
 
+// Verified against the deployed project: `Gemini-chat` returns 404, while
+// `Gemini-chat-` (trailing hyphen) returns 200. Try the live slug first and keep
+// the requested name as a fallback for when the function is renamed.
+const AI_FUNCTION_NAMES = ['Gemini-chat-', 'Gemini-chat'] as const
+
 function formatDuration(milliseconds: number): string {
   const totalSeconds = Math.max(0, Math.floor(milliseconds / 1000))
   const minutes = Math.floor(totalSeconds / 60)
@@ -59,6 +64,70 @@ function formatTaskDate(value: string | null, lang: Lang): string {
 
 function previewText(value: string): string {
   return value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120)
+}
+
+function getInvokeStatus(error: unknown): number | undefined {
+  if (!error || typeof error !== 'object' || !('context' in error)) return undefined
+  const context = (error as { context?: unknown }).context
+  return context instanceof Response ? context.status : undefined
+}
+
+async function describeInvokeError(error: unknown): Promise<string> {
+  if (error && typeof error === 'object') {
+    const details: Record<string, unknown> = {}
+    const candidate = error as { name?: unknown; message?: unknown; context?: unknown; cause?: unknown }
+
+    if (typeof candidate.name === 'string') details.name = candidate.name
+    if (typeof candidate.message === 'string') details.message = candidate.message
+
+    if (candidate.context instanceof Response) {
+      details.status = candidate.context.status
+      details.statusText = candidate.context.statusText
+      details.url = candidate.context.url
+      try {
+        const body = await candidate.context.clone().text()
+        if (body) {
+          try {
+            details.body = JSON.parse(body)
+          } catch {
+            details.body = body
+          }
+        }
+      } catch {
+        // The body may already be consumed; keep the status and URL.
+      }
+    } else if (candidate.context !== undefined) {
+      details.context = candidate.context instanceof Error
+        ? `${candidate.context.name}: ${candidate.context.message}`
+        : String(candidate.context)
+    }
+
+    if (candidate.cause !== undefined) {
+      details.cause = candidate.cause instanceof Error
+        ? `${candidate.cause.name}: ${candidate.cause.message}`
+        : String(candidate.cause)
+    }
+
+    for (const [key, value] of Object.entries(error)) {
+      if (!(key in details)) {
+        details[key] = value instanceof Error ? `${value.name}: ${value.message}` : value
+      }
+    }
+
+    if (Object.keys(details).length > 0) {
+      try {
+        return JSON.stringify(details)
+      } catch {
+        // Fall through to the safe string fallback below.
+      }
+    }
+  }
+
+  try {
+    return JSON.stringify(error, Object.getOwnPropertyNames(error as object)) || String(error) || 'Unknown error'
+  } catch {
+    return String(error) || 'Unknown error'
+  }
 }
 
 async function fetchUserSources(recordings: ReturnType<typeof useStore>['recordings'], lang: Lang): Promise<SourcesByKind> {
@@ -379,22 +448,39 @@ export default function AIChatPage() {
       setDraft('')
       setSelectedSource(null)
 
+      if (!import.meta.env.VITE_SUPABASE_URL) throw new Error('VITE_SUPABASE_URL is missing!')
+      if (!import.meta.env.VITE_SUPABASE_ANON_KEY) throw new Error('VITE_SUPABASE_ANON_KEY is missing!')
       if (!supabase) throw new Error('Supabase is not configured')
 
-      const { data, error } = await supabase.functions.invoke('gemini-chat', {
-        body: {
-          message: userText,
-          context: attachedContext,
-          lang,
-        },
-      })
+      let responseData: { response?: string } | null = null
+      let invokeError: unknown = null
 
-      if (error) {
-        console.error("Supabase Error:", error)
-        throw new Error(error.message)
+      for (const functionName of AI_FUNCTION_NAMES) {
+        const { data, error } = await supabase.functions.invoke(functionName, {
+          body: {
+            message: userText,
+            context: attachedContext,
+            lang,
+          },
+        })
+
+        if (!error) {
+          responseData = data as { response?: string } | null
+          invokeError = null
+          break
+        }
+
+        invokeError = error
+        console.error(`Supabase Error (${functionName}):`, error)
+
+        // Only retry the alternate slug when the live function is missing.
+        // Network/auth/server failures should surface as-is, not be masked by a 404.
+        if (getInvokeStatus(error) !== 404) break
       }
 
-      const assistantText = typeof data?.response === 'string' ? data.response.trim() : ''
+      if (invokeError) throw invokeError
+
+      const assistantText = typeof responseData?.response === 'string' ? responseData.response.trim() : ''
       if (!assistantText) {
         throw new Error('No response received from AI')
       }
@@ -405,8 +491,7 @@ export default function AIChatPage() {
       ])
     } catch (error) {
       console.error("Chat Error:", error)
-      const message = error instanceof Error ? error.message : String(error)
-      setErrorMessage(`${tr('error')}: ${message}`)
+      setErrorMessage(await describeInvokeError(error))
     } finally {
       setIsLoading(false)
     }
