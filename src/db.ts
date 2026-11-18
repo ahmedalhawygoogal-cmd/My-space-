@@ -16,7 +16,7 @@ import type {
 import { DEFAULT_SETTINGS } from './types'
 
 const DB_NAME = 'myspace-db'
-const DB_VERSION = 5
+const DB_VERSION = 6
 
 export const STORES = {
   subjects: 'subjects',
@@ -39,6 +39,20 @@ export const STORES = {
   favoriteQuoteIds: 'favoriteQuoteIds',
 } as const
 
+/**
+ * AI chat history is device-local only, so it lives in its own stores that are
+ * intentionally kept out of `STORES`: backup export/import and the snapshot
+ * import path must never copy, overwrite or wipe a private chat log, and the
+ * AI history code is the only reader/writer.
+ */
+export const AI_STORES = {
+  aiConversations: 'aiConversations',
+  aiMessages: 'aiMessages',
+} as const
+
+/** Lets one conversation's messages be read without scanning every chat. */
+export const AI_MESSAGES_CONVERSATION_INDEX = 'conversationId'
+
 let dbPromise: Promise<IDBDatabase> | null = null
 
 function openDb(): Promise<IDBDatabase> {
@@ -47,13 +61,26 @@ function openDb(): Promise<IDBDatabase> {
     const req = indexedDB.open(DB_NAME, DB_VERSION)
     req.onupgradeneeded = () => {
       const db = req.result
-      for (const name of Object.values(STORES)) {
+      for (const name of [...Object.values(STORES), ...Object.values(AI_STORES)]) {
         if (!db.objectStoreNames.contains(name)) {
           db.createObjectStore(name, { keyPath: 'id' })
         }
       }
+      const messages = req.transaction?.objectStore(AI_STORES.aiMessages)
+      if (messages && !messages.indexNames.contains(AI_MESSAGES_CONVERSATION_INDEX)) {
+        messages.createIndex(AI_MESSAGES_CONVERSATION_INDEX, 'conversationId', { unique: false })
+      }
     }
-    req.onsuccess = () => resolve(req.result)
+    req.onsuccess = () => {
+      const db = req.result
+      // Release the connection when another tab needs a newer version instead
+      // of leaving that upgrade blocked until this tab is closed.
+      db.onversionchange = () => {
+        db.close()
+        dbPromise = null
+      }
+      resolve(db)
+    }
     req.onerror = () => reject(req.error)
   })
   return dbPromise
@@ -97,6 +124,29 @@ export async function putMany<T>(store: string, values: T[]): Promise<void> {
   const tx = db.transaction(store, 'readwrite')
   const os = tx.objectStore(store)
   for (const v of values) os.put(v)
+  await txDone(tx)
+}
+
+export async function getAllByIndex<T>(store: string, index: string, value: IDBValidKey): Promise<T[]> {
+  const db = await openDb()
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(store, 'readonly').objectStore(store).index(index).getAll(value)
+    req.onsuccess = () => resolve((req.result as T[]) ?? [])
+    req.onerror = () => reject(req.error)
+  })
+}
+
+export async function deleteByIndex(store: string, index: string, value: IDBValidKey): Promise<void> {
+  const db = await openDb()
+  const tx = db.transaction(store, 'readwrite')
+  const os = tx.objectStore(store)
+  const cursorReq = os.index(index).openKeyCursor(value)
+  cursorReq.onsuccess = () => {
+    const cursor = cursorReq.result
+    if (!cursor) return
+    os.delete(cursor.primaryKey)
+    cursor.continue()
+  }
   await txDone(tx)
 }
 

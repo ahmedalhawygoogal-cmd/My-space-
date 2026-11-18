@@ -477,6 +477,21 @@ const id = {
   bg2: 'Background 2',
   bg3: 'Background 3',
   splashResetHint: 'If loading continues, the app will reset automatically...',
+  aiNewChat: "New chat",
+  aiHistory: "Chat history",
+  aiHistoryEmpty: "No saved chats yet",
+  aiHistoryEmptyHint: "Start a new chat and it will be saved on this device automatically.",
+  aiHistoryLoadError: "Could not load your chats from this device. Please try again.",
+  aiMessagesLoadError: "Could not load this chat's messages.",
+  aiChatDeleteConfirm: "This chat and all its messages will be deleted. This cannot be undone.",
+  aiDeleteAllChats: "Delete all chats",
+  aiDeleteAllChatsConfirm: "All chats and their messages will be deleted from this device. This cannot be undone.",
+  aiDeleteAllChatsHint: "Only the chat history saved on this device is deleted. Your notes, tasks, recordings, and other data stay untouched.",
+  aiStorageFull: "Device storage is full, so this chat was not saved. Free some space and try again.",
+  aiStorageUnavailable: "Local storage is unavailable, so chats will not be kept after you close the app.",
+  aiOffline: "No internet connection. Your message is saved on this device; send it again when you are back online.",
+  aiLoadEarlier: "Load earlier messages",
+  aiLocalOnlyNote: "Chats are saved on this device only, with no extra load on your account.",
 } satisfies Record<I18nKey, string>
 
 export default id

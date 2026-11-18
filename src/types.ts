@@ -117,6 +117,29 @@ export interface DownloadItem {
   createdAt: number
 }
 
+/** A saved AI chat. Stored on this device only, never in Supabase. */
+export interface AiConversation {
+  id: string
+  userId: string
+  title: string
+  createdAt: number
+  updatedAt: number
+  messageCount: number
+}
+
+/** One message of an AI chat, saved as its own record so long chats stay cheap. */
+export interface AiMessage {
+  id: string
+  conversationId: string
+  userId: string
+  role: 'user' | 'assistant'
+  content: string
+  sourceLabel?: string
+  createdAt: number
+  /** Position inside its conversation, so paging and reload keep the order. */
+  seq: number
+}
+
 type QuoteField = string | Labeled
 
 export function quoteField(value: QuoteField | undefined, lang: string): string {
