@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeftRight, Ear, Layers, LayoutGrid, Pencil, PenLine, Play, Plus, RefreshCw, Trash2, Volume2 } from 'lucide-react'
 import { useStore } from '../store'
+import { SpaceSwitcher } from '../components/Spaces'
 import { CloseBtn, Confirm, Empty, FormActions, Sheet, StandardFAB, Toast, useT } from '../ui'
 import type { ReactNode } from 'react'
 import type { AppSettings, Card, Deck, DeckType, Lang } from '../types'
@@ -287,7 +288,7 @@ function GamesSheet({ deck, open, onClose }: { deck: Deck | null; open: boolean;
 export default function FlashcardsPage() {
   const tr = useT()
   const nav = useNavigate()
-  const { decks, cards, addDeck, settings } = useStore()
+  const { decks, cards, addDeck, settings, activeSpaceId } = useStore()
   const [open, setOpen] = useState(false)
   const [games, setGames] = useState<Deck | null>(null)
   const [early, setEarly] = useState<Deck | null>(null)
@@ -304,11 +305,17 @@ export default function FlashcardsPage() {
     setGames(d)
   }
 
-  const shown = decks.filter((d) => !q.trim() || d.name.toLowerCase().includes(q.trim().toLowerCase()))
+  const shown = decks.filter((d) => {
+    if (activeSpaceId && d.space_id !== activeSpaceId) return false
+    return !q.trim() || d.name.toLowerCase().includes(q.trim().toLowerCase())
+  })
 
   return (
     <div className="stack">
-      <h1 className="page-title">{tr('flashcards')}</h1>
+      <div className="spread">
+        <h1 className="page-title">{tr('flashcards')}</h1>
+        <SpaceSwitcher />
+      </div>
       <input className="field" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('searchPlaceholder')} />
       {shown.length === 0 ? (
         <Empty

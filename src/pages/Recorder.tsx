@@ -19,6 +19,7 @@ import {
 } from '../record'
 
 import { Waveform } from '../components/Waveform'
+import { SpaceSwitcher } from '../components/Spaces'
 import { formatDateTime, formatDuration, pickMime } from '../utils'
 
 const WAVE_BARS = 48
@@ -194,7 +195,7 @@ const RecListCard = memo(RecListCardBase)
 export default function RecorderPage() {
   const tr = useT()
   const nav = useNavigate()
-  const { recordings, folders, addFolder } = useStore()
+  const { recordings, folders, addFolder, activeSpaceId } = useStore()
   const [q, setQ] = useState('')
   const [sort, setSort] = useState<'date' | 'duration' | 'name'>('date')
   const [folderId, setFolderId] = useState<string | 'all'>('all')
@@ -202,7 +203,7 @@ export default function RecorderPage() {
   const [folderName, setFolderName] = useState('')
 
   const list = useMemo(() => {
-    let rows = recordings
+    let rows = activeSpaceId ? recordings.filter((r) => r.space_id === activeSpaceId) : recordings
     if (folderId !== 'all') rows = rows.filter((r) => r.folderId === folderId)
     if (q.trim()) {
       const n = q.trim().toLowerCase()
@@ -218,11 +219,14 @@ export default function RecorderPage() {
     if (sort === 'duration') rows.sort((a, b) => b.durationMs - a.durationMs)
     if (sort === 'name') rows.sort((a, b) => a.name.localeCompare(b.name))
     return rows
-  }, [recordings, folderId, q, sort])
+  }, [recordings, folderId, q, sort, activeSpaceId])
 
   return (
     <div className="stack rec-list">
-      <h1 className="page-title">{tr('recorder')}</h1>
+      <div className="spread">
+        <h1 className="page-title">{tr('recorder')}</h1>
+        <SpaceSwitcher />
+      </div>
       <input className="field" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('search')} />
       <div className="chip-row">
         <button className={`chip ${folderId === 'all' ? 'active' : ''}`} type="button" onClick={() => setFolderId('all')}>

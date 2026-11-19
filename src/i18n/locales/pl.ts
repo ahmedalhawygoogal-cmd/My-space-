@@ -492,6 +492,21 @@ const pl = {
   aiOffline: "No internet connection. Your message is saved on this device; send it again when you are back online.",
   aiLoadEarlier: "Load earlier messages",
   aiLocalOnlyNote: "Chats are saved on this device only, with no extra load on your account.",
+  spaces: "Spaces",
+  allSpaces: "All Spaces",
+  switchSpace: "Switch space",
+  manageSpaces: "Manage spaces",
+  newSpace: "New space",
+  editSpace: "Edit space",
+  spaceName: "Space name",
+  spaceDescription: "Description (optional)",
+  noSpaces: "No spaces yet",
+  noSpacesHint: "Create a space to keep work, study and personal life apart.",
+  deleteSpace: "Delete space",
+  deleteSpaceBody: "Items in this space move to All Spaces. Nothing is deleted.",
+  setDefaultSpace: "Set as default space",
+  defaultSpace: "Default space",
+  itemsCount: "{n} items",
 } satisfies Record<I18nKey, string>
 
 export default pl

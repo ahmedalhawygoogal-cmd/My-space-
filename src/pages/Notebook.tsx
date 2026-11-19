@@ -18,6 +18,7 @@ import {
   Volume2,
 } from 'lucide-react'
 import { useStore } from '../store'
+import { SpaceSwitcher } from '../components/Spaces'
 import { AudioPlayer } from '../AudioPlayer'
 import { Confirm, Empty, FormActions, Sheet, StandardFAB, Toast, useT } from '../ui'
 import { contrastInk, fileToDataUrl, firstNoteImage, formatDate } from '../utils'
@@ -36,13 +37,13 @@ function noteInk(bg?: string) {
 export default function NotebookPage() {
   const tr = useT()
   const nav = useNavigate()
-  const { notes, recordings, updateNote, lang, getAudioBlob } = useStore()
+  const { notes, recordings, updateNote, lang, getAudioBlob, activeSpaceId } = useStore()
   const [q, setQ] = useState('')
   const playing = useRef<HTMLAudioElement | null>(null)
   const [active, setActive] = useState<string | null>(null)
 
   const list = useMemo(() => {
-    let rows = notes
+    let rows = activeSpaceId ? notes.filter((n) => n.space_id === activeSpaceId) : notes
     if (q.trim()) {
       const needle = q.toLowerCase()
       rows = rows.filter(
@@ -56,7 +57,7 @@ export default function NotebookPage() {
       if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
       return b.updatedAt - a.updatedAt
     })
-  }, [notes, q])
+  }, [notes, q, activeSpaceId])
 
   async function playNote(n: Note) {
     const id = audioOf(n)
@@ -87,7 +88,10 @@ export default function NotebookPage() {
 
   return (
     <div className="stack">
-      <h1 className="page-title">{tr('notebook')}</h1>
+      <div className="spread">
+        <h1 className="page-title">{tr('notebook')}</h1>
+        <SpaceSwitcher />
+      </div>
       <input className="field" value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('search')} />
       {list.length === 0 ? (
         <Empty icon={<BookOpen size={36} />} title={tr('noNotes')} hint={tr('noNotesHint')} />

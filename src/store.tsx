@@ -114,6 +114,9 @@ interface StoreApi extends StoreState {
   setActiveSpace: (id: string | null) => void
   ensureDefaultSpace: () => Promise<Space | null>
   withSpace: <T extends object>(payload: T) => T & { space_id: string | null }
+  addSpace: (name: string, extra?: Partial<Space>) => Promise<Space>
+  updateSpace: (id: string, p: Partial<Space>) => Promise<void>
+  deleteSpace: (id: string) => Promise<void>
 }
 
 const StoreContext = createContext<StoreApi | null>(null)
@@ -350,6 +353,8 @@ function schedule(card: Card, rating: CardRating): Card {
   return applySm2(card, rating !== 'again')
 }
 
+export const SPACE_COLORS = ['#8B7CF6', '#22C55E', '#F59E0B', '#3B82F6', '#EC4899', '#14B8A6']
+
 function activeSpaceKey(userId?: string): string {
   // Scoped per account so two users on one device never share a lens.
   return userId ? `myspace.activeSpace:${userId}` : 'myspace.activeSpace'
@@ -454,6 +459,54 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       space_id: state.activeSpaceId,
     }),
     [state.activeSpaceId],
+  )
+
+  const addSpace = useCallback(
+    async (name: string, extra?: Partial<Space>) => {
+      const iso = new Date().toISOString()
+      const item: Space = {
+        id: crypto.randomUUID(),
+        user_id: userId ?? '',
+        name: name.trim() || 'Space',
+        description: extra?.description ?? null,
+        icon: extra?.icon ?? 'sparkles',
+        color: extra?.color ?? SPACE_COLORS[state.spaces.length % SPACE_COLORS.length],
+        kind: extra?.kind ?? 'custom',
+        position: state.spaces.length,
+        is_default: false,
+        archived_at: null,
+        created_at: iso,
+        updated_at: iso,
+      }
+      await db.putOne(SPACE_STORES.spaces, item)
+      setState((s) => ({ ...s, spaces: [...s.spaces, item] }))
+      return item
+    },
+    [state.spaces.length, userId],
+  )
+
+  const updateSpace = useCallback(
+    async (id: string, p: Partial<Space>) => {
+      const cur = state.spaces.find((x) => x.id === id)
+      if (!cur) return
+      const next: Space = { ...cur, ...p, updated_at: new Date().toISOString() }
+      // Only one default space at a time.
+      const cleared =
+        p.is_default && !cur.is_default ? state.spaces.filter((x) => x.id !== id && x.is_default) : []
+      await Promise.all([
+        db.putOne(SPACE_STORES.spaces, next),
+        ...cleared.map((x) => db.putOne<Space>(SPACE_STORES.spaces, { ...x, is_default: false, updated_at: next.updated_at })),
+      ])
+      setState((s) => ({
+        ...s,
+        spaces: s.spaces.map((sp) => {
+          if (sp.id === id) return next
+          if (cleared.some((c) => c.id === sp.id)) return { ...sp, is_default: false, updated_at: next.updated_at }
+          return sp
+        }),
+      }))
+    },
+    [state.spaces],
   )
 
   const reload = useCallback(async () => {
@@ -1329,6 +1382,45 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     await reload()
   }, [reload])
 
+  /** Deletes a space and unfiles its entities, so nothing disappears from "All Spaces". */
+  const deleteSpace = useCallback(
+    async (id: string) => {
+      await db.deleteById(SPACE_STORES.spaces, id)
+      const habitRows = state.habits.filter((h) => h.space_id === id)
+      await Promise.all(
+        habitRows.map((h) => db.putOne<Habit>(STORES.habits, { ...h, space_id: null, updatedAt: now() })),
+      )
+      setState((s) => ({
+        ...s,
+        spaces: s.spaces.filter((sp) => sp.id !== id),
+        habits: s.habits.map((h) => (h.space_id === id ? { ...h, space_id: null } : h)),
+      }))
+      if (state.activeSpaceId === id) setActiveSpace(null)
+      const unfiled = await Promise.allSettled([
+        ...state.tasks.filter((x) => x.space_id === id).map((x) => updateTask(x.id, { space_id: null })),
+        ...state.notes.filter((x) => x.space_id === id).map((x) => updateNote(x.id, { space_id: null })),
+        ...state.decks.filter((x) => x.space_id === id).map((x) => updateDeck(x.id, { space_id: null })),
+        ...state.recordings.filter((x) => x.space_id === id).map((x) => updateRecording(x.id, { space_id: null })),
+      ])
+      for (const r of unfiled) {
+        if (r.status === 'rejected') console.error('[Spaces] Failed to unfile an entity', r.reason)
+      }
+    },
+    [
+      state.activeSpaceId,
+      state.tasks,
+      state.notes,
+      state.decks,
+      state.recordings,
+      state.habits,
+      setActiveSpace,
+      updateTask,
+      updateNote,
+      updateDeck,
+      updateRecording,
+    ],
+  )
+
   const markBackup = useCallback(async () => {
     await setSettings({ lastBackupAt: now() })
   }, [setSettings])
@@ -1397,6 +1489,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setActiveSpace,
       ensureDefaultSpace,
       withSpace,
+      addSpace,
+      updateSpace,
+      deleteSpace,
     }),
     [
       state,
@@ -1447,6 +1542,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setActiveSpace,
       ensureDefaultSpace,
       withSpace,
+      addSpace,
+      updateSpace,
+      deleteSpace,
     ],
   )
 

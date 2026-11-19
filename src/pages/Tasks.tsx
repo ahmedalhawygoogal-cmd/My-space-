@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { CheckSquare, ChevronDown, ChevronUp, Eye, EyeOff, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useStore } from '../store'
+import { SpaceSwitcher } from '../components/Spaces'
 import { Confirm, DateField, Empty, FormActions, Segment, Sheet, StandardFAB, useT } from '../ui'
 import { endOfDay, formatDate, startOfDay, uid } from '../utils'
 import type { Priority, Task } from '../types'
@@ -60,7 +61,7 @@ function taskDate(tk: Task) {
 
 export default function TasksPage() {
   const tr = useT()
-  const { tasks } = useStore()
+  const { tasks, activeSpaceId } = useStore()
   const [view, setView] = useState<View>('today')
   const [pick, setPick] = useState(false)
   const [kind, setKind] = useState<Kind | null>(null)
@@ -69,7 +70,10 @@ export default function TasksPage() {
   const [openKids, setOpenKids] = useState<Record<string, boolean>>({})
   const todayS = startOfDay()
   const todayE = endOfDay()
-  const roots = rootsOf(tasks)
+  const roots = useMemo(() => {
+    const all = rootsOf(tasks)
+    return activeSpaceId ? all.filter((t) => t.space_id === activeSpaceId) : all
+  }, [tasks, activeSpaceId])
 
   const filtered = useMemo(() => {
     const inView = (t: Task) => {
@@ -92,7 +96,10 @@ export default function TasksPage() {
 
   return (
     <div className="stack">
-      <h1 className="page-title">{tr('tasks')}</h1>
+      <div className="spread">
+        <h1 className="page-title">{tr('tasks')}</h1>
+        <SpaceSwitcher />
+      </div>
       <Segment
         value={view}
         onChange={(v) => setView(v as View)}

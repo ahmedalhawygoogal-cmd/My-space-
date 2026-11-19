@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Activity, BookOpen, Bot, CheckSquare, Home, Layers, Mic, Search, Settings, Sparkles, type LucideIcon } from 'lucide-react'
 import { CloseBtn, Sheet, useT } from './ui'
+import { SpaceSwitcher } from './components/Spaces'
 import { stopSpeak } from './utils'
 
 function watermarkIcon(path: string): LucideIcon | null {
@@ -11,6 +12,7 @@ function watermarkIcon(path: string): LucideIcon | null {
   if (path.startsWith('/tasks')) return CheckSquare
   if (path.startsWith('/notes')) return BookOpen
   if (path.startsWith('/habits')) return Activity
+  if (path.startsWith('/spaces')) return Layers
   if (path.startsWith('/motivate')) return Sparkles
   return null
 }
@@ -39,6 +41,7 @@ export function Layout() {
             <span>{tr('appName')}</span>
           </div>
           <div className="row">
+            <SpaceSwitcher />
             <button
               className="icon-btn discover-pulse"
               type="button"
@@ -81,6 +84,7 @@ export function Layout() {
           />
           <DiscoverTile icon={<Bot size={20} />} title={tr('aiAssistant')} onClick={() => go('/ai')} />
           <DiscoverTile icon={<Activity size={20} />} title={tr('habits')} onClick={() => go('/habits')} />
+          <DiscoverTile icon={<Layers size={20} />} title={tr('spaces')} onClick={() => go('/spaces')} />
         </div>
       </Sheet>
       {Mark && (

@@ -490,6 +490,21 @@ const ar = {
   aiOffline: "لا يوجد اتصال بالإنترنت. رسالتك محفوظة على هذا الجهاز، أعد إرسالها بعد عودة الاتصال.",
   aiLoadEarlier: "تحميل رسائل أسبق",
   aiLocalOnlyNote: "تُحفظ المحادثات على هذا الجهاز فقط، دون أي ضغط إضافي على حسابك.",
+  spaces: 'المساحات',
+  allSpaces: 'كل المساحات',
+  switchSpace: 'تبديل المساحة',
+  manageSpaces: 'إدارة المساحات',
+  newSpace: 'مساحة جديدة',
+  editSpace: 'تعديل المساحة',
+  spaceName: 'اسم المساحة',
+  spaceDescription: 'الوصف (اختياري)',
+  noSpaces: 'لا توجد مساحات',
+  noSpacesHint: 'أنشئ مساحة لفصل العمل عن الدراسة عن حياتك الشخصية.',
+  deleteSpace: 'حذف المساحة',
+  deleteSpaceBody: 'ستُنقل عناصر هذه المساحة إلى «كل المساحات» ولن تُحذف.',
+  setDefaultSpace: 'تعيين كمساحة افتراضية',
+  defaultSpace: 'المساحة الافتراضية',
+  itemsCount: '{n} عنصر',
 }
 
 export default ar

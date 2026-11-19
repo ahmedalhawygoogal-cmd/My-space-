@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Activity, Flame, Plus } from 'lucide-react'
 import { useStore } from '../store'
 import { GlobalOverlay } from '../components/ui/GlobalOverlay'
+import { SpaceSwitcher } from '../components/Spaces'
 import { CloseBtn, Confirm, Empty, FormActions, Segment, Sheet, StandardFAB, Toast, useT } from '../ui'
 import { quoteField, type Habit, type HabitLog, type QuoteCharacter } from '../types'
 import { DEFAULT_QUOTES } from '../data/defaultQuotes'
@@ -52,8 +53,9 @@ function pickQuote(): QuoteCharacter {
 export default function HabitsPage() {
   const tr = useT()
   const nav = useNavigate()
-  const { lang } = useStore()
+  const { lang, activeSpaceId } = useStore()
   const [habits, setHabits] = useState<Habit[]>([])
+  const visible = activeSpaceId ? habits.filter((h) => h.space_id === activeSpaceId) : habits
   const [logs, setLogs] = useState<HabitLog[]>([])
   const [open, setOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
@@ -118,8 +120,11 @@ export default function HabitsPage() {
 
   return (
     <div className="stack">
-      <h1 className="page-title">{tr('habits')}</h1>
-      {habits.length === 0 ? (
+      <div className="spread">
+        <h1 className="page-title">{tr('habits')}</h1>
+        <SpaceSwitcher />
+      </div>
+      {visible.length === 0 ? (
         <Empty icon={<Activity size={36} />} title={tr('noHabits')} hint={tr('noHabitsHint')} />
       ) : (
         <div className="habit-week">
@@ -134,7 +139,7 @@ export default function HabitsPage() {
               ))}
             </div>
           </div>
-          {habits.map((h) => {
+          {visible.map((h) => {
             const Icon = habitIcon(h.icon)
             const streak = currentStreak(h, logs)
             return (
