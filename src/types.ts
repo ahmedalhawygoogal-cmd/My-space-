@@ -94,6 +94,7 @@ export interface Recording {
   sizeBytes: number
   folderId?: string
   subjectId?: string
+  space_id?: string | null
   description: string
   tags: string[]
   noteIds: string[]
@@ -140,6 +141,98 @@ export interface AiMessage {
   seq: number
 }
 
+export type SpaceKind = 'personal' | 'work' | 'study' | 'custom'
+
+/** A Lens: a colored container that scopes tasks, notes, recordings, decks and habits. */
+export interface Space {
+  id: string
+  user_id: string
+  name: string
+  description: string | null
+  icon: string
+  color: string
+  kind: SpaceKind
+  position: number
+  is_default: boolean
+  archived_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type InboxItemType = 'task' | 'note' | 'idea' | 'event' | 'voicemail' | 'ai' | 'other'
+export type InboxItemSource = 'quick_capture' | 'voice' | 'share' | 'email' | 'ai' | 'import'
+export type InboxItemStatus = 'unprocessed' | 'triaged' | 'converted' | 'archived'
+export type InboxEntityType = 'task' | 'note' | 'event' | 'deck' | 'recording' | 'habit'
+
+/** One capture waiting in the Universal Inbox, before it becomes a real entity. */
+export interface InboxItem {
+  id: string
+  user_id: string
+  space_id: string | null
+  type: InboxItemType
+  title: string
+  body: string | null
+  source: InboxItemSource
+  status: InboxItemStatus
+  converted_entity_id: string | null
+  converted_entity_type: InboxEntityType | null
+  metadata: Record<string, unknown>
+  created_at: string
+  updated_at: string
+  processed_at: string | null
+}
+
+export type WorkflowTriggerKind = 'manual' | 'inbox_triaged' | 'note_created' | 'schedule_daily'
+
+export interface WorkflowTrigger {
+  kind: WorkflowTriggerKind
+  params?: Record<string, unknown>
+}
+
+export type WorkflowStepKind =
+  | 'create_task'
+  | 'create_note'
+  | 'move_to_space'
+  | 'add_to_inbox'
+  | 'notify'
+
+export interface WorkflowStep {
+  kind: WorkflowStepKind
+  params?: Record<string, unknown>
+}
+
+/** An automation definition. Steps run in order, each one against the local store. */
+export interface Workflow {
+  id: string
+  user_id: string
+  space_id: string | null
+  name: string
+  description: string | null
+  trigger: WorkflowTrigger
+  steps: WorkflowStep[]
+  enabled: boolean
+  run_count: number
+  last_run_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type WorkflowRunStatus = 'ok' | 'failed' | 'skipped'
+
+/** Append-only log of one workflow execution. */
+export interface WorkflowRun {
+  id: string
+  workflow_id: string
+  user_id: string
+  status: WorkflowRunStatus
+  trigger_payload: Record<string, unknown>
+  step_results: unknown[]
+  error: string | null
+  started_at: string
+  finished_at: string | null
+  created_at: string
+}
+
 type QuoteField = string | Labeled
 
 export function quoteField(value: QuoteField | undefined, lang: string): string {
@@ -167,6 +260,7 @@ export interface Deck {
   cardCount: number
   description: string
   subjectId?: string
+  space_id?: string | null
   tags: string[]
   noteId?: string
   nativeLang: string
@@ -220,6 +314,7 @@ export interface Task {
   dueDate?: number
   category: string
   subjectId?: string
+  space_id?: string | null
   noteId?: string
   recordingId?: string
   deckId?: string
@@ -263,6 +358,7 @@ export interface Note {
   tags: string[]
   pinned: boolean
   subjectId?: string
+  space_id?: string | null
   recordingIds: string[]
   taskIds: string[]
   attachments: NoteAttachment[]
@@ -290,6 +386,7 @@ export interface Habit {
   reminder: string
   why: string
   icon: string
+  space_id?: string | null
   createdAt: number
   updatedAt: number
 }

@@ -16,7 +16,7 @@ import type {
 import { DEFAULT_SETTINGS } from './types'
 
 const DB_NAME = 'myspace-db'
-const DB_VERSION = 6
+const DB_VERSION = 7
 
 export const STORES = {
   subjects: 'subjects',
@@ -53,6 +53,20 @@ export const AI_STORES = {
 /** Lets one conversation's messages be read without scanning every chat. */
 export const AI_MESSAGES_CONVERSATION_INDEX = 'conversationId'
 
+/**
+ * Workflow Foundation stores: Spaces, the Universal Inbox and Workflows.
+ * Kept out of `STORES` on purpose: `importSnapshot` clears every store listed
+ * in `STORES` before restoring, so joining that list before the snapshot
+ * format carries these entities would wipe a user's spaces, inbox and
+ * workflows on a backup restore.
+ */
+export const SPACE_STORES = {
+  spaces: 'spaces',
+  inbox: 'inbox_items',
+  workflows: 'workflows',
+  workflowRuns: 'workflow_runs',
+} as const
+
 let dbPromise: Promise<IDBDatabase> | null = null
 
 function openDb(): Promise<IDBDatabase> {
@@ -61,7 +75,11 @@ function openDb(): Promise<IDBDatabase> {
     const req = indexedDB.open(DB_NAME, DB_VERSION)
     req.onupgradeneeded = () => {
       const db = req.result
-      for (const name of [...Object.values(STORES), ...Object.values(AI_STORES)]) {
+      for (const name of [
+        ...Object.values(STORES),
+        ...Object.values(AI_STORES),
+        ...Object.values(SPACE_STORES),
+      ]) {
         if (!db.objectStoreNames.contains(name)) {
           db.createObjectStore(name, { keyPath: 'id' })
         }
