@@ -26,6 +26,7 @@ type RemoteTask = {
   start_date?: string | null
   due_date?: string | null
   subject_id?: string | null
+  space_id?: string | null
   note_id?: string | null
   recording_id?: string | null
   deck_id?: string | null
@@ -76,6 +77,7 @@ function remoteToLocal(row: RemoteTask, prev?: Task): Task {
     dueDate: parseDate(row.due_date ?? null) ?? prev?.dueDate ?? date,
     category: row.category ?? prev?.category ?? '',
     subjectId: row.subject_id ?? prev?.subjectId,
+    space_id: row.space_id ?? prev?.space_id,
     noteId: row.note_id ?? prev?.noteId,
     recordingId: row.recording_id ?? prev?.recordingId,
     deckId: row.deck_id ?? prev?.deckId,
@@ -107,6 +109,7 @@ function localToRemote(task: Task, userId: string): RemoteTask {
     start_date: isoOrNull(task.startDate),
     due_date: isoOrNull(task.dueDate),
     subject_id: task.subjectId ?? null,
+    space_id: task.space_id ?? null,
     note_id: task.noteId ?? null,
     recording_id: task.recordingId ?? null,
     deck_id: task.deckId ?? null,

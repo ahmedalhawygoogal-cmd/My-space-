@@ -19,6 +19,7 @@ type RemoteNote = {
   folder_id?: string | null
   audio_id?: string | null
   subject_id?: string | null
+  space_id?: string | null
   tags?: string[] | null
   recording_ids?: string[] | null
   task_ids?: string[] | null
@@ -42,6 +43,7 @@ function remoteToLocal(row: RemoteNote, prev?: Note): Note {
     tags: Array.isArray(row.tags) ? row.tags : prev?.tags ?? [],
     pinned: row.is_pinned ?? prev?.pinned ?? false,
     subjectId: row.subject_id ?? prev?.subjectId,
+    space_id: row.space_id ?? prev?.space_id,
     recordingIds: Array.isArray(row.recording_ids) ? row.recording_ids : prev?.recordingIds ?? [],
     taskIds: Array.isArray(row.task_ids) ? row.task_ids : prev?.taskIds ?? [],
     attachments: Array.isArray(row.attachments) ? row.attachments : prev?.attachments ?? [],
@@ -64,6 +66,7 @@ function localToRemote(note: Note, userId: string): RemoteNote {
     folder_id: note.folderId ?? null,
     audio_id: note.audioId ?? null,
     subject_id: note.subjectId ?? null,
+    space_id: note.space_id ?? null,
     tags: note.tags ?? [],
     recording_ids: note.recordingIds ?? [],
     task_ids: note.taskIds ?? [],

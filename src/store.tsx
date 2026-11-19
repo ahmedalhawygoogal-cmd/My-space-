@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import * as db from './db'
-import { STORES } from './db'
+import { SPACE_STORES, STORES } from './db'
 import type {
   AppSettings,
   Card,
@@ -25,6 +25,7 @@ import type {
   RecDistance,
   Recording,
   SearchHit,
+  Space,
   Subject,
   Task,
   Theme,
@@ -58,6 +59,9 @@ interface StoreState {
   habitLogs: HabitLog[]
   links: Link[]
   downloads: DownloadItem[]
+  spaces: Space[]
+  /** null = "All Spaces", which is exactly how the app behaves today. */
+  activeSpaceId: string | null
 }
 
 interface StoreApi extends StoreState {
@@ -107,6 +111,9 @@ interface StoreApi extends StoreState {
   reload: () => Promise<void>
   importData: (snap: db.Snapshot) => Promise<void>
   markBackup: () => Promise<void>
+  setActiveSpace: (id: string | null) => void
+  ensureDefaultSpace: () => Promise<Space | null>
+  withSpace: <T extends object>(payload: T) => T & { space_id: string | null }
 }
 
 const StoreContext = createContext<StoreApi | null>(null)
@@ -343,6 +350,67 @@ function schedule(card: Card, rating: CardRating): Card {
   return applySm2(card, rating !== 'again')
 }
 
+function activeSpaceKey(userId?: string): string {
+  // Scoped per account so two users on one device never share a lens.
+  return userId ? `myspace.activeSpace:${userId}` : 'myspace.activeSpace'
+}
+
+/** Raw stored value: null = never chosen, '' = the user explicitly picked "All Spaces". */
+function readActiveSpace(userId?: string): string | null {
+  try {
+    return localStorage.getItem(activeSpaceKey(userId))
+  } catch {
+    return null
+  }
+}
+
+function writeActiveSpace(userId: string | undefined, id: string | null): void {
+  try {
+    localStorage.setItem(activeSpaceKey(userId), id ?? '')
+  } catch {
+    // Storage can be refused (private mode); the in-memory selection still works.
+  }
+}
+
+function makeDefaultSpace(userId?: string): Space {
+  const t = new Date().toISOString()
+  return {
+    id: crypto.randomUUID(),
+    user_id: userId ?? '',
+    name: 'Personal',
+    description: null,
+    icon: 'sparkles',
+    color: '#8B7CF6',
+    kind: 'personal',
+    position: 0,
+    is_default: true,
+    archived_at: null,
+    created_at: t,
+    updated_at: t,
+  }
+}
+
+/**
+ * Reads spaces from IndexedDB, creating the default one on a fresh device.
+ * Resolves the active lens from localStorage, falling back to the default
+ * space and honouring an explicit "All Spaces" choice ('').
+ */
+async function loadSpaces(userId?: string): Promise<{ spaces: Space[]; activeSpaceId: string | null }> {
+  let list = await db.getAll<Space>(SPACE_STORES.spaces)
+  if (!list.length) {
+    const created = makeDefaultSpace(userId)
+    await db.putOne(SPACE_STORES.spaces, created)
+    list = [created]
+  }
+  const live = list.filter((s) => !s.archived_at)
+  const stored = readActiveSpace(userId)
+  if (stored === '') return { spaces: list, activeSpaceId: null }
+  if (stored && live.some((s) => s.id === stored)) return { spaces: list, activeSpaceId: stored }
+  const fallback = live.find((s) => s.is_default)?.id ?? live[0]?.id ?? null
+  if (stored === null && fallback) writeActiveSpace(userId, fallback)
+  return { spaces: list, activeSpaceId: fallback }
+}
+
 export function StoreProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth()
   const userId = user?.id
@@ -361,7 +429,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     habitLogs: [],
     links: [],
     downloads: [],
+    spaces: [],
+    activeSpaceId: null,
   })
+
+  const setActiveSpace = useCallback(
+    (id: string | null) => {
+      setState((s) => ({ ...s, activeSpaceId: id }))
+      writeActiveSpace(userId, id)
+    },
+    [userId],
+  )
+
+  const ensureDefaultSpace = useCallback(async () => {
+    const next = await loadSpaces(userId)
+    setState((s) => ({ ...s, spaces: next.spaces, activeSpaceId: next.activeSpaceId }))
+    return next.spaces.find((s) => s.id === next.activeSpaceId) ?? next.spaces[0] ?? null
+  }, [userId])
+
+  /** Stamps the currently selected lens onto a new entity. null = All Spaces. */
+  const withSpace = useCallback(
+    <T extends object>(payload: T): T & { space_id: string | null } => ({
+      ...payload,
+      space_id: state.activeSpaceId,
+    }),
+    [state.activeSpaceId],
+  )
 
   const reload = useCallback(async () => {
     await seedIfEmpty()
@@ -377,7 +470,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       ])
       await syncCardsFromCloud()
     }
-    const [loadedSettings, subjects, folders, recordings, decks, cards, tasks, notebooks, notes, habits, habitLogs, links, downloads] =
+    const [loadedSettings, subjects, folders, recordings, decks, cards, tasks, notebooks, notes, habits, habitLogs, links, downloads, spaceState] =
       await Promise.all([
         db.loadSettings(),
         db.getAll<Subject>(STORES.subjects),
@@ -392,6 +485,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         db.getAll<HabitLog>(STORES.habitLogs),
         db.getAll<Link>(STORES.links),
         db.getAll<DownloadItem>(STORES.downloads),
+        loadSpaces(userId),
       ])
     const settings = userId ? await syncProfileFromCloud(loadedSettings) : loadedSettings
     const recordingsN = recordings.map(normalizeRecording)
@@ -485,6 +579,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       habitLogs,
       links,
       downloads,
+      spaces: spaceState.spaces,
+      activeSpaceId: spaceState.activeSpaceId,
     })
     applyLang(settingsN.language)
     applyTheme(settingsN.theme)
@@ -602,7 +698,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       blob: Blob,
     ) => {
       const t = now()
-      const item: Recording = {
+      const item: Recording = withSpace({
         id: crypto.randomUUID(),
         name: rec.name,
         durationMs: rec.durationMs,
@@ -617,14 +713,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         cloudUrl: rec.cloudUrl,
         createdAt: t,
         updatedAt: t,
-      }
+      })
       await db.putOne(STORES.recordings, item)
       await db.putOne(STORES.audioBlobs, { id: item.id, blob })
       setState((s) => ({ ...s, recordings: [item, ...s.recordings] }))
       void pushRecordingToCloud(item, blob)
       return item
     },
-    [],
+    [withSpace],
   )
 
   const updateRecording = useCallback(async (id: string, p: Partial<Recording>) => {
@@ -749,7 +845,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const addDeck = useCallback(async (name: string, extra?: Partial<Deck>) => {
     const t = now()
-    const item: Deck = {
+          const item: Deck = withSpace({
       id: crypto.randomUUID(),
       name,
       type: normalizeDeckType(extra?.type),
@@ -763,12 +859,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       swapped: !!extra?.swapped,
       createdAt: t,
       updatedAt: t,
-    }
+    })
     await db.putOne(STORES.decks, item)
     setState((s) => ({ ...s, decks: [...s.decks, item] }))
     void upsertRemoteDeck(item)
     return item
-  }, [])
+  }, [withSpace])
 
   const updateDeck = useCallback(async (id: string, p: Partial<Deck>) => {
     const cur = state.decks.find((x) => x.id === id)
@@ -952,7 +1048,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const addTask = useCallback(async (data: Partial<Task> & { title: string }) => {
     const t = now()
-    const item: Task = {
+          const item: Task = withSpace({
       id: crypto.randomUUID(),
       title: data.title,
       description: data.description ?? '',
@@ -972,12 +1068,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       subtasks: data.subtasks ?? [],
       createdAt: t,
       updatedAt: t,
-    }
+    })
     await db.putOne(STORES.tasks, item)
     setState((s) => ({ ...s, tasks: [item, ...s.tasks] }))
     void upsertRemoteTask(item)
     return item
-  }, [])
+  }, [withSpace])
 
   const syncParentCompletion = useCallback(
     async (parentId: string, list: Task[]) => {
@@ -1097,7 +1193,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const addNote = useCallback(async (notebookId: string, extra?: Partial<Note>) => {
     const t = now()
-    const item: Note = {
+          const item: Note = withSpace({
       id: crypto.randomUUID(),
       notebookId,
       folderId: extra?.folderId,
@@ -1114,12 +1210,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       attachments: extra?.attachments ?? [],
       createdAt: t,
       updatedAt: t,
-    }
+    })
     await db.putOne(STORES.notes, item)
     setState((s) => ({ ...s, notes: [item, ...s.notes] }))
     void upsertRemoteNote(item)
     return item
-  }, [])
+  }, [withSpace])
 
   const updateNote = useCallback(async (id: string, p: Partial<Note>) => {
     const cur = state.notes.find((x) => x.id === id)
@@ -1298,6 +1394,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       reload,
       importData,
       markBackup,
+      setActiveSpace,
+      ensureDefaultSpace,
+      withSpace,
     }),
     [
       state,
@@ -1345,6 +1444,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       reload,
       importData,
       markBackup,
+      setActiveSpace,
+      ensureDefaultSpace,
+      withSpace,
     ],
   )
 

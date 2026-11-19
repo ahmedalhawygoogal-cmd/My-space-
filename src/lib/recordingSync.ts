@@ -24,6 +24,7 @@ type RemoteRecording = {
   size_bytes?: number | null
   folder_id?: string | null
   subject_id?: string | null
+  space_id?: string | null
   description?: string | null
   tags?: string[] | null
   note_ids?: string[] | null
@@ -64,6 +65,7 @@ function remoteToLocal(row: RemoteRecording, prev?: Recording): Recording {
     sizeBytes: row.size_bytes ?? prev?.sizeBytes ?? 0,
     folderId: row.folder_id ?? prev?.folderId,
     subjectId: row.subject_id ?? prev?.subjectId,
+    space_id: row.space_id ?? prev?.space_id,
     description: row.description ?? prev?.description ?? '',
     tags: Array.isArray(row.tags) ? row.tags : prev?.tags ?? [],
     noteIds: Array.isArray(row.note_ids) ? row.note_ids : prev?.noteIds ?? [],
@@ -89,6 +91,7 @@ function localToRemote(rec: Recording, userId: string): RemoteRecording {
     size_bytes: rec.sizeBytes ?? 0,
     folder_id: rec.folderId ?? null,
     subject_id: rec.subjectId ?? null,
+    space_id: rec.space_id ?? null,
     description: rec.description ?? '',
     tags: rec.tags ?? [],
     note_ids: rec.noteIds ?? [],

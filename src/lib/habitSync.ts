@@ -18,6 +18,7 @@ type RemoteHabit = {
   reminder: string | null
   why: string | null
   icon: string | null
+  space_id?: string | null
   created_at: string | null
   updated_at: string | null
   deleted_at?: string | null
@@ -54,6 +55,7 @@ function remoteToHabit(row: RemoteHabit): Habit {
     reminder: row.reminder || '',
     why: row.why ?? '',
     icon: row.icon || 'sparkles',
+    space_id: row.space_id ?? undefined,
     createdAt: parseTs(row.created_at),
     updatedAt: parseTs(row.updated_at),
   }

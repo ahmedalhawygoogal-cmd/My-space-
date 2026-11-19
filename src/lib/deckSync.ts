@@ -14,6 +14,7 @@ type RemoteDeck = {
   created_at: string | null
   description?: string | null
   subject_id?: string | null
+  space_id?: string | null
   note_id?: string | null
   tags?: string[] | null
   native_lang?: string | null
@@ -39,6 +40,7 @@ function remoteToLocal(row: RemoteDeck, prev?: Deck): Deck {
     cardCount: row.card_count ?? prev?.cardCount ?? 0,
     description: row.description ?? prev?.description ?? '',
     subjectId: row.subject_id ?? prev?.subjectId,
+    space_id: row.space_id ?? prev?.space_id,
     tags: Array.isArray(row.tags) ? row.tags : prev?.tags ?? [],
     noteId: row.note_id ?? prev?.noteId,
     nativeLang: row.native_lang || prev?.nativeLang || 'ar',
@@ -58,6 +60,7 @@ function localToRemote(deck: Deck, userId: string): RemoteDeck {
     created_at: new Date(deck.createdAt || now()).toISOString(),
     description: deck.description ?? '',
     subject_id: deck.subjectId ?? null,
+    space_id: deck.space_id ?? null,
     note_id: deck.noteId ?? null,
     tags: deck.tags ?? [],
     native_lang: deck.nativeLang ?? null,
