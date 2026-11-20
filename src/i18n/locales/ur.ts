@@ -4,6 +4,7 @@ const ur = {
   appName: 'MySpace',
   appNameEn: 'MySpace',
   home: 'ہوم',
+  saturn: "Saturn",
   recorder: 'ریکارڈر',
   flashcards: 'فلیش کارڈز',
   tasks: 'کام',

@@ -4,6 +4,7 @@ const hi = {
   appName: 'MySpace',
   appNameEn: 'MySpace',
   home: 'होम',
+  saturn: "Saturn",
   recorder: 'रिकॉर्डर',
   flashcards: 'फ्लैशकार्ड',
   tasks: 'कार्य',

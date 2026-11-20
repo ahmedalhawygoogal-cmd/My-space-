@@ -4,6 +4,7 @@ const ko = {
   appName: 'MySpace',
   appNameEn: 'MySpace',
   home: '홈',
+  saturn: "Saturn",
   recorder: '녹음기',
   flashcards: '플래시카드',
   tasks: '할 일',

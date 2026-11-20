@@ -4,6 +4,7 @@ const fa = {
   appName: 'MySpace',
   appNameEn: 'MySpace',
   home: 'خانه',
+  saturn: "Saturn",
   recorder: 'ضبط‌کننده',
   flashcards: 'کارت‌ها',
   tasks: 'کارها',

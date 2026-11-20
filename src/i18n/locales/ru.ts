@@ -4,6 +4,7 @@ const ru = {
   appName: 'MySpace',
   appNameEn: 'MySpace',
   home: 'Главная',
+  saturn: "Saturn",
   recorder: 'Диктофон',
   flashcards: 'Карточки',
   tasks: 'Задачи',

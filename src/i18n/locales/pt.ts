@@ -4,6 +4,7 @@ const pt = {
   appName: 'MySpace',
   appNameEn: 'MySpace',
   home: 'Início',
+  saturn: "Saturn",
   recorder: 'Gravador',
   flashcards: 'Flashcards',
   tasks: 'Tarefas',

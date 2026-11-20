@@ -1,11 +1,41 @@
 import { useState, type ReactNode } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Activity, BookOpen, Bot, CheckSquare, Home, Inbox, Layers, Mic, Search, Settings, Sparkles, Workflow, type LucideIcon } from 'lucide-react'
+import {
+  Activity,
+  BookOpen,
+  Bot,
+  CheckSquare,
+  GitBranch,
+  Home,
+  Inbox,
+  Layers,
+  LayoutGrid,
+  Mic,
+  Search,
+  Settings,
+  Sparkles,
+  Workflow,
+  type LucideIcon,
+} from 'lucide-react'
+import type { I18nKey } from './i18n'
 import { CloseBtn, Sheet, useT } from './ui'
 import { SpaceSwitcher } from './components/Spaces'
 import { stopSpeak } from './utils'
 
-function watermarkIcon(path: string): LucideIcon | null {
+const NAV_ITEMS = [
+  { to: '/', key: 'home', icon: Home, center: false },
+  { to: '/spaces', key: 'spaces', icon: LayoutGrid, center: false },
+  { to: '/ai', key: 'saturn', icon: Sparkles, center: true },
+  { to: '/inbox', key: 'inbox', icon: Inbox, center: false },
+  { to: '/workflows', key: 'workflows', icon: GitBranch, center: false },
+] satisfies { to: string; key: I18nKey; icon: LucideIcon; center: boolean }[]
+
+function isActiveTab(path: string, to: string): boolean {
+  if (to === '/') return path === '/'
+  return path === to || path.startsWith(`${to}/`)
+}
+
+function WatermarkIcon(path: string): LucideIcon | null {
   if (path === '/') return Home
   if (path.startsWith('/record')) return Mic
   if (path.startsWith('/cards')) return Layers
@@ -26,7 +56,7 @@ export function Layout() {
   const [discoverOpen, setDiscoverOpen] = useState(false)
   const isRoot = loc.pathname === '/'
   const isCardsInner = loc.pathname.startsWith('/cards/')
-  const Mark = watermarkIcon(loc.pathname)
+  const Mark = WatermarkIcon(loc.pathname)
 
   function go(path: string) {
     setDiscoverOpen(false)
@@ -35,6 +65,7 @@ export function Layout() {
 
   return (
     <div className={`app-shell h-[100dvh] w-full overflow-hidden flex flex-col bg-gray-50 relative${isRoot ? '' : ' hide-chrome'}`}>
+      <div className="cosmic-field" aria-hidden="true" />
       <div className="app-bg" aria-hidden="true" />
       {isRoot ? (
         <header className="topbar">
@@ -51,9 +82,6 @@ export function Layout() {
               onClick={() => setDiscoverOpen(true)}
             >
               <Sparkles size={18} />
-            </button>
-            <button className="icon-btn" type="button" aria-label={tr('inbox')} onClick={() => nav('/inbox')}>
-              <Inbox size={18} />
             </button>
             <button className="icon-btn" type="button" aria-label={tr('search')} onClick={() => nav('/search')}>
               <Search size={18} />
@@ -103,6 +131,33 @@ export function Layout() {
       <main key={loc.pathname} className="flex-1 w-full overflow-y-auto overflow-x-hidden relative main page-transition">
         <Outlet />
       </main>
+      <nav className="bottom-nav glass-panel" aria-label={tr('appName')}>
+        {NAV_ITEMS.map((item) => {
+          const active = isActiveTab(loc.pathname, item.to)
+          const Icon = item.icon
+          return (
+            <button
+              key={item.to}
+              className={`bottom-nav-tab${item.center ? ' is-center' : ''}`}
+              type="button"
+              aria-current={active ? 'page' : undefined}
+              aria-label={tr(item.key)}
+              onClick={() => nav(item.to)}
+            >
+              {item.center ? (
+                <span className="bottom-nav-saturn">
+                  <Icon size={22} />
+                </span>
+              ) : (
+                <span className="bottom-nav-icon">
+                  <Icon size={19} />
+                </span>
+              )}
+              <span className="bottom-nav-label">{tr(item.key)}</span>
+            </button>
+          )
+        })}
+      </nav>
     </div>
   )
 }

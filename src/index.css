@@ -26,6 +26,14 @@
   --font: 'Cairo', 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif;
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-t: env(safe-area-inset-top, 0px);
+  /* Phase 2 design tokens: Quiet Luxury cosmic palette. */
+  --bg-cosmic: #05070f;
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: blur(16px);
+  --text-primary: #f4f1ea;
+  --accent-teal: #0f6e6b;
+  --accent-gold: #c9a227;
 }
 
 [data-theme='dark'] {
@@ -1738,4 +1746,167 @@ img { max-width: 100%; }
 .space-swatch.is-active {
   border-color: var(--ink);
   transform: scale(1.08);
+}
+
+/* ============================================================
+   Phase 2.1 — Quiet Luxury Cosmic
+   ============================================================ */
+
+.glass-panel {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+}
+
+/* The shell carries the cosmic palette so every surface — including sheets
+   portaled to <body> — reads on the deep-space background. */
+:root:has(.app-shell) {
+  --bg: var(--bg-cosmic);
+  --bg-elev: rgba(255, 255, 255, 0.06);
+  --bg-muted: rgba(255, 255, 255, 0.1);
+  --ink: var(--text-primary);
+  --ink-soft: rgba(244, 241, 234, 0.62);
+  --line: rgba(201, 162, 39, 0.18);
+  --gold: var(--accent-gold);
+  --gold-soft: rgba(201, 162, 39, 0.16);
+  color-scheme: dark;
+}
+
+.app-shell {
+  background: var(--bg-cosmic);
+}
+.app-shell .app-bg {
+  background: transparent;
+}
+.app-shell .page-watermark {
+  color: var(--accent-gold);
+  opacity: 0.05;
+}
+
+/* Deep-space layer: soft teal and gold nebulae with a quiet star field. */
+.cosmic-field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(90% 60% at 12% -4%, rgba(15, 110, 107, 0.4), transparent 62%),
+    radial-gradient(70% 46% at 98% 8%, rgba(201, 162, 39, 0.14), transparent 64%),
+    radial-gradient(130% 80% at 50% 112%, rgba(15, 110, 107, 0.24), transparent 66%),
+    var(--bg-cosmic);
+}
+.cosmic-field::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 18% 28%, rgba(255, 255, 255, 0.85), transparent 60%),
+    radial-gradient(1px 1px at 72% 14%, rgba(255, 255, 255, 0.6), transparent 60%),
+    radial-gradient(1.4px 1.4px at 44% 68%, rgba(255, 255, 255, 0.75), transparent 60%),
+    radial-gradient(1px 1px at 88% 56%, rgba(255, 255, 255, 0.5), transparent 60%),
+    radial-gradient(1px 1px at 32% 88%, rgba(255, 255, 255, 0.55), transparent 60%);
+  background-size: 220px 260px, 180px 200px, 300px 320px, 260px 240px, 240px 280px;
+  opacity: 0.55;
+}
+
+/* Room for the floating bar so the last card is never hidden behind it. */
+.app-shell .main {
+  padding-bottom: calc(116px + var(--safe-b));
+}
+.app-shell.hide-chrome .main {
+  padding-bottom: calc(112px + var(--safe-b));
+}
+.app-shell .fab {
+  position: fixed;
+  bottom: calc(108px + var(--safe-b));
+  inset-inline-start: 20px;
+  z-index: 998;
+}
+
+/* --- Floating 5-tab bar --- */
+.bottom-nav {
+  position: fixed;
+  bottom: calc(24px + var(--safe-b));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2px;
+  width: min(440px, calc(100vw - 28px));
+  padding: 8px 8px 6px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035));
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.bottom-nav-tab {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 2px 2px;
+  background: none;
+  border: 0;
+  border-radius: 16px;
+  cursor: pointer;
+  color: rgba(244, 241, 234, 0.55);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+.bottom-nav-tab:active {
+  transform: scale(0.94);
+}
+.bottom-nav-tab[aria-current='page'] {
+  color: var(--text-primary);
+}
+.bottom-nav-tab[aria-current='page'] .bottom-nav-label {
+  color: var(--accent-gold);
+}
+.bottom-nav-icon {
+  display: grid;
+  place-items: center;
+  height: 22px;
+}
+.bottom-nav-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bottom-nav-tab.is-center {
+  flex: 0 0 auto;
+  margin-top: -26px;
+  gap: 2px;
+}
+.bottom-nav-saturn {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  color: var(--text-primary);
+  background: radial-gradient(circle at 32% 26%, #23b3ab, var(--accent-teal) 58%, #063b39 100%);
+  border: 1px solid rgba(201, 162, 39, 0.55);
+  box-shadow:
+    0 0 0 6px rgba(15, 110, 107, 0.12),
+    0 0 26px rgba(15, 110, 107, 0.55),
+    0 0 46px rgba(201, 162, 39, 0.22);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.bottom-nav-tab.is-center:active .bottom-nav-saturn {
+  transform: scale(0.95);
+}
+.bottom-nav-tab.is-center[aria-current='page'] .bottom-nav-saturn {
+  box-shadow:
+    0 0 0 7px rgba(201, 162, 39, 0.16),
+    0 0 30px rgba(15, 110, 107, 0.7),
+    0 0 62px rgba(201, 162, 39, 0.32);
 }

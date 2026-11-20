@@ -4,6 +4,7 @@ const zh = {
   appName: 'MySpace',
   appNameEn: 'MySpace',
   home: '首页',
+  saturn: "Saturn",
   recorder: '录音',
   flashcards: '闪卡',
   tasks: '任务',

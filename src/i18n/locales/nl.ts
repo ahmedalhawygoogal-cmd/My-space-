@@ -4,6 +4,7 @@ const nl = {
   appName: 'MySpace',
   appNameEn: 'MySpace',
   home: 'Home',
+  saturn: "Saturn",
   recorder: 'Recorder',
   flashcards: 'Flashcards',
   tasks: 'Taken',

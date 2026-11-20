@@ -2,6 +2,7 @@ const ar = {
   appName: 'مساحتي',
   appNameEn: 'MySpace',
   home: 'الرئيسية',
+  saturn: "زحل",
   recorder: 'المسجل',
   flashcards: 'البطاقات',
   tasks: 'المهام',

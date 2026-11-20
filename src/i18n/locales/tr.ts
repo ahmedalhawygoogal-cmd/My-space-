@@ -4,6 +4,7 @@ const tr = {
   appName: 'MySpace',
   appNameEn: 'MySpace',
   home: 'Ana sayfa',
+  saturn: "Saturn",
   recorder: 'Kaydedici',
   flashcards: 'Kartlar',
   tasks: 'Görevler',

@@ -4,6 +4,7 @@ const id = {
   appName: 'MySpace',
   appNameEn: 'MySpace',
   home: 'Beranda',
+  saturn: "Saturn",
   recorder: 'Perekam',
   flashcards: 'Kartu flash',
   tasks: 'Tugas',
