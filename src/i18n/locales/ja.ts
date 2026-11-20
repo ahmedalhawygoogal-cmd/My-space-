@@ -507,6 +507,16 @@ const ja = {
   setDefaultSpace: "Set as default space",
   defaultSpace: "Default space",
   itemsCount: "{n} items",
+  inbox: "Inbox",
+  capturePlaceholder: "Capture a thought, task or idea…",
+  addToInbox: "Add to Inbox",
+  triage: "Triage",
+  convertToTask: "Convert to task",
+  convertToNote: "Convert to note",
+  deleteFromInbox: "Delete from Inbox",
+  noInboxItems: "Your Inbox is empty",
+  noInboxItemsHint: "Anything you capture lands here until you decide what it becomes.",
+  voiceCaptureSoon: "Voice capture is coming soon",
 } satisfies Record<I18nKey, string>
 
 export default ja

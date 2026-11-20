@@ -505,6 +505,16 @@ const ar = {
   setDefaultSpace: 'تعيين كمساحة افتراضية',
   defaultSpace: 'المساحة الافتراضية',
   itemsCount: '{n} عنصر',
+  inbox: 'الوارد',
+  capturePlaceholder: 'التقط فكرة أو مهمة أو خاطرة…',
+  addToInbox: 'أضف إلى الوارد',
+  triage: 'فرز',
+  convertToTask: 'تحويل إلى مهمة',
+  convertToNote: 'تحويل إلى ملاحظة',
+  deleteFromInbox: 'حذف من الوارد',
+  noInboxItems: 'الوارد فارغ',
+  noInboxItemsHint: 'كل ما تلتقطه يصل إلى هنا حتى تقرر ما سيصبح.',
+  voiceCaptureSoon: 'التسجيل الصوتي قريبًا',
 }
 
 export default ar

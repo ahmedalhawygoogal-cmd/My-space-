@@ -1664,6 +1664,23 @@ img { max-width: 100%; }
   .app-shell { max-width: 480px; margin: 0 auto; border-inline: 1px solid var(--line); }
 }
 
+/* Inbox */
+.inbox-capture {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inbox-capture .row {
+  justify-content: flex-end;
+}
+
+.inbox-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 /* Spaces */
 .space-switcher {
   display: inline-flex;

@@ -18,6 +18,7 @@ import type {
   Folder,
   Habit,
   HabitLog,
+  InboxItem,
   Lang,
   Link,
   Note,
@@ -39,6 +40,7 @@ import { removeRemoteCard, syncCardsFromCloud, uploadCardImage, upsertRemoteCard
 import { removeRemoteDeck, syncDecksFromCloud, upsertRemoteDeck } from './lib/deckSync'
 import { removeRemoteNote, syncNotesFromCloud, upsertRemoteNote } from './lib/noteSync'
 import { syncHabitLogsFromCloud, syncHabitsFromCloud } from './lib/habitSync'
+import { removeRemoteInboxItem, syncInboxFromCloud, upsertRemoteInboxItem } from './lib/inboxSync'
 import { migrateLocalDataToCloud } from './lib/migrateLocal'
 import { saveProfile, syncProfileFromCloud } from './lib/profileSync'
 import { pushRecordingToCloud, removeRemoteRecording, signedAudioUrl, syncRecordingsFromCloud, upsertRemoteRecording } from './lib/recordingSync'
@@ -62,6 +64,8 @@ interface StoreState {
   spaces: Space[]
   /** null = "All Spaces", which is exactly how the app behaves today. */
   activeSpaceId: string | null
+  /** Captures waiting for triage, in creation order (newest first). */
+  inboxItems: InboxItem[]
 }
 
 interface StoreApi extends StoreState {
@@ -117,6 +121,21 @@ interface StoreApi extends StoreState {
   addSpace: (name: string, extra?: Partial<Space>) => Promise<Space>
   updateSpace: (id: string, p: Partial<Space>) => Promise<void>
   deleteSpace: (id: string) => Promise<void>
+  addInboxItem: (data: Partial<InboxItem> & { title: string }) => Promise<InboxItem>
+  triageInboxItem: (id: string, action: InboxTriageTarget, data?: InboxTriageData) => Promise<void>
+  deleteInboxItem: (id: string) => Promise<void>
+}
+
+export type InboxTriageTarget = 'task' | 'note' | 'card'
+
+/** Optional overrides supplied by the triage sheet; the item fills the rest. */
+export type InboxTriageData = {
+  title?: string
+  body?: string
+  notebookId?: string
+  deckId?: string
+  front?: string
+  back?: string
 }
 
 const StoreContext = createContext<StoreApi | null>(null)
@@ -436,6 +455,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     downloads: [],
     spaces: [],
     activeSpaceId: null,
+    inboxItems: [],
   })
 
   const setActiveSpace = useCallback(
@@ -520,10 +540,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         syncTasksFromCloud(),
         syncHabitsFromCloud(),
         syncHabitLogsFromCloud(),
+        syncInboxFromCloud(),
       ])
       await syncCardsFromCloud()
     }
-    const [loadedSettings, subjects, folders, recordings, decks, cards, tasks, notebooks, notes, habits, habitLogs, links, downloads, spaceState] =
+    const [loadedSettings, subjects, folders, recordings, decks, cards, tasks, notebooks, notes, habits, habitLogs, links, downloads, spaceState, inbox] =
       await Promise.all([
         db.loadSettings(),
         db.getAll<Subject>(STORES.subjects),
@@ -539,6 +560,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         db.getAll<Link>(STORES.links),
         db.getAll<DownloadItem>(STORES.downloads),
         loadSpaces(userId),
+        db.getAll<InboxItem>(SPACE_STORES.inbox),
       ])
     const settings = userId ? await syncProfileFromCloud(loadedSettings) : loadedSettings
     const recordingsN = recordings.map(normalizeRecording)
@@ -634,6 +656,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       downloads,
       spaces: spaceState.spaces,
       activeSpaceId: spaceState.activeSpaceId,
+      inboxItems: [...inbox].sort((a, b) => b.created_at.localeCompare(a.created_at)),
     })
     applyLang(settingsN.language)
     applyTheme(settingsN.theme)
@@ -1285,6 +1308,72 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     void removeRemoteNote(id)
   }, [])
 
+  const addInboxItem = useCallback(
+    async (data: Partial<InboxItem> & { title: string }) => {
+      const iso = new Date().toISOString()
+      const item: InboxItem = {
+        id: crypto.randomUUID(),
+        user_id: userId ?? '',
+        space_id: data.space_id !== undefined ? data.space_id : state.activeSpaceId,
+        type: data.type ?? 'note',
+        title: data.title,
+        body: data.body ?? null,
+        source: data.source ?? 'quick_capture',
+        status: data.status ?? 'unprocessed',
+        converted_entity_id: null,
+        converted_entity_type: null,
+        metadata: data.metadata ?? {},
+        created_at: iso,
+        updated_at: iso,
+        processed_at: null,
+      }
+      await db.putOne(SPACE_STORES.inbox, item)
+      setState((s) => ({ ...s, inboxItems: [item, ...s.inboxItems] }))
+      void upsertRemoteInboxItem(item)
+      return item
+    },
+    [state.activeSpaceId, userId],
+  )
+
+  const deleteInboxItem = useCallback(async (id: string) => {
+    await db.deleteById(SPACE_STORES.inbox, id)
+    setState((s) => ({ ...s, inboxItems: s.inboxItems.filter((x) => x.id !== id) }))
+    void removeRemoteInboxItem(id)
+  }, [])
+
+  /**
+   * Turns a capture into a real entity and clears it from the Inbox. The
+   * entity keeps the capture's space, even while another lens is active.
+   */
+  const triageInboxItem = useCallback(
+    async (id: string, action: InboxTriageTarget, data?: InboxTriageData) => {
+      const item = state.inboxItems.find((x) => x.id === id)
+      if (!item) return
+      const title = (data?.title ?? item.title ?? '').trim()
+      const body = data?.body ?? item.body ?? ''
+      const spaceId = item.space_id
+      if (action === 'task') {
+        const created = await addTask({ title: title || body || item.title, description: body })
+        if (spaceId && created.space_id !== spaceId) await updateTask(created.id, { space_id: spaceId })
+      } else if (action === 'note') {
+        let notebookId = data?.notebookId ?? state.notebooks[0]?.id
+        if (!notebookId) notebookId = (await addNotebook('Inbox')).id
+        const html = body
+          ? `<p>${body.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}</p>`
+          : ''
+        const created = await addNote(notebookId, { title, content: html })
+        if (spaceId && created.space_id !== spaceId) await updateNote(created.id, { space_id: spaceId })
+      } else {
+        const deckId = data?.deckId ?? state.decks[0]?.id
+        if (!deckId) return
+        // Cards inherit their deck's space, so there is no space to stamp here.
+        await addCard(deckId, { front: data?.front ?? title, back: data?.back ?? body })
+      }
+      await deleteInboxItem(id)
+    },
+    [state.inboxItems, state.notebooks, state.decks, addTask, updateTask, addNotebook, addNote, updateNote, addCard, deleteInboxItem],
+  )
+
   const linkEntities = useCallback(
     async (fromType: Link['fromType'], fromId: string, toType: Link['toType'], toId: string) => {
       const item: Link = { id: uid(), fromType, fromId, toType, toId, createdAt: now() }
@@ -1492,6 +1581,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addSpace,
       updateSpace,
       deleteSpace,
+      addInboxItem,
+      triageInboxItem,
+      deleteInboxItem,
     }),
     [
       state,
@@ -1545,6 +1637,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addSpace,
       updateSpace,
       deleteSpace,
+      addInboxItem,
+      triageInboxItem,
+      deleteInboxItem,
     ],
   )
 
