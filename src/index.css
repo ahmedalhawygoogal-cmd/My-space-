@@ -1775,7 +1775,7 @@ img { max-width: 100%; }
 }
 
 .app-shell {
-  background: var(--bg-cosmic);
+  background: var(--bg-cosmic) url('/images/cosmic-bg.jpg') center / cover no-repeat fixed;
 }
 .app-shell .app-bg {
   background: transparent;
@@ -1909,4 +1909,151 @@ img { max-width: 100%; }
     0 0 0 7px rgba(201, 162, 39, 0.16),
     0 0 30px rgba(15, 110, 107, 0.7),
     0 0 62px rgba(201, 162, 39, 0.32);
+}
+
+/* ============================================================
+   Phase 2.2 — Quiet Luxury Home
+   ============================================================ */
+
+.home-screen {
+  gap: 14px;
+}
+
+.home-eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 700;
+}
+
+/* Large achievement panel */
+.home-achievement {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 22px 18px;
+  box-shadow: 0 24px 60px rgba(2, 10, 20, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+.home-achievement-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.home-achievement-count {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+.home-ring-wrap {
+  padding: 4px 0 2px;
+  filter: drop-shadow(0 0 28px rgba(15, 110, 107, 0.5));
+}
+.home-ring-wrap .ring {
+  width: 150px;
+  height: 150px;
+  filter: none;
+}
+.home-ring-wrap .ring text {
+  font-size: 16px;
+  fill: var(--text-primary);
+}
+.home-week {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+/* Quick capture bar */
+.home-capture {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 68px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  color: var(--ink);
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 16px 36px rgba(2, 10, 20, 0.4);
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+.home-capture:active {
+  transform: scale(0.985);
+}
+.home-capture b {
+  flex: 1;
+  text-align: center;
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.home-capture-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  color: var(--accent-gold);
+  border: 1px solid rgba(201, 162, 39, 0.34);
+  background: radial-gradient(circle at 32% 26%, rgba(35, 179, 171, 0.34), rgba(15, 110, 107, 0.16) 62%, rgba(6, 59, 57, 0.22));
+}
+
+/* Bento 2x2 */
+.bento-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.bento-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 118px;
+  padding: 16px 16px 14px;
+  color: var(--ink);
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+  box-shadow: 0 16px 36px rgba(2, 10, 20, 0.35);
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+.bento-card:active {
+  transform: scale(0.97);
+}
+.bento-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+}
+.bento-card-top b {
+  font-size: 1.95rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.bento-card-top svg {
+  color: var(--accent-gold);
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+.bento-label {
+  margin-top: auto;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+@media (hover: hover) {
+  .bento-card:hover,
+  .home-capture:hover {
+    border-color: rgba(201, 162, 39, 0.42);
+    transform: translateY(-2px);
+  }
 }
