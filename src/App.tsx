@@ -37,6 +37,7 @@ const HabitDetailsPage = lazy(() => import('./pages/HabitDetails'))
 const AIChatPage = lazy(() => import('./pages/AIChat'))
 const SpacesPage = lazy(() => import('./pages/Spaces'))
 const InboxPage = lazy(() => import('./pages/Inbox'))
+const WorkflowsPage = lazy(() => import('./pages/Workflows'))
 
 let hardResetInProgress = false
 
@@ -252,6 +253,7 @@ function Gate() {
           <Route path="/habits/:id" element={<HabitDetailsPage />} />
           <Route path="/spaces" element={<SpacesPage />} />
           <Route path="/inbox" element={<InboxPage />} />
+          <Route path="/workflows" element={<WorkflowsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/downloads" element={<DownloadsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

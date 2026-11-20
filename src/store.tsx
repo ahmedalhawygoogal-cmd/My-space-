@@ -30,6 +30,9 @@ import type {
   Subject,
   Task,
   Theme,
+  Workflow,
+  WorkflowRun,
+  WorkflowStep,
 } from './types'
 import { APP_FONTS, DEFAULT_SETTINGS, RTL_LANGS, SUBJECT_COLORS, isUiLang } from './types'
 import type { AppFont, AppFontSize } from './types'
@@ -41,6 +44,7 @@ import { removeRemoteDeck, syncDecksFromCloud, upsertRemoteDeck } from './lib/de
 import { removeRemoteNote, syncNotesFromCloud, upsertRemoteNote } from './lib/noteSync'
 import { syncHabitLogsFromCloud, syncHabitsFromCloud } from './lib/habitSync'
 import { removeRemoteInboxItem, syncInboxFromCloud, upsertRemoteInboxItem } from './lib/inboxSync'
+import { pushRemoteWorkflowRun, removeRemoteWorkflow, syncWorkflowsFromCloud, upsertRemoteWorkflow } from './lib/workflowSync'
 import { migrateLocalDataToCloud } from './lib/migrateLocal'
 import { saveProfile, syncProfileFromCloud } from './lib/profileSync'
 import { pushRecordingToCloud, removeRemoteRecording, signedAudioUrl, syncRecordingsFromCloud, upsertRemoteRecording } from './lib/recordingSync'
@@ -66,6 +70,8 @@ interface StoreState {
   activeSpaceId: string | null
   /** Captures waiting for triage, in creation order (newest first). */
   inboxItems: InboxItem[]
+  /** Automations the user has defined. */
+  workflows: Workflow[]
 }
 
 interface StoreApi extends StoreState {
@@ -124,6 +130,10 @@ interface StoreApi extends StoreState {
   addInboxItem: (data: Partial<InboxItem> & { title: string }) => Promise<InboxItem>
   triageInboxItem: (id: string, action: InboxTriageTarget, data?: InboxTriageData) => Promise<void>
   deleteInboxItem: (id: string) => Promise<void>
+  addWorkflow: (name: string, steps: WorkflowStep[], extra?: Partial<Workflow>) => Promise<Workflow>
+  updateWorkflow: (id: string, p: Partial<Workflow>) => Promise<void>
+  deleteWorkflow: (id: string) => Promise<void>
+  runWorkflow: (id: string) => Promise<WorkflowRun>
 }
 
 export type InboxTriageTarget = 'task' | 'note' | 'card'
@@ -456,6 +466,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     spaces: [],
     activeSpaceId: null,
     inboxItems: [],
+    workflows: [],
   })
 
   const setActiveSpace = useCallback(
@@ -541,10 +552,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         syncHabitsFromCloud(),
         syncHabitLogsFromCloud(),
         syncInboxFromCloud(),
+        syncWorkflowsFromCloud(),
       ])
       await syncCardsFromCloud()
     }
-    const [loadedSettings, subjects, folders, recordings, decks, cards, tasks, notebooks, notes, habits, habitLogs, links, downloads, spaceState, inbox] =
+    const [loadedSettings, subjects, folders, recordings, decks, cards, tasks, notebooks, notes, habits, habitLogs, links, downloads, spaceState, inbox, workflows] =
       await Promise.all([
         db.loadSettings(),
         db.getAll<Subject>(STORES.subjects),
@@ -561,6 +573,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         db.getAll<DownloadItem>(STORES.downloads),
         loadSpaces(userId),
         db.getAll<InboxItem>(SPACE_STORES.inbox),
+        db.getAll<Workflow>(SPACE_STORES.workflows),
       ])
     const settings = userId ? await syncProfileFromCloud(loadedSettings) : loadedSettings
     const recordingsN = recordings.map(normalizeRecording)
@@ -657,6 +670,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       spaces: spaceState.spaces,
       activeSpaceId: spaceState.activeSpaceId,
       inboxItems: [...inbox].sort((a, b) => b.created_at.localeCompare(a.created_at)),
+      workflows: [...workflows].sort((a, b) => b.created_at.localeCompare(a.created_at)),
     })
     applyLang(settingsN.language)
     applyTheme(settingsN.theme)
@@ -1374,6 +1388,117 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [state.inboxItems, state.notebooks, state.decks, addTask, updateTask, addNotebook, addNote, updateNote, addCard, deleteInboxItem],
   )
 
+  const addWorkflow = useCallback(
+    async (name: string, steps: WorkflowStep[], extra?: Partial<Workflow>) => {
+      const iso = new Date().toISOString()
+      const item: Workflow = {
+        id: crypto.randomUUID(),
+        user_id: userId ?? '',
+        space_id: extra?.space_id !== undefined ? extra.space_id : state.activeSpaceId,
+        name: name.trim() || 'Workflow',
+        description: extra?.description ?? null,
+        trigger: extra?.trigger ?? { kind: 'manual' },
+        steps,
+        enabled: extra?.enabled ?? true,
+        run_count: 0,
+        last_run_at: null,
+        created_at: iso,
+        updated_at: iso,
+      }
+      await db.putOne(SPACE_STORES.workflows, item)
+      setState((s) => ({ ...s, workflows: [item, ...s.workflows] }))
+      void upsertRemoteWorkflow(item)
+      return item
+    },
+    [state.activeSpaceId, userId],
+  )
+
+  const updateWorkflow = useCallback(
+    async (id: string, p: Partial<Workflow>) => {
+      const cur = state.workflows.find((x) => x.id === id)
+      if (!cur) return
+      const next: Workflow = { ...cur, ...p, updated_at: new Date().toISOString() }
+      await db.putOne(SPACE_STORES.workflows, next)
+      patchList('workflows', id, next)
+      void upsertRemoteWorkflow(next)
+    },
+    [state.workflows, patchList],
+  )
+
+  const deleteWorkflow = useCallback(async (id: string) => {
+    await db.deleteById(SPACE_STORES.workflows, id)
+    setState((s) => ({ ...s, workflows: s.workflows.filter((x) => x.id !== id) }))
+    void removeRemoteWorkflow(id)
+  }, [])
+
+  /**
+   * Runs every step of a workflow in order, then writes one run row and bumps
+   * the workflow's counters. A failing step stops the run and is recorded.
+   */
+  const runWorkflow = useCallback(
+    async (id: string) => {
+      const wf = state.workflows.find((x) => x.id === id)
+      if (!wf) throw new Error('Workflow not found')
+      const started = new Date().toISOString()
+      const results: unknown[] = []
+      let error: string | null = null
+      const toHtml = (text: string) =>
+        `<p>${text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>')}</p>`
+      for (const step of wf.steps) {
+        const params = (step.params ?? {}) as Record<string, unknown>
+        const title =
+          typeof params.title === 'string' && params.title.trim() ? params.title.trim() : wf.name
+        try {
+          if (step.kind === 'create_task') {
+            const priority =
+              params.priority === 'high' || params.priority === 'low' ? params.priority : 'medium'
+            const created = await addTask({ title, priority })
+            if (wf.space_id && created.space_id !== wf.space_id)
+              await updateTask(created.id, { space_id: wf.space_id })
+            results.push({ kind: step.kind, status: 'ok', id: created.id })
+          } else if (step.kind === 'create_note') {
+            let notebookId = state.notebooks[0]?.id
+            if (!notebookId) notebookId = (await addNotebook('Workflows')).id
+            const body = typeof params.body === 'string' ? params.body : ''
+            const created = await addNote(notebookId, { title, content: body ? toHtml(body) : '' })
+            if (wf.space_id && created.space_id !== wf.space_id)
+              await updateNote(created.id, { space_id: wf.space_id })
+            results.push({ kind: step.kind, status: 'ok', id: created.id })
+          } else {
+            // Later phases add move_to_space / add_to_inbox / notify.
+            results.push({ kind: step.kind, status: 'skipped' })
+          }
+        } catch (e) {
+          error = e instanceof Error ? e.message : String(e)
+          results.push({ kind: step.kind, status: 'failed', error })
+          break
+        }
+      }
+      const finished = new Date().toISOString()
+      const run: WorkflowRun = {
+        id: crypto.randomUUID(),
+        workflow_id: wf.id,
+        user_id: userId ?? '',
+        status: error ? 'failed' : 'ok',
+        trigger_payload: { kind: wf.trigger.kind },
+        step_results: results,
+        error,
+        started_at: started,
+        finished_at: finished,
+        created_at: finished,
+      }
+      try {
+        await db.putOne(SPACE_STORES.workflowRuns, run)
+      } catch (e) {
+        console.error('[Workflows] Failed to log the run locally', e)
+      }
+      void pushRemoteWorkflowRun(run)
+      await updateWorkflow(wf.id, { run_count: (wf.run_count ?? 0) + 1, last_run_at: finished })
+      return run
+    },
+    [state.workflows, state.notebooks, userId, addTask, updateTask, addNotebook, addNote, updateNote, updateWorkflow],
+  )
+
   const linkEntities = useCallback(
     async (fromType: Link['fromType'], fromId: string, toType: Link['toType'], toId: string) => {
       const item: Link = { id: uid(), fromType, fromId, toType, toId, createdAt: now() }
@@ -1584,6 +1709,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addInboxItem,
       triageInboxItem,
       deleteInboxItem,
+      addWorkflow,
+      updateWorkflow,
+      deleteWorkflow,
+      runWorkflow,
     }),
     [
       state,
@@ -1640,6 +1769,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       addInboxItem,
       triageInboxItem,
       deleteInboxItem,
+      addWorkflow,
+      updateWorkflow,
+      deleteWorkflow,
+      runWorkflow,
     ],
   )
 

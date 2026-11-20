@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Activity, BookOpen, Bot, CheckSquare, Home, Inbox, Layers, Mic, Search, Settings, Sparkles, type LucideIcon } from 'lucide-react'
+import { Activity, BookOpen, Bot, CheckSquare, Home, Inbox, Layers, Mic, Search, Settings, Sparkles, Workflow, type LucideIcon } from 'lucide-react'
 import { CloseBtn, Sheet, useT } from './ui'
 import { SpaceSwitcher } from './components/Spaces'
 import { stopSpeak } from './utils'
@@ -14,6 +14,7 @@ function watermarkIcon(path: string): LucideIcon | null {
   if (path.startsWith('/habits')) return Activity
   if (path.startsWith('/spaces')) return Layers
   if (path.startsWith('/inbox')) return Inbox
+  if (path.startsWith('/workflows')) return Workflow
   if (path.startsWith('/motivate')) return Sparkles
   return null
 }
@@ -90,6 +91,7 @@ export function Layout() {
           <DiscoverTile icon={<Activity size={20} />} title={tr('habits')} onClick={() => go('/habits')} />
           <DiscoverTile icon={<Layers size={20} />} title={tr('spaces')} onClick={() => go('/spaces')} />
           <DiscoverTile icon={<Inbox size={20} />} title={tr('inbox')} onClick={() => go('/inbox')} />
+          <DiscoverTile icon={<Workflow size={20} />} title={tr('workflows')} onClick={() => go('/workflows')} />
         </div>
       </Sheet>
       {Mark && (
