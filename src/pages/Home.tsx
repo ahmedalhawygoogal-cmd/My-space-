@@ -41,18 +41,19 @@ export default function HomePage() {
       </div>
 
       <section className="glass-panel home-achievement">
-        <div className="home-achievement-head">
+        <div className="home-orb" aria-hidden="true">
+          <Ring value={progress} size={88} />
+          <span className="home-orb-planet" />
+        </div>
+        <div className="home-achievement-body">
           <span className="home-eyebrow">{tr('progressToday')}</span>
-          <span className="home-achievement-count">
+          <b className="home-achievement-count">
             {doneToday.length} / {doneToday.length + openToday.length}
-          </span>
+          </b>
+          <p className="home-week muted">
+            {tr('weeklyProgress')}: {weekPct}%
+          </p>
         </div>
-        <div className="home-ring-wrap">
-          <Ring value={progress} size={150} />
-        </div>
-        <p className="home-week muted">
-          {tr('weeklyProgress')}: {weekPct}%
-        </p>
       </section>
 
       <button className="glass-panel home-capture" type="button" onClick={() => nav('/record')}>
