@@ -1829,10 +1829,10 @@ img { max-width: 100%; }
 
 /* Room for the floating bar so the last card is never hidden behind it. */
 .app-shell .main {
-  padding-bottom: calc(116px + var(--safe-b));
+  padding-bottom: calc(150px + var(--safe-b));
 }
 .app-shell.hide-chrome .main {
-  padding-bottom: calc(112px + var(--safe-b));
+  padding-bottom: calc(150px + var(--safe-b));
 }
 .app-shell .fab {
   position: fixed;
@@ -1944,11 +1944,18 @@ img { max-width: 100%; }
 
 /* Large achievement panel */
 .home-achievement {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
   padding: 20px 22px 18px;
+  /* Keeps the page watermark from showing through the ring area. */
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03)),
+    rgba(6, 18, 30, 0.55);
   box-shadow: 0 24px 60px rgba(2, 10, 20, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 .home-achievement-head {
@@ -1968,8 +1975,10 @@ img { max-width: 100%; }
   filter: drop-shadow(0 0 28px rgba(15, 110, 107, 0.5));
 }
 .home-ring-wrap .ring {
-  width: 150px;
-  height: 150px;
+  width: 120px;
+  height: 120px;
+  max-width: 120px;
+  max-height: 120px;
   filter: none;
 }
 .home-ring-wrap .ring text {
@@ -2129,8 +2138,10 @@ img { max-width: 100%; }
     padding: 18px 16px 16px;
   }
   .home-ring-wrap .ring {
-    width: 132px;
-    height: 132px;
+    width: 108px;
+    height: 108px;
+    max-width: 120px;
+    max-height: 120px;
   }
   .bento-card {
     min-height: 108px;
@@ -2153,4 +2164,15 @@ img { max-width: 100%; }
     width: 38px;
     height: 38px;
   }
+}
+
+/* Keep the tab labels clear of the screen edge and give Arabic descenders
+   room inside the fixed-height label line. */
+.bottom-nav {
+  bottom: calc(26px + var(--safe-b));
+  padding: 8px 8px 10px;
+}
+.bottom-nav-label {
+  line-height: 1.45;
+  padding: 1px 2px 2px;
 }
