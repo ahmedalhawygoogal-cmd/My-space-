@@ -42,8 +42,10 @@ export default function HomePage() {
 
       <section className="glass-panel home-achievement">
         <div className="home-orb" aria-hidden="true">
-          <Ring value={progress} size={88} />
-          <span className="home-orb-planet" />
+          <img className="home-orb-img" src="/images/saturn.svg" alt="" />
+          <div className="home-orb-ring">
+            <Ring value={progress} size={104} />
+          </div>
         </div>
         <div className="home-achievement-body">
           <span className="home-eyebrow">{tr('progressToday')}</span>
