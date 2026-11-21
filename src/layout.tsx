@@ -65,6 +65,7 @@ export function Layout() {
 
   return (
     <div className={`app-shell h-[100dvh] w-full overflow-hidden flex flex-col bg-gray-50 relative${isRoot ? '' : ' hide-chrome'}`}>
+      <div className="cosmic-bg-layer" aria-hidden="true" />
       <div className="cosmic-field" aria-hidden="true" />
       <div className="app-bg" aria-hidden="true" />
       {isRoot ? (
