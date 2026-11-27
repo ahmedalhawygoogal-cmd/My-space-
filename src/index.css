@@ -1841,253 +1841,55 @@ img { max-width: 100%; }
   z-index: 998;
 }
 
-/* --- Floating 5-tab bar --- */
-.bottom-nav {
-  position: fixed;
-  bottom: calc(24px + var(--safe-b));
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 999;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 2px;
-  width: min(440px, calc(100vw - 28px));
-  padding: 8px 8px 6px;
-  border-radius: 24px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035));
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-.bottom-nav-tab {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  padding: 4px 2px 2px;
-  background: none;
-  border: 0;
-  border-radius: 16px;
-  cursor: pointer;
-  color: rgba(244, 241, 234, 0.55);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  transition: color 0.18s ease, transform 0.18s ease;
-}
-.bottom-nav-tab:active {
-  transform: scale(0.94);
-}
-.bottom-nav-tab[aria-current='page'] {
-  color: var(--text-primary);
-}
-.bottom-nav-tab[aria-current='page'] .bottom-nav-label {
-  color: var(--accent-gold);
-}
-.bottom-nav-icon {
-  display: grid;
-  place-items: center;
-  height: 22px;
-}
-.bottom-nav-label {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.bottom-nav-tab.is-center {
-  flex: 0 0 auto;
-  margin-top: -26px;
-  gap: 2px;
-}
-.bottom-nav-saturn {
-  display: grid;
-  place-items: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  color: var(--text-primary);
-  background: radial-gradient(circle at 32% 26%, #23b3ab, var(--accent-teal) 58%, #063b39 100%);
-  border: 1px solid rgba(201, 162, 39, 0.55);
-  box-shadow:
-    0 0 0 6px rgba(15, 110, 107, 0.12),
-    0 0 26px rgba(15, 110, 107, 0.55),
-    0 0 46px rgba(201, 162, 39, 0.22);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
-}
-.bottom-nav-tab.is-center:active .bottom-nav-saturn {
-  transform: scale(0.95);
-}
-.bottom-nav-tab.is-center[aria-current='page'] .bottom-nav-saturn {
-  box-shadow:
-    0 0 0 7px rgba(201, 162, 39, 0.16),
-    0 0 30px rgba(15, 110, 107, 0.7),
-    0 0 62px rgba(201, 162, 39, 0.32);
-}
-
 /* ============================================================
-   Phase 2.2 — Quiet Luxury Home
+   Phase 3 — Theme tint, split backgrounds, home card, pill nav
    ============================================================ */
 
-.home-screen {
-  gap: 14px;
+/* --- 1. Theme tint lives on the app root, not on an overlay --- */
+.app-shell {
+  background-color: color-mix(in srgb, var(--bg-cosmic) 90%, var(--brand) 10%);
 }
 
-.home-eyebrow {
-  font-size: 0.8rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-  font-weight: 700;
-}
-
-/* Large achievement panel */
-.home-achievement {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 20px 22px 18px;
-  /* Keeps the page watermark from showing through the ring area. */
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03)),
-    rgba(6, 18, 30, 0.55);
-  box-shadow: 0 24px 60px rgba(2, 10, 20, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.07);
-}
-.home-achievement-head {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.home-achievement-count {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--accent-gold);
-}
-.home-ring-wrap {
-  padding: 4px 0 2px;
-  filter: drop-shadow(0 0 28px rgba(15, 110, 107, 0.5));
-}
-.home-ring-wrap .ring {
-  width: 120px;
-  height: 120px;
-  max-width: 120px;
-  max-height: 120px;
+/* --- 2. Home photo vs. inner-page backdrop -------------------- */
+/* Saturn's photo is Home only. */
+.bg-home > .cosmic-bg-layer {
+  background-image: url('/images/cosmic-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   filter: none;
+  transform: none;
 }
-.home-ring-wrap .ring text {
-  font-size: 16px;
-  fill: var(--text-primary);
+/* Inner screens: the same photograph, blurred and darkened past recognition. */
+.bg-inner > .cosmic-bg-layer {
+  background-image: url('/images/cosmic-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(28px) saturate(0.6) brightness(0.38);
+  transform: scale(1.18);
 }
-.home-week {
-  margin: 0;
-  font-size: 0.85rem;
-}
-
-/* Quick capture bar */
-.home-capture {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  min-height: 68px;
-  padding: 10px 14px;
-  border-radius: 999px;
-  color: var(--ink);
-  font-family: inherit;
-  cursor: pointer;
-  box-shadow: 0 16px 36px rgba(2, 10, 20, 0.4);
-  transition: transform 0.18s ease, border-color 0.18s ease;
-}
-.home-capture:active {
-  transform: scale(0.985);
-}
-.home-capture b {
-  flex: 1;
-  text-align: center;
-  font-size: 1.02rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-}
-.home-capture-icon {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  color: var(--accent-gold);
-  border: 1px solid rgba(201, 162, 39, 0.34);
-  background: radial-gradient(circle at 32% 26%, rgba(35, 179, 171, 0.34), rgba(15, 110, 107, 0.16) 62%, rgba(6, 59, 57, 0.22));
+.bg-inner > .cosmic-bg-layer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 72% at 50% -12%, rgba(15, 110, 107, 0.22), transparent 62%),
+    linear-gradient(180deg, rgba(5, 7, 15, 0.5), rgba(5, 7, 15, 0.88));
 }
 
-/* Bento 2x2 */
-.bento-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-.bento-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  min-height: 118px;
-  padding: 16px 16px 14px;
-  color: var(--ink);
-  font-family: inherit;
-  text-align: start;
-  cursor: pointer;
-  box-shadow: 0 16px 36px rgba(2, 10, 20, 0.35);
-  transition: transform 0.18s ease, border-color 0.18s ease;
-}
-.bento-card:active {
-  transform: scale(0.97);
-}
-.bento-card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-  width: 100%;
-}
-.bento-card-top b {
-  font-size: 1.95rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.03em;
-}
-.bento-card-top svg {
-  color: var(--accent-gold);
-  opacity: 0.85;
-  flex-shrink: 0;
-}
-.bento-label {
-  margin-top: auto;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--ink-soft);
-}
-@media (hover: hover) {
-  .bento-card:hover,
-  .home-capture:hover {
-    border-color: rgba(201, 162, 39, 0.42);
-    transform: translateY(-2px);
-  }
+/* --- 3. Primary buttons follow the theme colour, never a tint -- */
+.btn:not(.secondary):not(.ghost):not(.danger),
+.btn.accent,
+.fab.accent,
+.seg button.on,
+.chip.active {
+  background-color: var(--brand) !important;
+  background-image: none !important;
+  color: #fff !important;
 }
 
-/* ============================================================
-   Phase 2.3 — Mobile hardening
-   ============================================================ */
-
-/* The top bar is a fixed-height flex row: keep every child shrinkable so
-   the actions never spill sideways and collide with the page content. */
+/* --- 4. Top bar hardening on narrow phones -------------------- */
 .topbar {
   min-width: 0;
 }
@@ -2135,20 +1937,10 @@ img { max-width: 100%; }
     font-size: 0.72rem;
   }
   .home-achievement {
-    padding: 18px 16px 16px;
-  }
-  .home-ring-wrap .ring {
-    width: 108px;
-    height: 108px;
-    max-width: 120px;
-    max-height: 120px;
+    padding: 14px;
   }
   .bento-card {
-    min-height: 108px;
     padding: 14px 14px 12px;
-  }
-  .bento-card-top b {
-    font-size: 1.75rem;
   }
 }
 
@@ -2164,29 +1956,27 @@ img { max-width: 100%; }
     width: 38px;
     height: 38px;
   }
+  .home-achievement-count {
+    font-size: 1.75rem;
+  }
 }
 
-/* Keep the tab labels clear of the screen edge and give Arabic descenders
-   room inside the fixed-height label line. */
-.bottom-nav {
-  bottom: calc(26px + var(--safe-b));
-  padding: 8px 8px 10px;
+/* --- 5. Home screen shell (one screen, no scroll) ------------- */
+.home-screen {
+  gap: 14px;
 }
-.bottom-nav-label {
-  line-height: 1.45;
-  padding: 1px 2px 2px;
+.home-eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 700;
 }
-
-/* ============================================================
-   Phase 2.4 — Native Home (no scroll) + pill nav
-   ============================================================ */
-
-/* The faint page watermark is gone on every screen. */
-.app-shell .page-watermark {
-  display: none;
+.home-week {
+  margin: 0;
+  font-size: 0.78rem;
 }
 
-/* Home fills the viewport and never scrolls. */
 .app-shell.is-home .main {
   height: calc(100vh - 100px);
   height: calc(100dvh - 100px);
@@ -2211,35 +2001,39 @@ img { max-width: 100%; }
   flex-shrink: 0;
 }
 
-/* Achievement card: short and wide, Saturn orbit on the left, numbers on the right. */
+/* --- 6. Achievement card: wide bar, Saturn orbit left, numbers right --- */
 .home-achievement {
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
   align-items: center;
-  gap: 14px;
-  padding: 16px 24px;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 24px;
+  flex-shrink: 0;
   direction: ltr;
-  /* Opaque enough that the backdrop's own Saturn does not bleed through. */
-  background: rgba(10, 15, 25, 0.75);
+  border: 1px solid var(--glass-border);
+  /* Opaque enough that the backdrop's own Saturn cannot bleed through. */
+  background: rgba(10, 15, 25, 0.85);
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
+  box-shadow: 0 18px 44px rgba(2, 10, 20, 0.45);
 }
 .home-orb {
   position: relative;
+  flex-shrink: 0;
   display: grid;
   place-items: center;
-  width: 92px;
-  height: 92px;
-  flex-shrink: 0;
+  width: 76px;
+  height: 76px;
 }
 .home-orb-img {
   display: block;
-  width: 58px;
-  height: 58px;
-  filter: drop-shadow(0 0 14px rgba(15, 110, 107, 0.45));
+  width: 52px;
+  height: 52px;
+  filter: drop-shadow(0 0 12px rgba(15, 110, 107, 0.5));
 }
-/* Progress ring sits exactly on top of the Saturn graphic. */
+/* Ring wrapped exactly around the Saturn graphic. */
 .home-orb-ring {
   position: absolute;
   inset: 0;
@@ -2248,27 +2042,14 @@ img { max-width: 100%; }
   pointer-events: none;
 }
 .home-orb-ring .ring {
-  width: 92px;
-  height: 92px;
-  max-width: 92px;
-  max-height: 92px;
+  width: 76px;
+  height: 76px;
+  max-width: 76px;
+  max-height: 76px;
   filter: none;
 }
 .home-orb-ring .ring text {
   display: none;
-}
-/* Marker pinned to the 0% start position (12 o'clock). */
-.home-orb-ring::after {
-  content: '';
-  position: absolute;
-  top: 6px;
-  left: 50%;
-  width: 7px;
-  height: 7px;
-  margin-left: -3.5px;
-  border-radius: 50%;
-  background: var(--danger);
-  box-shadow: 0 0 8px rgba(239, 107, 94, 0.8);
 }
 .home-achievement-body {
   display: flex;
@@ -2278,92 +2059,198 @@ img { max-width: 100%; }
   min-width: 0;
   text-align: right;
 }
-.home-achievement-body .home-eyebrow {
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-}
 .home-achievement-count {
-  font-size: 2.15rem;
+  font-size: 2rem;
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.03em;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
 }
-.home-week {
-  margin: 0;
-  font-size: 0.78rem;
-}
 
-/* Compact capture bar and bento tiles so the screen fits without scrolling. */
-.app-shell.is-home .home-capture {
-  flex-shrink: 0;
+/* --- 7. Quick capture bar ------------------------------------ */
+.home-capture {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
   min-height: 54px;
   padding: 6px 12px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  color: var(--ink);
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+  box-shadow: 0 16px 36px rgba(2, 10, 20, 0.4);
 }
-.app-shell.is-home .home-capture-icon {
+.home-capture:active {
+  transform: scale(0.985);
+}
+.home-capture b {
+  flex: 1;
+  text-align: center;
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.home-capture-icon {
+  display: grid;
+  place-items: center;
   width: 38px;
   height: 38px;
-}
-.app-shell.is-home .bento-grid {
-  flex: 1 1 auto;
-  min-height: 0;
-  grid-template-rows: 1fr 1fr;
-  gap: 10px;
-}
-.app-shell.is-home .bento-card {
-  min-height: 0;
-  gap: 4px;
-  padding: 12px 14px;
-  overflow: hidden;
-}
-.app-shell.is-home .bento-card-top b {
-  font-size: 1.6rem;
-}
-.app-shell.is-home .bento-label {
-  font-size: 0.78rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  color: var(--accent-gold);
+  border: 1px solid rgba(201, 162, 39, 0.34);
+  background: radial-gradient(circle at 32% 26%, rgba(35, 179, 171, 0.34), rgba(15, 110, 107, 0.16) 62%, rgba(6, 59, 57, 0.22));
 }
 
-/* Floating pill tab bar. */
+/* --- 8. Bento 2x2 -------------------------------------------- */
+.bento-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 10px;
+}
+.bento-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 0;
+  padding: 12px 14px;
+  overflow: hidden;
+  color: var(--ink);
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+  box-shadow: 0 16px 36px rgba(2, 10, 20, 0.35);
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+.bento-card:active {
+  transform: scale(0.97);
+}
+.bento-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+}
+.bento-card-top b {
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.bento-card-top svg {
+  color: var(--accent-gold);
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+.bento-label {
+  margin-top: auto;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+@media (hover: hover) {
+  .bento-card:hover,
+  .home-capture:hover {
+    border-color: rgba(201, 162, 39, 0.42);
+    transform: translateY(-2px);
+  }
+}
+
+/* --- 9. Floating pill tab bar -------------------------------- */
 .bottom-nav {
-  bottom: calc(20px + var(--safe-b));
+  position: fixed;
   left: 50%;
+  bottom: calc(20px + var(--safe-b));
   transform: translateX(-50%);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 2px;
   width: 90%;
   max-width: 400px;
-  justify-content: space-around;
   padding: 6px 10px 8px;
   border-radius: 50px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.04));
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 .bottom-nav-tab {
   flex: 0 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 2px;
   padding: 2px 2px 0;
+  background: none;
+  border: 0;
+  border-radius: 16px;
+  cursor: pointer;
+  color: rgba(244, 241, 234, 0.55);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+.bottom-nav-tab:active {
+  transform: scale(0.94);
+}
+.bottom-nav-tab[aria-current='page'] {
+  color: var(--text-primary);
+}
+.bottom-nav-tab[aria-current='page'] .bottom-nav-label {
+  color: var(--accent-gold);
 }
 .bottom-nav-icon {
+  display: grid;
+  place-items: center;
   height: 19px;
+}
+.bottom-nav-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.45;
+  padding: 1px 2px 2px;
 }
 .bottom-nav-tab.is-center {
   flex: 0 0 auto;
-  margin-top: -12px;
+  transform: translateY(-10px);
+}
+.bottom-nav-tab.is-center:active {
+  transform: translateY(-10px) scale(0.96);
 }
 .bottom-nav-saturn {
+  display: grid;
+  place-items: center;
   width: 50px;
   height: 50px;
+  border-radius: 50%;
+  color: var(--text-primary);
+  background: radial-gradient(circle at 32% 26%, #23b3ab, var(--accent-teal) 58%, #063b39 100%);
+  border: 1px solid rgba(201, 162, 39, 0.55);
   box-shadow:
     0 0 0 5px rgba(15, 110, 107, 0.12),
     0 0 22px rgba(15, 110, 107, 0.5),
     0 0 38px rgba(201, 162, 39, 0.2);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
-
-/* Theme tint: recolors the fixed cosmic photo with the user's accent colour
-   while keeping the image detail. Sits above the photo, below the content. */
-.theme-overlay {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: -1;
-  background-color: var(--brand);
-  opacity: 0.15;
-  mix-blend-mode: color;
+.bottom-nav-tab.is-center:active .bottom-nav-saturn {
+  transform: scale(0.95);
+}
+.bottom-nav-tab.is-center[aria-current='page'] .bottom-nav-saturn {
+  box-shadow:
+    0 0 0 6px rgba(201, 162, 39, 0.16),
+    0 0 26px rgba(15, 110, 107, 0.7),
+    0 0 52px rgba(201, 162, 39, 0.3);
 }

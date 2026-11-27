@@ -40,12 +40,12 @@ export default function HomePage() {
         <h1 className="hero-hi">{hi}</h1>
       </div>
 
-      <section className="glass-panel home-achievement">
-        <div className="home-orb" aria-hidden="true">
+      <section className="home-achievement">
+        <div className="home-orb">
           <img className="home-orb-img" src="/images/saturn.svg" alt="" />
-          <div className="home-orb-ring">
-            <Ring value={progress} size={104} />
-          </div>
+          <span className="home-orb-ring" aria-hidden="true">
+            <Ring value={progress} size={76} />
+          </span>
         </div>
         <div className="home-achievement-body">
           <span className="home-eyebrow">{tr('progressToday')}</span>
