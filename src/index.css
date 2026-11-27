@@ -1879,8 +1879,10 @@ img { max-width: 100%; }
 }
 
 /* --- 3. Primary buttons follow the theme colour, never a tint -- */
+.btn.primary,
 .btn:not(.secondary):not(.ghost):not(.danger),
 .btn.accent,
+.fab,
 .fab.accent,
 .seg button.on,
 .chip.active {
@@ -1937,7 +1939,7 @@ img { max-width: 100%; }
     font-size: 0.72rem;
   }
   .home-achievement {
-    padding: 14px;
+    padding: 16px 16px 16px 148px;
   }
   .bento-card {
     padding: 14px 14px 12px;
@@ -2003,52 +2005,43 @@ img { max-width: 100%; }
 
 /* --- 6. Achievement card: wide bar, Saturn orbit left, numbers right --- */
 .home-achievement {
+  position: relative;
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 16px;
-  padding: 16px;
+  padding: 20px 20px 20px 156px;
+  min-height: 160px;
   border-radius: 24px;
   flex-shrink: 0;
   direction: ltr;
   border: 1px solid var(--glass-border);
-  /* Opaque enough that the backdrop's own Saturn cannot bleed through. */
-  background: rgba(10, 15, 25, 0.85);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  box-shadow: 0 18px 44px rgba(2, 10, 20, 0.45);
+  /* Pure glass, so the Saturn of the global background shows through. */
+  background: rgba(255, 255, 255, 0.05);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+  box-shadow: 0 18px 44px rgba(2, 10, 20, 0.28);
 }
-.home-orb {
-  position: relative;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  width: 76px;
-  height: 76px;
-}
-.home-orb-img {
-  display: block;
-  width: 52px;
-  height: 52px;
-  filter: drop-shadow(0 0 12px rgba(15, 110, 107, 0.5));
-}
-/* Ring wrapped exactly around the Saturn graphic. */
-.home-orb-ring {
+/* Progress ring framing the background Saturn, pinned to the card's top-left. */
+.home-ring-wrap {
   position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
+  top: 20px;
+  left: 20px;
+  display: block;
+  width: 120px;
+  height: 120px;
   pointer-events: none;
 }
-.home-orb-ring .ring {
-  width: 76px;
-  height: 76px;
-  max-width: 76px;
-  max-height: 76px;
+.home-ring-wrap .ring {
+  display: block;
+  width: 120px;
+  height: 120px;
+  max-width: 120px;
+  max-height: 120px;
   filter: none;
 }
-.home-orb-ring .ring text {
+.home-ring-wrap .ring text {
   display: none;
 }
 .home-achievement-body {
@@ -2253,4 +2246,20 @@ img { max-width: 100%; }
     0 0 0 6px rgba(201, 162, 39, 0.16),
     0 0 26px rgba(15, 110, 107, 0.7),
     0 0 52px rgba(201, 162, 39, 0.3);
+}
+
+/* The floating tab bar belongs to Home only; inner pages keep their Close (X). */
+.app-shell.is-home .bottom-nav {
+  display: flex;
+}
+.app-shell.hide-chrome .bottom-nav {
+  display: none;
+}
+.app-shell.hide-chrome .main {
+  padding-bottom: calc(32px + var(--safe-b));
+}
+
+/* The oversized watermark is hidden on Home and kept on inner pages. */
+.is-home .page-watermark {
+  display: none !important;
 }

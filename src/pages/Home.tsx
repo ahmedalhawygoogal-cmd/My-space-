@@ -41,12 +41,9 @@ export default function HomePage() {
       </div>
 
       <section className="home-achievement">
-        <div className="home-orb">
-          <img className="home-orb-img" src="/images/saturn.svg" alt="" />
-          <span className="home-orb-ring" aria-hidden="true">
-            <Ring value={progress} size={76} />
-          </span>
-        </div>
+        <span className="home-ring-wrap" aria-hidden="true">
+          <Ring value={progress} size={120} />
+        </span>
         <div className="home-achievement-body">
           <span className="home-eyebrow">{tr('progressToday')}</span>
           <b className="home-achievement-count">
